@@ -8,10 +8,10 @@ const Page: React.FC = () => {
       <p className="text-center mt-4">This site is under construction. Please visit the following links:</p>
       <div className="flex justify-center mt-4 space-x-4">
         <Button asChild>
-          <a href="/animated-choropleth">Animated Choropleth</a>
+          <a href="animated-choropleth">Animated Choropleth</a>
         </Button>
         <Button asChild>
-          <a href="/scatterplot-matrix">Scatterplot Matrix</a>
+          <a href="scatterplot-matrix">Scatterplot Matrix</a>
         </Button>
       </div>
     </div>

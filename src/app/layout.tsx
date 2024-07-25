@@ -21,11 +21,13 @@ const noFlashScript = `
   (function() {
     try {
       var theme = localStorage.getItem('theme');
-      if (theme === 'system' || !theme) {
+      if (theme) {
+        document.documentElement.className = theme;
+      } else {
         var systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         theme = systemPrefersDark ? 'dark' : 'light';
+        document.documentElement.className = theme;
       }
-      document.documentElement.classList.add(theme);
     } catch (e) {}
   })();
 `;
@@ -39,7 +41,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body className={cn("min-h-screen antialiased", fontSans.className)}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >

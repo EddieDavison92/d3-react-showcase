@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import { MainNav } from "@/components/main-nav"
 import { MobileNav } from "@/components/mobile-nav"
