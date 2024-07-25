@@ -3,6 +3,7 @@ import { fontSans } from "@/lib/fonts"
 import { cn } from "@/lib/utils"
 import { SiteHeader } from "@/components/site-header"
 import { siteConfig } from "@/config/site"
+import { Analytics } from "@vercel/analytics/react"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body className={cn("min-h-screen antialiased", fontSans.className)}>
           <SiteHeader />
           {children}
+          <Analytics/>
       </body>
     </html>
   )
