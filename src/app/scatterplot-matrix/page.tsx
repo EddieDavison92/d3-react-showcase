@@ -5,6 +5,7 @@ import ScatterplotMatrix from "@/components/d3/ScatterplotMatrix";
 import * as d3 from "d3";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import Image from "next/image";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
@@ -73,7 +74,19 @@ export default function Home() {
       {isLoading ? (
         <div className="text-center">Loading...</div>
       ) : (
-        <ScatterplotMatrix data={filteredData} columns={numericColumns} dimension={dimension}/>
+        <div>
+          <ScatterplotMatrix data={filteredData} columns={numericColumns} dimension={dimension} />
+          <h2 className="text-left text-2xl font-bold mt-4">Meet the Penguins</h2>
+          <p className="text-left my-2">
+            Here are the different species of penguins you will encounter in the dataset:
+          </p>
+          <Image src="/img/penguins-image.jpg" alt="Penguins" width="1000" height="400" className="mt- max-width" />
+          <h3 className="text-left text-2xl font-bold mt-4">What is a Culmen?</h3>
+          <p className="text-left my-2">
+            The culmen is the ridge along the top part of a bird&apos;s bill. It is an important measurement used to identify and study birds and monitor their health.
+          </p>
+          <Image src="/img/culmen_depth.png" alt="Culmen Depth" width="600" height="400" className="mt-4 max-width" />
+        </div>
       )}
     </div>
   );

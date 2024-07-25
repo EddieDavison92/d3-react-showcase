@@ -15,13 +15,19 @@ interface ScatterplotMatrixProps {
   dimension: string;
 }
 
+// Define the schemeObservable10 color scheme
+const schemeObservable10 = [
+    '#3366CC', '#DC3912','#109618', '#FF9900', '#990099',
+    '#3B3EAC', '#0099C6', '#DD4477', '#66AA00', '#B82E2E'
+  ];
+
 const ScatterplotMatrix: React.FC<ScatterplotMatrixProps> = ({ data, columns, dimension }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const { theme } = useTheme();
 
   const color = d3.scaleOrdinal<string>()
     .domain(Array.from(new Set(data.map(d => d[dimension] as string))))
-    .range(d3.schemeCategory10);
+    .range(schemeObservable10);
 
   useEffect(() => {
     if (data.length === 0 || columns.length === 0) return;
@@ -55,7 +61,7 @@ const ScatterplotMatrix: React.FC<ScatterplotMatrixProps> = ({ data, columns, di
 
     svg.append('style')
       .text(`
-        circle.hidden { fill: var(--background); fill-opacity: 1; r: 1px; }
+        circle.hidden { fill: var(--background); fill-opacity: 0.8; r: 1px; }
         circle { shape-rendering: geometricPrecision; stroke: none; stroke-width: 0.5px; }
       `);
 

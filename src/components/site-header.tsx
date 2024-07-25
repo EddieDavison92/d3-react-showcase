@@ -1,7 +1,8 @@
+"use client"
+
 import * as React from "react"
 import { MainNav } from "@/components/main-nav"
 import { MobileNav } from "@/components/mobile-nav"
-import { ModeToggle } from "@/components/ui/mode-toggle"
 
 export function SiteHeader() {
   return (
@@ -11,7 +12,6 @@ export function SiteHeader() {
         <MobileNav />
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <nav className="flex items-center">
-            <ModeToggle />
           </nav>
         </div>
       </div>
