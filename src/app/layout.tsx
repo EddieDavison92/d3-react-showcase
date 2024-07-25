@@ -3,6 +3,7 @@ import { fontSans } from "@/lib/fonts"
 import { cn } from "@/lib/utils"
 import { SiteHeader } from "@/components/site-header"
 import { siteConfig } from "@/config/site"
+import { ThemeProvider } from "@/components/theme-provider"
 import { Analytics } from "@vercel/analytics/react"
 import "./globals.css"
 
@@ -20,15 +21,21 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-      </head>
-      <body className={cn("min-h-screen antialiased flex flex-col", fontSans.className)}>
+      <head />
+        <body className={cn("min-h-screen antialiased flex flex-col", fontSans.className)}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem
+            disableTransitionOnChange
+          >
           <SiteHeader />
           <div className="flex-1 overflow-y-auto">
               {children}
           </div>
+          </ThemeProvider>
           <Analytics/>
-      </body>
+       </body>
     </html>
   )
 }
