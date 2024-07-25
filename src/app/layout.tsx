@@ -25,7 +25,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body className={cn("min-h-screen antialiased", fontSans.className)}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >
