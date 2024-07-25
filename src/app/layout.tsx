@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { fontSans } from "@/lib/fonts"
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 import { ThemeProvider } from "@/components/theme-provider"
 import { SiteHeader } from "@/components/site-header"
 import { siteConfig } from "@/config/site"
@@ -17,10 +17,25 @@ interface RootLayoutProps {
   children: React.ReactNode
 }
 
+const noFlashScript = `
+  (function() {
+    try {
+      var mode = localStorage.getItem('theme') || 'light';
+      if (mode === 'system') {
+        var systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        mode = systemPrefersDark ? 'dark' : 'light';
+      }
+      document.documentElement.classList.add(mode);
+    } catch (e) {}
+  })();
+`;
+
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head />
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: noFlashScript }} />
+      </head>
       <body className={cn("min-h-screen antialiased", fontSans.className)}>
         <ThemeProvider
           attribute="class"
