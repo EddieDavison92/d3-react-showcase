@@ -1,4 +1,3 @@
-
 import type { Metadata } from "next"
 import { fontSans } from "@/lib/fonts"
 import { cn } from "@/lib/utils";
