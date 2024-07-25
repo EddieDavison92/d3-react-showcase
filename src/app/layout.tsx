@@ -20,12 +20,12 @@ interface RootLayoutProps {
 const noFlashScript = `
   (function() {
     try {
-      var theme = localStorage.getItem('theme') || 'light';
-      if (theme === 'system') {
+      var theme = localStorage.getItem('theme');
+      if (theme === 'system' || !theme) {
         var systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         theme = systemPrefersDark ? 'dark' : 'light';
       }
-      document.documentElement.className = theme;
+      document.documentElement.classList.add(theme);
     } catch (e) {}
   })();
 `;
