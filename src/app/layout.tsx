@@ -22,9 +22,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <html lang="en" suppressHydrationWarning>
       <head>
       </head>
-      <body className={cn("min-h-screen antialiased", fontSans.className)}>
+      <body className={cn("min-h-screen antialiased flex flex-col", fontSans.className)}>
           <SiteHeader />
-          {children}
+          <div className="flex-1 overflow-y-auto">
+              {children}
+          </div>
           <Analytics/>
       </body>
     </html>
