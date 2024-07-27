@@ -85,9 +85,11 @@ const AnimatedChoroplethMap: React.FC<AnimatedChoroplethMapProps> = ({
   }, [minProportion, maxProportion, colorScheme]);
 
   const updateMap = useCallback(() => {
-    if (!geojson || !svgRef.current) return;
-    const width = 700;
-    const height = 800;
+    if (!geojson || !svgRef.current || !mapContainerRef.current) return;
+
+    const container = mapContainerRef.current;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
 
     const svg = d3.select<SVGSVGElement, unknown>(svgRef.current)
       .attr("width", width)
@@ -146,7 +148,6 @@ const AnimatedChoroplethMap: React.FC<AnimatedChoroplethMapProps> = ({
     const containerRect = containerRef.current?.getBoundingClientRect();
     if (!containerRect) return;
 
-    
     const mouseX = event.clientX - containerRect.left;
     const mouseY = event.clientY - containerRect.top;
 
@@ -161,7 +162,16 @@ const AnimatedChoroplethMap: React.FC<AnimatedChoroplethMapProps> = ({
   };
 
   useEffect(() => {
+    const handleResize = () => {
+      updateMap();
+    };
+
+    window.addEventListener('resize', handleResize);
     updateMap();
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
   }, [currentDimension, updateMap]);
 
   return (
@@ -182,8 +192,8 @@ const AnimatedChoroplethMap: React.FC<AnimatedChoroplethMapProps> = ({
           <text x="200" y="35" fontSize="12" textAnchor="end" fill="currentColor">{maxProportion.toFixed(2)}%</text>
         </svg>
       </div>
-      <div ref={mapContainerRef} className="relative mx-auto max-w-4xl flex justify-center">
-        <svg ref={svgRef} className="block w-full"></svg>
+      <div ref={mapContainerRef} className="relative mx-auto max-w-4xl flex justify-center w-full" style={{ height: '600px' }}>
+        <svg ref={svgRef} className="block w-full h-full"></svg>
       </div>
       <div ref={tooltipRef} className="absolute bg-background text-foreground border border-border rounded p-2 pointer-events-none text-sm" style={{ display: 'none', whiteSpace: 'nowrap' }}></div>
     </div>

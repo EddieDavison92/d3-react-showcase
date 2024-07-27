@@ -1,20 +1,19 @@
-// /components/MobileNav.tsx
-
 "use client"
 
 import * as React from "react"
 import Link, { LinkProps } from "next/link"
-import { useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { siteConfig } from "@/config/site"
 import { cn } from "@/lib/utils"
 import { Icons } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { navLinks, NavLink } from "@/config/navLinks"
+import { navLinks } from "@/config/navLinks"
 
 export function MobileNav() {
   const [open, setOpen] = React.useState(false)
+  const pathname = usePathname()
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -56,24 +55,28 @@ export function MobileNav() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="pr-0">
-        <MobileLink
+        <Link
           href="/"
           className="flex items-center"
-          onOpenChange={setOpen}
+          onClick={() => setOpen(false)}
         >
           <Icons.logo className="mr-2 h-4 w-4" />
           <span className="font-bold">{siteConfig.name}</span>
-        </MobileLink>
+        </Link>
         <ScrollArea className="my-4 h-[calc(100vh-8rem)] pb-10 pl-6">
           <div className="flex flex-col space-y-3">
             {navLinks.map((item) => (
-              <MobileLink
+              <Link
                 key={item.href}
                 href={item.href}
-                onOpenChange={setOpen}
+                onClick={() => setOpen(false)}
+                className={cn(
+                  "text-foreground hover:underline underline-offset-4",
+                  pathname === item.href && "font-semibold"
+                )}
               >
                 {item.title}
-              </MobileLink>
+              </Link>
             ))}
           </div>
         </ScrollArea>
@@ -86,27 +89,5 @@ interface MobileLinkProps extends LinkProps {
   onOpenChange?: (open: boolean) => void
   children: React.ReactNode
   className?: string
-}
-
-function MobileLink({
-  href,
-  onOpenChange,
-  className,
-  children,
-  ...props
-}: MobileLinkProps) {
-  const router = useRouter()
-  return (
-    <Link
-      href={href}
-      onClick={() => {
-        router.push(href.toString())
-        onOpenChange?.(false)
-      }}
-      className={cn(className)}
-      {...props}
-    >
-      {children}
-    </Link>
-  )
+  isActive?: boolean
 }

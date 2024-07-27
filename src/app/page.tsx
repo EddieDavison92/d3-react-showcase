@@ -13,6 +13,9 @@ const Page: React.FC = () => {
         <Button asChild>
           <a href="scatterplot-matrix">Scatterplot Matrix</a>
         </Button>
+        <Button asChild>
+          <a href="heatmap">Heatmap</a>
+        </Button>
       </div>
     </div>
   );

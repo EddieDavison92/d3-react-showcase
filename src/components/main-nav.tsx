@@ -24,7 +24,8 @@ export function MainNav() {
             key={link.href}
             href={link.href}
             className={cn(
-              "transition-colors hover:text-foreground/80"
+              "text-foreground hover:underline underline-offset-4",
+              pathname === link.href && "font-semibold"
             )}
           >
             {link.title}

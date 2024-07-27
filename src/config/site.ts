@@ -2,7 +2,10 @@ export const siteConfig = {
     name: "D3 React Showcase",
     url: "localhost:3000",
     description:
-      "Beautifully designed components that you can copy and paste into your apps. Accessible. Customizable. Open Source.",
-  }
+      "A collection of D3.js visualizations built with React and TypeScript.",
+    links: {
+      github: "https://github.com/EddieDavison92/d3-react-showcase",
+  },
+}
   
   export type SiteConfig = typeof siteConfig

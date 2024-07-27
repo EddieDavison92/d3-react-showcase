@@ -6,6 +6,7 @@ import AreaChart from "@/components/d3/AreaChart";
 import { RangeSlider } from "@/components/ui/RangeSlider";
 import { Button } from "@/components/ui/button";
 import D3ColourSelector from "@/components/d3/d3-colour-selector";
+import { PlayIcon, StopIcon } from '@radix-ui/react-icons';
 import * as d3 from "d3";
 
 export default function Home() {
@@ -29,26 +30,25 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
-  const startAnimation = () => {
-    if (isAnimating) return;
-    setIsAnimating(true);
-    const id = setInterval(() => {
-      setCurrentDimension((prev) => {
-        if (prev >= 100) {
-          clearInterval(id);
-          setIsAnimating(false);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 400);
-    setIntervalId(id);
-  };
-
-  const stopAnimation = () => {
-    if (intervalId) {
-      clearInterval(intervalId);
-      setIsAnimating(false);
+  const toggleAnimation = () => {
+    if (isAnimating) {
+      if (intervalId) {
+        clearInterval(intervalId);
+        setIsAnimating(false);
+      }
+    } else {
+      setIsAnimating(true);
+      const id = setInterval(() => {
+        setCurrentDimension((prev) => {
+          if (prev >= 100) {
+            clearInterval(id);
+            setIsAnimating(false);
+            return prev;
+          }
+          return prev + 1;
+        });
+      }, 400);
+      setIntervalId(id);
     }
   };
 
@@ -91,7 +91,7 @@ export default function Home() {
         The regions on the map are colour-coded to reflect the proportion of the population in each single-year age group, normalised across England. 
        </p>
       <p className="mb-4 text-left"> 
-        Click &quot;Start Animation&quot; to observe the population distribution transitioning through each age group or drag the slider.
+        Click &quot;Start&quot; to observe the population distribution transitioning through each age group, or drag the slider.
       </p>
       {isLoading ? (
         <div className="text-center">Loading...</div>
@@ -102,17 +102,22 @@ export default function Home() {
             <D3ColourSelector onSelect={handleSchemeSelect} />
           </div>
           <div className="flex justify-center mt-4 mb-2">
-            <Button onClick={startAnimation} className="mr-4">
-              Start Animation
+            <Button onClick={toggleAnimation} variant={isAnimating ? "outline" : "default"} className="mr-4">
+              {isAnimating ? (
+                <>
+                  <StopIcon className="mr-2 h-4 w-4" /> Stop
+                </>
+              ) : (
+                <>
+                  <PlayIcon className="mr-2 h-4 w-4" /> Start
+                </>
+              )}
             </Button>
-            <Button onClick={stopAnimation} variant="secondary">
-              Stop Animation
-            </Button>
-            <div className="ml-4 mt-1">
+            <div className="ml-2 mt-1">
               <span className="text-lg font-bold">Current Age: {currentDimension}</span>
             </div>
           </div>
-          <div className="flex justify-center m-2">
+          <div className="flex justify-center my-4">
             <label className="mr-2">Select Age:</label>
             <div className="w-64 mt-2">
               <RangeSlider value={[currentDimension]} onValueChange={handleDimensionChange} min={0} max={100} step={1} />

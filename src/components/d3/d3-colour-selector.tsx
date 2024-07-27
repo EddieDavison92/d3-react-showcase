@@ -53,7 +53,7 @@ const D3ColourSelector = ({ onSelect }: { onSelect: (scheme: string) => void }) 
         <Button variant="outline">{selectedScheme}</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <ScrollArea className="max-h-64 w-64 overflow-y-auto">
+        <ScrollArea className="max-h-96 w-64 overflow-y-auto">
           <DropdownMenuLabel>Sequential Colours</DropdownMenuLabel>
           {renderColorSchemes(colorSchemes.sequential)}
           <DropdownMenuSeparator />

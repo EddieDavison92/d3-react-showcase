@@ -9,11 +9,15 @@ export interface NavLink {
   
   export const navLinks: NavLink[] = [
     {
-      href: "animated-choropleth",
+      href: "/animated-choropleth",
       title: "Animated Choropleth",
     },
     {
-      href: "scatterplot-matrix",
+      href: "/scatterplot-matrix",
       title: "Scatterplot Matrix",
+    },
+    {
+      href: "/heatmap",
+      title: "Heatmap",
     }
   ];

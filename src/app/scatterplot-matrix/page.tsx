@@ -48,7 +48,7 @@ export default function Home() {
       <p className="text-left my-2">
         The scatterplot matrix (SPLOM) shows how different measures relate to each other.
         Each cell is a scatterplot comparing two variables, with x representing one variable and y representing another. 
-        This matrix displays <a className="font-medium text-primary underline underline-offset-4" href="data/penguins.csv" target="_blank">data</a> from Palmer Station in Antarctica collected by Kristen Gorman.
+        This matrix displays <a className="font-medium text-primary underline underline-offset-4" href="data/penguins.csv" target="_blank">data</a> from Palmer Station in Antarctica collected by <a className="font-medium text-primary underline underline-offset-4" href="https://allisonhorst.github.io/palmerpenguins/" target="_blank">Kristen Gorman.</a>
       </p>
       <p className="text-left my-2">
         This chart was inspired by this <a className="font-medium text-primary underline underline-offset-4" href="https://observablehq.com/@d3/brushable-scatterplot-matrix" target="_blank">example</a> by Mike Bostock.
@@ -56,7 +56,7 @@ export default function Home() {
       <p className="text-left my-2 font-semibold">
         You can brush over the scatterplot matrix to select a subset of the data points by clicking and dragging.
       </p>
-      <p className="font-bold mb-2">Select dimension:</p>
+      <p className="font-bold mt-4 mb-1">Select dimension:</p>
       <RadioGroup defaultValue="species" onValueChange={(value) => setDimension(value)}>
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="species" id="species" />
@@ -74,7 +74,7 @@ export default function Home() {
       {isLoading ? (
         <div className="text-center">Loading...</div>
       ) : (
-        <div>
+        <div className="mt-2">
           <ScatterplotMatrix data={filteredData} columns={numericColumns} dimension={dimension} />
           <h2 className="text-left text-2xl font-bold mt-4">Meet the Penguins</h2>
           <p className="text-left my-2">
@@ -83,9 +83,10 @@ export default function Home() {
           <Image src="/img/penguins-image.jpg" alt="Penguins" width="1000" height="400" className="mt- max-width" />
           <h3 className="text-left text-2xl font-bold mt-4">What is a Culmen?</h3>
           <p className="text-left my-2">
-            The culmen is the ridge along the top part of a bird&apos;s bill. It is an important measurement used to identify and study birds and monitor their health.
+            The culmen is the ridge along the top part of a bird&apos;s bill. It is measured to identify and study birds and monitor their health.
           </p>
           <Image src="/img/culmen_depth.png" alt="Culmen Depth" width="600" height="400" className="mt-4 max-width" />
+          <p>Artwork by @allison_horst</p>
         </div>
       )}
     </div>
