@@ -1,5 +1,5 @@
-// page.tsx
 'use client';
+
 import React, { useEffect, useState, useCallback } from 'react';
 import * as d3 from 'd3';
 import TemperatureAnomalyHeatmap from '@/components/d3/TemperatureAnomalyHeatmap';

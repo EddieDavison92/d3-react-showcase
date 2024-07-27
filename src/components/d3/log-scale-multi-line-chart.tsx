@@ -1,5 +1,3 @@
-// src/components/d3/multi-line-chart.tsx
-
 "use client"
 
 import * as React from "react"
