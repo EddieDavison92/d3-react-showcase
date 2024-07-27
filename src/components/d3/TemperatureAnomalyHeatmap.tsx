@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 
 interface DataPoint {
@@ -32,13 +32,26 @@ const TemperatureAnomalyHeatmap: React.FC<TemperatureAnomalyHeatmapProps> = ({
     const tooltipRef = useRef<HTMLDivElement | null>(null);
     const legendBrushRef = useRef<d3.BrushBehavior<unknown> | null>(null);
     const heatmapBrushRef = useRef<d3.BrushBehavior<unknown> | null>(null);
+    const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+    useEffect(() => {
+        const handleResize = () => {
+            const container = svgRef.current?.parentElement;
+            if (container) {
+                setDimensions({ width: container.clientWidth - MARGIN.left - MARGIN.right, height: 600 - MARGIN.top - MARGIN.bottom });
+            }
+        };
+
+        handleResize();
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         if (data.length === 0) return;
 
-        const container = svgRef.current?.parentElement;
-        const width = container ? container.clientWidth - MARGIN.left - MARGIN.right : 960;
-        const height = 600 - MARGIN.top - MARGIN.bottom;
+        const { width, height } = dimensions;
 
         const svg = d3.select(svgRef.current)
             .attr('viewBox', `0 0 ${width + MARGIN.left + MARGIN.right} ${height + MARGIN.top + MARGIN.bottom}`)
@@ -97,7 +110,12 @@ const TemperatureAnomalyHeatmap: React.FC<TemperatureAnomalyHeatmapProps> = ({
             d3.select(tooltipRef.current).style('visibility', 'hidden');
         });
 
-    }, [data, enableBrushing, setBrushedData, setIsBrushed, colorScale, months]);
+        if (!enableBrushing) {
+            d3.selectAll('.brush').remove();
+            d3.selectAll('.legend-brush').remove();
+        }
+
+    }, [data, enableBrushing, setBrushedData, setIsBrushed, colorScale, months, dimensions]);
 
     return (
         <div className="w-full">
