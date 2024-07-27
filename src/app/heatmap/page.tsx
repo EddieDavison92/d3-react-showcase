@@ -116,7 +116,7 @@ export default function Home() {
         <div className="p-4 max-w-6xl mx-auto justify-center">
             <h1 className="text-2xl font-semibold mt-4 mb-4 text-left">Temperature Anomaly Heatmap</h1>
             <p className="mb-4">
-                This heatmap illustrates the temperature anomalies from January to December for each year since 1880. 
+                This heatmap illustrates global temperature anomalies from January to December for each year since 1880. 
                 The data, provided by NASA&apos;s GISS Surface Temperature Analysis (GISTEMP), is color-coded from blue to red, 
                 representing the transition from colder to warmer anomalies. The anomalies are calculated relative to the 
                 base period of 1980-2015.
@@ -140,7 +140,7 @@ export default function Home() {
                 months={MONTHS}
             />
             {isBrushed && (
-                <div style={{ maxWidth: '400px', marginTop: '20px' }}>
+                <div className="max-w-[350px] mt-4">
                     <h2 className="text-lg font-bold mb-2">Selected Temperature Anomalies</h2>
                     <Button className="mb-2" onClick={() => exportToCSV(brushedData)}>
                         < DownloadIcon className="mr-2 h-4 w-4" />
