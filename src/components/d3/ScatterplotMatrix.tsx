@@ -113,7 +113,7 @@ const ScatterplotMatrix: React.FC<ScatterplotMatrixProps> = ({ data, columns, di
         .attr('class', 'background-dot hidden')
         .attr('cx', d => x[i](+d[columns[i]]))
         .attr('cy', d => y[j](+d[columns[j]]))
-        .attr('r', 1)  // radius for black dots
+        .attr('r', 0.8)  // radius for black dots
         .attr('fill', theme === 'dark' ? '#fff' : '#000');
     });
 
@@ -125,7 +125,7 @@ const ScatterplotMatrix: React.FC<ScatterplotMatrixProps> = ({ data, columns, di
         .attr('class', 'foreground-circle')
         .attr('cx', d => x[i](+d[columns[i]]))
         .attr('cy', d => y[j](+d[columns[j]]))
-        .attr('r', 3)  // radius for coloured circles
+        .attr('r', 3.5)  // radius for coloured circles
         .attr('fill', d => color(d[dimension] as string))
         .attr('fill-opacity', 0.7);
     });
