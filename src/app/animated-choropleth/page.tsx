@@ -89,7 +89,7 @@ export default function Home() {
       </p>
       <p className="mb-4 text-left">
         The regions on the map are colour-coded to reflect the proportion of the population in each single-year age group, normalised across England. 
-       </p>
+      </p>
       <p className="mb-4 text-left"> 
         Click &quot;Start&quot; to observe the population distribution transitioning through each age group, or drag the slider.
       </p>

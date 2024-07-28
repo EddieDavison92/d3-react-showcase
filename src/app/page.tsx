@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
-    <div className="mt-8 mx-auto max-w-6xl">
+    <div className="p-4 mt-8 mx-auto max-w-6xl">
       <h1 className="text-3xl text-centre font-bold">D3 React Showcase</h1>
       <p className="text-centre mt-4">
         All of the below graphics have been designed using the{" "}
