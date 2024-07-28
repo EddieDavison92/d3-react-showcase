@@ -37,7 +37,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <SiteFooter />
           </ThemeProvider>
           <Analytics/>
-       </body>
+        </body>
     </html>
   )
 }

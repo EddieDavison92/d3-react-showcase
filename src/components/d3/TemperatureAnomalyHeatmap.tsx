@@ -178,12 +178,10 @@ const appendLegend = (
 
     const legendBrush = d3.brushY<unknown>()
         .extent([[width + 10, 0], [width + 30, legendHeight]])
-        .on('start', () => {
-            if (heatmapBrushRef.current) {
+        .on('start brush end', (event) => {
+            if (event.sourceEvent && heatmapBrushRef.current) {
                 d3.select<SVGGElement, unknown>('.brush').call(heatmapBrushRef.current.move, null);
             }
-        })
-        .on('brush end', (event) => {
             const extent = event.selection;
             if (extent) {
                 const [y0, y1] = extent;
@@ -247,12 +245,10 @@ const addBrushing = (
 ) => {
     const heatmapBrush = d3.brush<unknown>()
         .extent([[0, 0], [x.range()[1], height]])
-        .on('start', () => {
-            if (legendBrushRef.current) {
+        .on('start brush end', (event) => {
+            if (event.sourceEvent && legendBrushRef.current) {
                 d3.select<SVGGElement, unknown>('.legend-brush').call(legendBrushRef.current.move, null);
             }
-        })
-        .on('brush end', (event) => {
             const extent = event.selection;
             if (extent) {
                 setIsBrushed(true);
