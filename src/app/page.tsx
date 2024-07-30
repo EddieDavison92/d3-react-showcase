@@ -7,7 +7,7 @@ export default function Home() {
     <div className="p-4 mt-8 mx-auto max-w-6xl">
       <h1 className="text-3xl text-centre font-bold">D3 React Showcase</h1>
       <p className="text-centre mt-4">
-        All of the below graphics have been designed using the{" "}
+        All of the graphics below have been designed using the{" "}
         <a href="https://d3js.org/" target="_blank" className="font-medium text-primary underline underline-offset-4">D3</a>
         {" "}javascript library as React components with swappable data and parameters.
       </p>
@@ -19,7 +19,7 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <p>
-              This interactive map visualises data changes over time across different regions. It uses D3&apos;s geo-projection to create the map and uses a swappable colour scale to reflect the normalised proportion of people of a particular age. An Area Chart is displayed after selecting a region to provide a view of all ages for that region.
+              This interactive map visualises the normalised age distribution across ICBs. It uses D3&apos;s geo-projection combined with proj4 to create the map and project it to British coordinates, featuring a swappable colour scale to highlight the proportion of people in specific age groups.
             </p>
           </CardContent>
           <CardFooter>
@@ -35,7 +35,7 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <p>
-              This component showcases a matrix of scatterplots comparing pairs of variables. It utilises D3&apos;s brushing feature to allow users to select and highlight data points interactively across multiple scatterplots. This facilitates the identification of correlations and patterns within the dataset. The matrix is dynamically generated based on the dataset&apos;s dimensions, and each cell in the matrix represents a unique scatterplot of two variables.
+              This component displays a matrix of scatterplots that compare pairs of measures. It uses D3&apos;s brushing feature to enable users to select and highlight data points interactively across multiple scatterplots, facilitating the identification of correlations and patterns within the dataset.
             </p>
           </CardContent>
           <CardFooter>
@@ -51,7 +51,7 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <p>
-              This heatmap visualises temperature anomalies since 1880. It employs D3&apos;s scale and axis features to create a comprehensive view of data variation across months and years. The heatmap supports brushing for selecting and focusing on specific periods, making it easier to analyse trends and anomalies. The colour scale represents temperature deviations from the average, providing a clear visualisation of temperature changes over time.
+              This heatmap visualises global temperature anomalies since 1880. It leverages D3&apos;s scale and axis features to show the gradient of temperature changes across months and years. Additionally supports brushing for data selection and export.
             </p>
           </CardContent>
           <CardFooter>
