@@ -1,5 +1,3 @@
-// src/components/sidebar-nav.tsx
-
 "use client";
 
 import Link from "next/link";
@@ -84,18 +82,18 @@ export function DocsSidebarNav({ config }: DocsSidebarNavProps) {
           </Link>
         )}
       </div>
-      {items.map((item, index) => (
-        <div key={index} className={cn("pb-4")}>
-          <h4 className="mb-1 px-2 text-sm">
-            <Link href={item.href}>
-              {item.title}
-            </Link>
-          </h4>
-          {item.items?.length && (
-            <DocsSidebarNavItems items={item.items} pathname={pathname} />
-          )}
-        </div>
-      ))}
+      {items
+        .sort((a, b) => a.title.localeCompare(b.title)) // Sort items alphabetically by title
+        .map((item, index) => (
+          <div key={index} className={cn("pb-4")}>
+            <h4 className="mb-1 px-2 text-sm">
+              <Link href={item.href}>{item.title}</Link>
+            </h4>
+            {item.items?.length && (
+              <DocsSidebarNavItems items={item.items} pathname={pathname} />
+            )}
+          </div>
+        ))}
     </div>
   ) : null;
 }

@@ -1,5 +1,3 @@
-// src/app/docs/[[...slug]]/page.tsx
-
 import React from "react";
 import { notFound } from "next/navigation";
 import { docs } from "#site/content";
@@ -26,10 +24,17 @@ interface DocPageProps {
 
 const DocPage: React.FC<DocPageProps> = ({ params }) => {
   // If params.slug is undefined or empty, serve the index
-  const slug = params.slug?.length ? params.slug.join("/") : "docs"; 
+  const slug = params.slug?.length ? params.slug.join("/") : "docs";
 
-  // Find the document using the existing slug from the docs
-  const doc: Doc | undefined = docs.find((doc: Doc) => doc.slug === slug);
+  // Sort documents with "/docs" first, then alphabetically by title
+  const sortedDocs = [...docs].sort((a, b) => {
+    if (a.slug === "docs") return -1;
+    if (b.slug === "docs") return 1;
+    return a.title.localeCompare(b.title);
+  });
+
+  // Find the document using the existing slug from the sortedDocs
+  const doc: Doc | undefined = sortedDocs.find((doc: Doc) => doc.slug === slug);
 
   if (!doc) {
     console.warn("Document not found for slug:", slug);
@@ -37,9 +42,9 @@ const DocPage: React.FC<DocPageProps> = ({ params }) => {
     return null;
   }
 
-  const docIndex = docs.findIndex((d) => d.slug === doc.slug);
-  const prevDoc = docs[docIndex - 1];
-  const nextDoc = docs[docIndex + 1];
+  const docIndex = sortedDocs.findIndex((d) => d.slug === doc.slug);
+  const prevDoc = sortedDocs[docIndex - 1];
+  const nextDoc = sortedDocs[docIndex + 1];
 
   return (
     <main className="container mx-auto">
@@ -47,7 +52,9 @@ const DocPage: React.FC<DocPageProps> = ({ params }) => {
         <div className="flex-1">
           <div className="mt-10 flex items-center space-x-1 text-sm leading-none text-muted-foreground">
             <div className="truncate">
-              <a href="/docs" className="hover:underline hover:text-foreground">Docs</a>
+              <a href="/docs" className="hover:underline hover:text-foreground">
+                Docs
+              </a>
             </div>
             <ChevronRightIcon className="h-3.5 w-3.5" />
             <div className="font-medium text-foreground">{doc.title}</div>

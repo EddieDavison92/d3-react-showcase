@@ -12,12 +12,13 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { CopyIcon, CheckIcon } from "@radix-ui/react-icons"; // Importing the CheckIcon
+import { CopyIcon, CheckIcon } from "@radix-ui/react-icons";
 
 // Utility function to create React components from MDX code
 const useMDXComponent = (code: string) => {
-  const fn = new Function(code);
-  return fn({ ...runtime }).default;
+  // Ensure the code function can execute with runtime context
+  const fn = new Function('components', 'jsx', 'jsxs', 'Fragment', code);
+  return fn(runtime, runtime.jsx, runtime.jsxs, runtime.Fragment).default;
 };
 
 // Custom CodeBlock component with copy button
@@ -72,6 +73,7 @@ const components = {
   TabsContent,
   TabsList,
   TabsTrigger,
+  Image, // Register Image for MDX usage
   h1: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h1 className={cn("mt-2 scroll-m-20 text-4xl font-bold", className)} {...props} />
   ),
@@ -153,7 +155,7 @@ interface MdxProps {
 
 export function MDXContent({ code, components }: MdxProps) {
   const Component = useMDXComponent(code);
-  return <Component components={{ Image, ...components }} />;
+  return <Component components={{ ...components }} />;
 }
 
 export function Mdx({ code }: MdxProps) {
