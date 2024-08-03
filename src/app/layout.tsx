@@ -31,7 +31,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
             disableTransitionOnChange
           >
           <SiteHeader />
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 flex overflow-y-auto">
               {children}
           </div>
           <SiteFooter />

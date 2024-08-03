@@ -9,6 +9,10 @@ export interface NavLink {
   
   export const navLinks: NavLink[] = [
     {
+      href: "/docs",
+      title: "Docs",
+    },
+    {
       href: "/animated-choropleth",
       title: "Animated Choropleth",
     },
