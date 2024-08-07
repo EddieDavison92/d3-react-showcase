@@ -141,7 +141,7 @@ const components: Record<string, React.ComponentType<any>> = {
   ),
   pre: CodeBlock,
   code: ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => (
-    <code className={cn('relative px-[0.3rem] py-[0.2rem] font-mono text-sm', className)} {...props} />
+    <code className={cn('relative font-mono text-sm', className)} {...props} />
   ),
 };
 

@@ -1,14 +1,19 @@
-// next.config.mjs
-
 import nextMDX from '@next/mdx';
 import rehypeSlug from 'rehype-slug';
-import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypePrettyCode from 'rehype-pretty-code';
 
+/** @type {Array<((config: NextConfig) => NextConfig)>} */
+const plugins = [];
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
+};
 
 /** @type {import('rehype-pretty-code').Options} */
 const options = {
-  theme: 'github-dark-default',
+  theme: 'github-dark-dimmed',
   keepBackground: true,
   grid: true,
   defaultLang: 'sh',
@@ -25,22 +30,19 @@ const options = {
   },
 };
 
-const withMDX = nextMDX({
-  extension: /\.mdx?$/,
-  options: {
-    remarkPlugins: [],
-    rehypePlugins: [
-      [rehypePrettyCode, options],
-      rehypeSlug,
-      rehypeAutolinkHeadings,
-    ],
-  },
-});
+// Add the MDX plugin with rehype options to the plugins array
+plugins.push(
+  nextMDX({
+    extension: /\.mdx?$/,
+    options: {
+      remarkPlugins: [],
+      rehypePlugins: [[rehypePrettyCode, options], rehypeSlug],
+    },
+  })
+);
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
-  pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
-};
+// Assign the function to a named variable
+const configuredNextConfig = () => plugins.reduce((config, plugin) => plugin(config), nextConfig);
 
-export default withMDX(nextConfig);
+// Export the named function
+export default configuredNextConfig;

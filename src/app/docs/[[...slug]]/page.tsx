@@ -4,7 +4,10 @@ import { getDocBySlug, getAllDocs } from '@/lib/docs';
 import { serialize } from 'next-mdx-remote/serialize';
 import DocContent from '@/components/DocContent';
 import { ChevronRightIcon } from '@radix-ui/react-icons';
-import Link from "next/link";
+import Link from 'next/link';
+import rehypeSlug from 'rehype-slug';
+import rehypePrettyCode from 'rehype-pretty-code';
+import { Element } from 'hast'; // Import the relevant type from hast
 
 export const metadata = {
   title: 'Documentation',
@@ -19,7 +22,43 @@ export default async function Page({ params }: PageProps) {
 
   // Get current document content
   const { data, content } = getDocBySlug(slug);
-  const mdxSource = await serialize(content, { scope: data });
+
+  // Serialize the MDX content with the rehype-pretty-code plugin
+  const mdxSource = await serialize(content, {
+    scope: data,
+    mdxOptions: {
+      remarkPlugins: [],
+      rehypePlugins: [
+        [
+          rehypePrettyCode,
+          {
+            theme: 'github-dark-dimmed',
+            keepBackground: true,
+            grid: true,
+            defaultLang: 'sh',
+            onVisitLine(node: Element) {
+              if (node.children.length === 0) {
+                node.children = [{ type: 'text', value: ' ' }];
+              }
+            },
+            onVisitHighlightedLine(node: Element) {
+              const className = node.properties.className;
+              node.properties.className = Array.isArray(className)
+                ? [...className, 'highlighted-line']
+                : ['highlighted-line'];
+            },
+            onVisitLineNumbers(node: Element) {
+              const className = node.properties.className;
+              node.properties.className = Array.isArray(className)
+                ? [...className, 'line-number']
+                : ['line-number'];
+            },
+          },
+        ],
+        rehypeSlug,
+      ],
+    },
+  });
 
   // Get all documents for prev/next navigation
   const allDocs = getAllDocs();
