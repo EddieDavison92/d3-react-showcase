@@ -23,7 +23,7 @@ interface CSVRow {
 }
 
 const GreekGodsGraph: React.FC = () => {
-  const svgRef = useRef<SVGSVGElement>(null);
+  const svgRef = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => {
     // Load CSV data
@@ -73,7 +73,7 @@ const GreekGodsGraph: React.FC = () => {
     const width = 1920;
     const height = 1200;
 
-    // Colors for allegiance with enhanced differentiation
+    // Colours for allegiance with enhanced differentiation
     const allegianceColor = d3.scaleOrdinal<string>()
       .domain(['Neutral', 'Benevolent', 'Chaotic', 'Malevolent'])
       .range(['#808080', '#4CAF50', '#FF4500', '#8B0000']); // Chaotic (OrangeRed), Malevolent (DarkRed)
@@ -92,7 +92,7 @@ const GreekGodsGraph: React.FC = () => {
       'Unknown': 6,
     };
 
-    // Increase Chaos size and fix its position at the center
+    // Increase Chaos size and fix its position at the centre
     const chaosNode = nodes.find(node => node.id === 'Chaos');
     if (chaosNode) {
       chaosNode.fx = width / 2;
@@ -107,22 +107,24 @@ const GreekGodsGraph: React.FC = () => {
     // Append a group for zooming
     const svg = svgElement.append('g');
 
-    // Zoom behavior
+    // Zoom behaviour
     const zoom = d3.zoom<SVGSVGElement, unknown>()
       .on('zoom', (event) => {
         svg.attr('transform', event.transform);
       });
 
-    // Apply zoom to SVG
-    svgElement.call(zoom);
+    // Apply zoom to SVG if svgRef.current is not null
+    if (svgRef.current) {
+      d3.select(svgRef.current).call(zoom);
+    }
 
     // Define the simulation
     const simulation = d3.forceSimulation<NodeType>(nodes)
-      .force("link", d3.forceLink<NodeType, LinkType>(links).id((d) => d.id).distance(100))
+      .force("link", d3.forceLink<NodeType, LinkType>(links).id((d: d3.SimulationNodeDatum) => (d as NodeType).id).distance(100))
       .force("charge", d3.forceManyBody().strength(-300)) // Adjust strength to prevent overlap
       .force("center", d3.forceCenter(width / 2, height / 2))
       .force("collision", d3.forceCollide<NodeType>().radius(d => classificationSize[d.classification] || 10).strength(1)) // Collision force to prevent overlap
-      .force("radial", d3.forceRadial((d) => d.id === 'Chaos' ? 0 : 100, width / 2, height / 2).strength(0.2)) // Strong radial force for primordials
+      .force("radial", d3.forceRadial((d: NodeType) => d.id === 'Chaos' ? 0 : 100, width / 2, height / 2).strength(0.2)); // Strong radial force for primordials
 
     // Draw the links
     const link = svg.append('g')
@@ -152,7 +154,7 @@ const GreekGodsGraph: React.FC = () => {
         })
         .on("end", (event, d) => {
           if (!event.active) simulation.alphaTarget(0);
-          if (d.id !== 'Chaos') { // Keep Chaos in the center
+          if (d.id !== 'Chaos') { // Keep Chaos in the centre
             d.fx = null;
             d.fy = null;
           }
@@ -171,7 +173,7 @@ const GreekGodsGraph: React.FC = () => {
     // Tooltip setup
     const tooltip = d3.select("body").append("div")
       .style("position", "absolute")
-      .style("text-align", "center")
+      .style("text-align", "centre")
       .style("width", "140px")
       .style("height", "60px")
       .style("padding", "5px")
@@ -192,10 +194,10 @@ const GreekGodsGraph: React.FC = () => {
 
     // Update simulation on each tick
     simulation.on("tick", () => {
-      link.attr("x1", d => (d.source as NodeType).x ?? 0)
-        .attr("y1", d => (d.source as NodeType).y ?? 0)
-        .attr("x2", d => (d.target as NodeType).x ?? 0)
-        .attr("y2", d => (d.target as NodeType).y ?? 0);
+      link.attr("x1", d => ((d.source as NodeType).x ?? 0))
+        .attr("y1", d => ((d.source as NodeType).y ?? 0))
+        .attr("x2", d => ((d.target as NodeType).x ?? 0))
+        .attr("y2", d => ((d.target as NodeType).y ?? 0));
 
       node.attr("cx", d => d.x ?? 0)
         .attr("cy", d => d.y ?? 0);
@@ -206,7 +208,7 @@ const GreekGodsGraph: React.FC = () => {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen">
+    <div className="flex justify-centre items-centre h-screen">
       <svg ref={svgRef} width="80vw" height="80vh" className="bg-white border-2 border-gray-300 rounded-lg" />
     </div>
   );
