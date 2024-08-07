@@ -1,25 +1,46 @@
-import { build } from 'velite';
+// next.config.mjs
 
-class VeliteWebpackPlugin {
-  static started = false;
+import nextMDX from '@next/mdx';
+import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import rehypePrettyCode from 'rehype-pretty-code';
 
-  apply(compiler) {
-    compiler.hooks.beforeCompile.tapPromise('VeliteWebpackPlugin', async () => {
-      if (VeliteWebpackPlugin.started) return;
-      VeliteWebpackPlugin.started = true;
-      const dev = compiler.options.mode === 'development';
-      await build({ watch: dev, clean: !dev });
-    });
-  }
-}
 
-// Create a named configuration object
-const nextConfig = {
-  webpack: (config) => {
-    config.plugins.push(new VeliteWebpackPlugin());
-    return config;
+/** @type {import('rehype-pretty-code').Options} */
+const options = {
+  theme: 'github-dark-default',
+  keepBackground: true,
+  grid: true,
+  defaultLang: 'sh',
+  onVisitLine(node) {
+    if (node.children.length === 0) {
+      node.children = [{ type: 'text', value: ' ' }];
+    }
+  },
+  onVisitHighlightedLine(node) {
+    node.properties.className = (node.properties.className || []).concat('highlighted-line');
+  },
+  onVisitLineNumbers(node) {
+    node.properties.className = (node.properties.className || []).concat('line-number');
   },
 };
 
-// Export the named configuration object as default
-export default nextConfig;
+const withMDX = nextMDX({
+  extension: /\.mdx?$/,
+  options: {
+    remarkPlugins: [],
+    rehypePlugins: [
+      [rehypePrettyCode, options],
+      rehypeSlug,
+      rehypeAutolinkHeadings,
+    ],
+  },
+});
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
+};
+
+export default withMDX(nextConfig);

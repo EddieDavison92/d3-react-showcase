@@ -1,0 +1,239 @@
+Parent,Child,Domain,Classification,Allegiance
+Chaos,Gaea,Earth and fertility,Primordial,Neutral
+Chaos,Tartarus,The underworld,Primordial,Neutral
+Chaos,Eros,Love and attraction,Primordial,Benevolent
+Chaos,Erebus,Darkness,Primordial,Neutral
+Chaos,Nyx,Night,Primordial,Neutral
+Gaea,Uranus,The sky and heavens,Primordial,Neutral
+Gaea,Pontus,The sea,Primordial,Neutral
+Gaea,Ourea,Mountains,Primordial,Neutral
+Gaea,Cyclopes,Blacksmithing and thunder,Monster,Neutral
+Gaea,Hecatoncheires,Storms,Monster,Chaotic
+Gaea,Titans,Primordial forces,Titan,Neutral
+Nyx,Hemera,Daylight,Primordial,Benevolent
+Nyx,Aether,Brightness and atmosphere,Primordial,Neutral
+Nyx,Morpheus,Dreams,Primordial,Neutral
+Nyx,Thanatos,Death,Primordial,Malevolent
+Nyx,Hypnos,Sleep,Primordial,Neutral
+Nyx,The Fates,Destiny and fate,Primordial,Neutral
+Nyx,The Keres,Doom and violent death,Primordial,Malevolent
+Nyx,The Moirai,Fate,Primordial,Neutral
+Erebus,Charon,Ferryman of the dead,Primordial,Neutral
+Erebus,Aether,Brightness and atmosphere,Primordial,Neutral
+Erebus,Hemera,Daylight,Primordial,Benevolent
+Uranus,Cronus,Time and harvest,Titan,Neutral
+Uranus,Rhea,Motherhood,Titan,Benevolent
+Uranus,Oceanus,The ocean,Titan,Neutral
+Uranus,Tethys,Fresh water and nursing,Titan,Neutral
+Uranus,Hyperion,Light,Titan,Neutral
+Uranus,Theia,Sight and the shining light,Titan,Neutral
+Uranus,Coeus,Intellect and axis of heaven,Titan,Neutral
+Uranus,Phoebe,Prophecy and intellect,Titan,Neutral
+Uranus,Crius,Constellations,Titan,Neutral
+Uranus,Mnemosyne,Memory,Titan,Benevolent
+Uranus,Themis,Justice and order,Titan,Benevolent
+Pontus,Thalassa,The sea,Primordial,Neutral
+Pontus,Nereus,Sea's rich bounty,Primordial,Benevolent
+Pontus,Ceto,Sea monsters,Primordial,Chaotic
+Pontus,Eurybia,Mastery of the seas,Primordial,Neutral
+Pontus,Thaumas,Sea wonders,Primordial,Neutral
+Nereus,Nereids,Sea nymphs,Nymph,Benevolent
+Thaumas,Iris,Rainbows and messenger of the gods,Nymph,Benevolent
+Thaumas,Harpyiae,Storm winds,Nymph,Neutral
+Thaumas,Arke,Messenger of the Titans,Nymph,Neutral
+Ceto,Ladon,Dragons and serpents,Monster,Malevolent
+Ceto,Echidna,Monstrous creatures,Monster,Malevolent
+Ceto,The Graeae,Old age,Monster,Neutral
+Ceto,Gorgons,Medusa's sisters,Monster,Malevolent
+Theia,Helios,Sun,Titan,Neutral
+Theia,Selene,Moon,Titan,Neutral
+Theia,Eos,Dawn,Titan,Neutral
+Hyperion,Helios,Sun,Titan,Neutral
+Hyperion,Selene,Moon,Titan,Neutral
+Hyperion,Eos,Dawn,Titan,Neutral
+Mnemosyne,Muses,Arts and sciences,Titan,Benevolent
+Themis,The Horae,Seasons and natural order,Titan,Benevolent
+Themis,The Moirai,Fate,Titan,Neutral
+Themis,Astraea,Justice,Titan,Benevolent
+Crius,Asteria,Stars and nocturnal oracles,Titan,Neutral
+Crius,Pallas,Warcraft,Titan,Neutral
+Crius,Perses,Destruction,Titan,Malevolent
+Rhea,Zeus,Sky and thunder,Olympian,Benevolent
+Rhea,Hera,Marriage and family,Olympian,Neutral
+Rhea,Poseidon,Sea and earthquakes,Olympian,Neutral
+Rhea,Hades,Underworld,Olympian,Malevolent
+Rhea,Demeter,Agriculture,Olympian,Benevolent
+Rhea,Hestia,Hearth and home,Olympian,Benevolent
+Cronus,Zeus,Sky and thunder,Olympian,Benevolent
+Cronus,Hera,Marriage and family,Olympian,Neutral
+Cronus,Poseidon,Sea and earthquakes,Olympian,Neutral
+Cronus,Hades,Underworld,Olympian,Malevolent
+Cronus,Demeter,Agriculture,Olympian,Benevolent
+Cronus,Hestia,Hearth and home,Olympian,Benevolent
+Zeus,Athena,Wisdom and warfare,Olympian,Benevolent
+Zeus,Apollo,Music and healing,Olympian,Benevolent
+Zeus,Artemis,Hunt and moon,Olympian,Benevolent
+Zeus,Ares,War,Olympian,Malevolent
+Zeus,Aphrodite,Love and beauty,Olympian,Neutral
+Zeus,Hermes,Trade and travel,Olympian,Neutral
+Zeus,Hephaestus,Fire and blacksmiths,Olympian,Neutral
+Zeus,Persephone,Spring and the underworld,Olympian,Benevolent
+Zeus,Dionysus,Wine and revelry,Olympian,Chaotic
+Zeus,Heracles,Strength and heroism,Demigod,Benevolent
+Zeus,Perseus,Hero,Demigod,Benevolent
+Zeus,Helen of Troy,Beauty,Mortal,Neutral
+Zeus,Minos,Law and order,Hero,Neutral
+Zeus,Rhadamanthus,Justice,Hero,Benevolent
+Zeus,Sarpedon,Hero and king,Hero,Neutral
+Zeus,Hebe,Youth,Olympian,Benevolent
+Zeus,Enyo,War and destruction,Olympian,Chaotic
+Zeus,Eileithyia,Childbirth,Olympian,Benevolent
+Zeus,Harmonia,Harmony and concord,Olympian,Benevolent
+Zeus,Muses,Arts and sciences,Olympian,Benevolent
+Zeus,The Horae,Seasons and natural order,Olympian,Benevolent
+Zeus,The Moirai,Fate,Olympian,Neutral
+Zeus,Astraea,Justice,Olympian,Benevolent
+Zeus,Pandia,Moon,Olympian,Neutral
+Zeus,Panacea,Healing,Olympian,Benevolent
+Hera,Ares,War,Olympian,Malevolent
+Hera,Hephaestus,Fire and blacksmiths,Olympian,Neutral
+Hera,Hebe,Youth,Olympian,Benevolent
+Hera,Enyo,War and destruction,Olympian,Chaotic
+Hera,Eileithyia,Childbirth,Olympian,Benevolent
+Hera,Harmonia,Harmony and concord,Olympian,Benevolent
+Hera,Typhon,Storms and monsters,Monster,Malevolent
+Poseidon,Triton,Messengers of the sea,Demigod,Neutral
+Poseidon,Theseus,Hero,Hero,Benevolent
+Poseidon,Polyphemus,Cyclops,Monster,Malevolent
+Poseidon,Orion,Hunting and constellations,Hero,Neutral
+Poseidon,Rhode,Island of Rhodes,Demigod,Neutral
+Poseidon,Chrysaor,Warrior,Hero,Neutral
+Poseidon,Pegasus,Creativity and inspiration,Monster,Benevolent
+Poseidon,Bellerophon,Hero,Hero,Benevolent
+Poseidon,Eurypylus,Hero,Hero,Neutral
+Poseidon,Antaeus,Strength,Monster,Malevolent
+Poseidon,Theophane,Transformation,Nymph,Neutral
+Poseidon,Halirrhothius,Vengeance,Hero,Malevolent
+Hades,Melinoe,Ghosts and spirits,Underworld Deity,Malevolent
+Hades,Zagreus,Rebirth,Underworld Deity,Neutral
+Hades,Macaria,Blessed death,Underworld Deity,Benevolent
+Hades,Plutus,Wealth,Underworld Deity,Neutral
+Hades,Eumenides,Furies and vengeance,Underworld Deity,Neutral
+Hades,Ascalaphus,Orchards,Underworld Deity,Neutral
+Demeter,Persephone,Spring and the underworld,Olympian,Benevolent
+Demeter,Plutus,Wealth,Olympian,Neutral
+Demeter,Despoina,Mysteries of Arcadia,Olympian,Neutral
+Demeter,Arion,Immortal horse,Monster,Neutral
+Demeter,Philomelus,Agriculture,Olympian,Benevolent
+Demeter,Eubuleus,Fertility,Olympian,Benevolent
+Demeter,Trophonius,Oracles and prophecy,Olympian,Neutral
+Hestia,No Children,Hearth and home,Olympian,Benevolent
+Athena,No Children,Wisdom and warfare,Olympian,Benevolent
+Apollo,Asclepius,Medicine and healing,Olympian,Benevolent
+Apollo,Orpheus,Music and poetry,Hero,Benevolent
+Apollo,Aristaeus,Beekeeping and agriculture,Hero,Benevolent
+Apollo,Troilus,Youth,Hero,Neutral
+Apollo,Linus,Music,Hero,Neutral
+Apollo,Hymenaios,Marriage ceremonies,Olympian,Benevolent
+Apollo,Cassandra,Prophecy,Hero,Neutral
+Apollo,Circe,Magic and transformation,Hero,Chaotic
+Apollo,Pythia,Oracles,Hero,Benevolent
+Apollo,Sybil,Prophecy,Hero,Neutral
+Artemis,No Children,Hunt and moon,Olympian,Benevolent
+Ares,Harmonia,Harmony and concord,Olympian,Benevolent
+Ares,Deimos,Terror,Olympian,Malevolent
+Ares,Phobos,Fear,Olympian,Malevolent
+Ares,Adrestia,Revenge and balance,Olympian,Neutral
+Ares,Enyalios,War,Olympian,Malevolent
+Ares,Alcippe,Vengeance,Hero,Neutral
+Aphrodite,Eros,Love and attraction,Olympian,Neutral
+Aphrodite,Himeros,Desire,Olympian,Neutral
+Aphrodite,Anteros,Reciprocal love,Olympian,Neutral
+Aphrodite,Harmonia,Harmony and concord,Olympian,Benevolent
+Aphrodite,Phobos,Fear,Olympian,Malevolent
+Aphrodite,Deimos,Terror,Olympian,Malevolent
+Aphrodite,Priapus,Fertility,Olympian,Neutral
+Aphrodite,Aeneas,Hero,Demigod,Benevolent
+Aphrodite,Peitho,Persuasion,Olympian,Neutral
+Aphrodite,The Graces,Beauty and charm,Olympian,Benevolent
+Hermes,Pan,Wild nature,Olympian,Neutral
+Hermes,Autolycus,Thieves and deception,Hero,Neutral
+Hermes,Evander,Culture and law,Hero,Neutral
+Hermes,Abderus,Horses,Hero,Neutral
+Hermes,Myrtilus,Charioteering,Hero,Neutral
+Hermes,Angelion,Messenger of the gods,Hero,Neutral
+Hermes,Priapus,Fertility,Olympian,Neutral
+Hermes,Eudoros,Horsemen,Hero,Neutral
+Hermes,Cephalus,Hunting,Hero,Neutral
+Hermes,Daphnis,Pastoral poetry,Hero,Neutral
+Hermes,Eleusis,Mystery rites,Hero,Benevolent
+Hermes,Acacus,Guardian,Hero,Neutral
+Hermes,Polydeuces,Boxing,Hero,Benevolent
+Hermes,Hermaeus,Trade and commerce,Olympian,Benevolent
+Hermes,Khione,Snow,Nymph,Neutral
+Hermes,Thalia,Comedy,Olympian,Benevolent
+Hermes,Fortuna,Fate and luck,Olympian,Neutral
+Hermes,Echo,Sound and reflection,Nymph,Neutral
+Hephaestus,Erichthonius,Athens,Olympian,Neutral
+Hephaestus,Cabeiri,Mysteries and smiths,Hero,Benevolent
+Hephaestus,The Palici,Geological phenomena,Hero,Neutral
+Hephaestus,Thalia,Comedy,Olympian,Benevolent
+Hephaestus,Eucleia,Good repute,Olympian,Benevolent
+Hephaestus,Eupheme,Praise and acclaim,Olympian,Benevolent
+Hephaestus,Euthenia,Prosperity,Olympian,Benevolent
+Hephaestus,Philophrosyne,Friendliness,Olympian,Benevolent
+Hephaestus,Pyrrhus,Fire,Olympian,Neutral
+Hephaestus,The Dactyls,Metalwork and crafting,Hero,Benevolent
+Dionysus,Oenopion,Winemaking,Olympian,Neutral
+Dionysus,Staphylus,Winemaking,Hero,Neutral
+Dionysus,Thoas,Winemaking,Hero,Neutral
+Dionysus,Priapus,Fertility,Olympian,Neutral
+Dionysus,Phanos,Winemaking,Hero,Neutral
+Dionysus,Deianira,Heroism,Hero,Benevolent
+Dionysus,Acis,Pastoral love,Hero,Neutral
+Dionysus,Cteatus,Strength,Hero,Benevolent
+Dionysus,Eurymedon,Strength,Hero,Benevolent
+Dionysus,Comus,Revelry and festivity,Olympian,Chaotic
+Dionysus,The Bacchae,Revelry,Hero,Chaotic
+Dionysus,Lycurgus,Insanity,Hero,Chaotic
+Dionysus,Panacea,Healing,Hero,Benevolent
+Dionysus,Iacchus,Mystery rites,Hero,Benevolent
+Heracles,Telephus,Heroism,Demigod,Benevolent
+Heracles,Hyllus,Strength and heroism,Demigod,Benevolent
+Heracles,Tlepolemus,Heroism,Demigod,Benevolent
+Heracles,Alexiares,Defence and fortifications,Demigod,Benevolent
+Heracles,Anicetus,Unconquerable,Demigod,Benevolent
+Heracles,Macaria,Blessed death,Demigod,Benevolent
+Heracles,Augeas,Stables and cleanliness,Hero,Neutral
+Heracles,Cacus,Fire and monsters,Monster,Malevolent
+Heracles,Pasiphae,Magic and witchcraft,Nymph,Chaotic
+Heracles,Circe,Magic and transformation,Nymph,Chaotic
+Heracles,Ariadne,Labyrinth and thread,Nymph,Benevolent
+Persephone,Melinoe,Ghosts and spirits,Underworld Deity,Malevolent
+Persephone,Zagreus,Rebirth,Underworld Deity,Neutral
+Persephone,Macaria,Blessed death,Underworld Deity,Benevolent
+Helios,Phaethon,Sun,Titan,Neutral
+Helios,Aeetes,Magic and witchcraft,Hero,Neutral
+Helios,Circe,Magic and transformation,Hero,Chaotic
+Helios,Pasiphae,Magic and witchcraft,Hero,Chaotic
+Helios,Phaethusa,Nymph of light,Nymph,Benevolent
+Helios,Lampetia,Nymph of light,Nymph,Benevolent
+Eos,Memnon,Ethiopia,Hero,Benevolent
+Eos,Emathion,Heroism,Hero,Neutral
+Eos,Phaethon,Sun,Hero,Neutral
+Eos,Astraea,Justice,Titan,Benevolent
+Eos,Aurora,Dawn,Titan,Benevolent
+Eos,Tithonus,Immortality,Hero,Neutral
+Eos,Eosphorus,Morning star,Nymph,Benevolent
+Eos,The Anemoi,Winds,Nymph,Neutral
+Eos,Boreas,North wind,Nymph,Neutral
+Eos,Notus,South wind,Nymph,Neutral
+Eos,Eurus,East wind,Nymph,Neutral
+Eos,Zephyrus,West wind,Nymph,Neutral
+Eos,The Hesperides,Evening,Nymph,Benevolent
+Eos,Cleoboea,Hesperides,Nymph,Neutral
+Eos,Erytheia,Hesperides,Nymph,Neutral
+Eos,Aegle,Hesperides,Nymph,Neutral
+Eos,Arethusa,Hesperides,Nymph,Neutral
+Eos,Ambrosia,Hesperides,Nymph,Neutral
+Eos,Hespera,Hesperides,Nymph,Neutral

@@ -21,7 +21,7 @@
       "@types/*": ["src/types/*"],
       "@styles/*": ["src/styles/*"],
       "@lib/*": ["src/lib/*"],
-      "#site/content": ["./.velite/index.js"]
+      "#site/content": ["content/docs"],
     },
     "plugins": [
       {
@@ -34,8 +34,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/**/*.mdx",
-    ".velite/**/*.ts" // Ensure Velite types are included
+    "src/**/*.mdx"
   ],
   "exclude": ["node_modules"]
 }

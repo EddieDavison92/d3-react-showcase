@@ -3,13 +3,13 @@
 "use client";
 
 import React from "react";
-import { MDXContent } from "@/components/mdx-components"; // Use MDXContent for rendering
-import { buttonVariants } from "@/components/ui/button"
+import { MDXContent } from "@/components/mdx-components"; // Ensure MDXContent is imported correctly
+import { buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
-
+import { MDXRemoteSerializeResult } from 'next-mdx-remote';
 
 interface PagerProps {
-  code: string; // MDX content as a function body string
+  code: MDXRemoteSerializeResult; // MDX content as a serialized result
 }
 
 // Assuming DocsPager is meant for navigation between docs, define it here:
@@ -20,11 +20,11 @@ interface DocsPagerProps {
 
 const DocsPager: React.FC<DocsPagerProps> = ({ prev, next }) => (
   <div className="flex justify-between mt-4">
-    {prev && (
+    {prev ? (
       <Link href={prev.href} className={buttonVariants({ variant: "outline" })}>
         &larr; {prev.title}
       </Link>
-    )}
+    ) : <div />} {/* Placeholder for alignment */}
     {next && (
       <Link href={next.href} className={buttonVariants({ variant: "outline" })}>
         {next.title} &rarr;

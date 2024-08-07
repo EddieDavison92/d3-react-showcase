@@ -2,18 +2,24 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Mdx } from "@/components/mdx-components";
-import { DocsPager } from "@/components/pager";
-import { DashboardTableOfContents } from "@/components/toc";
-import { TableOfContents, Item } from "@/lib/toc";
-import Balancer from "react-wrap-balancer";
+import React, { useState, useEffect } from 'react';
+import { MDXContent } from '@/components/mdx-components';
+import { DocsPager } from '@/components/pager';
+import { DashboardTableOfContents } from '@/components/toc';
+import Balancer from 'react-wrap-balancer';
+import { MDXRemoteSerializeResult } from 'next-mdx-remote';
+
+interface TOCItem {
+  title: string;
+  url: string;
+  items: TOCItem[];
+}
 
 interface DocContentProps {
   title: string;
   description?: string;
   doc: {
-    code: string;
+    code: MDXRemoteSerializeResult;
   };
   prevDoc?: {
     title: string;
@@ -32,20 +38,20 @@ const DocContent: React.FC<DocContentProps> = ({
   prevDoc,
   nextDoc,
 }) => {
-  const [toc, setToc] = useState<TableOfContents | null>(null);
+  const [toc, setToc] = useState<{ items: TOCItem[] } | null>(null);
 
   useEffect(() => {
-    const container = document.querySelector(".mdx") as HTMLElement;
+    const container = document.querySelector('.mdx') as HTMLElement;
     if (container) {
       const headings = Array.from(
-        container.querySelectorAll("h1, h2, h3, h4, h5, h6")
+        container.querySelectorAll('h1, h2, h3, h4, h5, h6')
       ).map((heading) => ({
-        title: heading.textContent || "",
-        url: `#${heading.id}`,
+        title: heading.textContent || '',
+        url: `#${heading.id}`, // Corrected this line
         depth: Number(heading.tagName[1]),
       }));
       const items = buildTocItems(headings);
-      setToc({ items }); // Always set to an object, even if empty
+      setToc({ items });
     }
   }, [doc.code]);
 
@@ -69,16 +75,18 @@ const DocContent: React.FC<DocContentProps> = ({
             </p>
           )}
         </div>
-        <Mdx code={doc.code} />
+        <div className="mdx">
+          <MDXContent code={doc.code} />
+        </div>
         <DocsPager
           prev={
             prevDoc
-              ? { title: prevDoc.title, href: `/docs/${prevDoc.slug}` }
+              ? { title: prevDoc.title, href: `/docs/${prevDoc.slug}` } // Corrected this line
               : undefined
           }
           next={
             nextDoc
-              ? { title: nextDoc.title, href: `/docs/${nextDoc.slug}` }
+              ? { title: nextDoc.title, href: `/docs/${nextDoc.slug}` } // Corrected this line
               : undefined
           }
         />
@@ -89,10 +97,10 @@ const DocContent: React.FC<DocContentProps> = ({
 
 function buildTocItems(
   headings: { title: string; url: string; depth: number }[]
-): Item[] {
-  const tocItems: Item[] = [];
+): TOCItem[] {
+  const tocItems: TOCItem[] = [];
   headings.forEach((heading) => {
-    const newItem: Item = { title: heading.title, url: heading.url, items: [] };
+    const newItem: TOCItem = { title: heading.title, url: heading.url, items: [] };
     let level = heading.depth;
     let lastItem = tocItems;
     while (--level > 0) {

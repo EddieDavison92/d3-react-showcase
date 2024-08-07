@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { SidebarNavItem } from "@/types/nav";
 import { type DocsConfig } from "@/config/docs";
 import { cn } from "@/lib/utils";
-import { docs } from "#site/content"; // Import the docs data
 
 export interface DocsSidebarNavProps {
   config: DocsConfig;
@@ -70,17 +69,12 @@ export function DocsSidebarNav({ config }: DocsSidebarNavProps) {
 
   const items = config.components;
 
-  // Find the root document entry
-  const rootDoc = docs.find((doc) => doc.slug === "docs");
-
   return items.length ? (
     <div className="w-full">
       <div className="mt-8 mb-4">
-        {rootDoc && (
-          <Link className="font-semibold" href={`/${rootDoc.slug}`}>
-            {rootDoc.title}
-          </Link>
-        )}
+        <Link className="font-semibold" href="/docs">
+          Introduction
+        </Link>
       </div>
       {items
         .sort((a, b) => a.title.localeCompare(b.title)) // Sort items alphabetically by title

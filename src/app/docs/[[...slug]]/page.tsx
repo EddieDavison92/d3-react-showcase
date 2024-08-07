@@ -1,50 +1,37 @@
-import React from "react";
-import { notFound } from "next/navigation";
-import { docs } from "#site/content";
-import { ChevronRightIcon, ExternalLinkIcon } from "@radix-ui/react-icons";
+// src/app/docs/[[...slug]]/page.tsx
+
+import { getDocBySlug, getAllDocs } from '@/lib/docs';
+import { serialize } from 'next-mdx-remote/serialize';
+import DocContent from '@/components/DocContent';
+import { ChevronRightIcon } from '@radix-ui/react-icons';
 import Link from "next/link";
-import "@/styles/mdx.css";
-import { cn } from "@/lib/utils";
-import DocContent from "@/components/DocContent";
 
-export interface Doc {
-  title: string;
-  slug: string;
-  description?: string;
-  links?: {
-    doc?: string;
-    api?: string;
-  };
-  code: string;
-}
+export const metadata = {
+  title: 'Documentation',
+};
 
-interface DocPageProps {
+interface PageProps {
   params: { slug?: string[] };
 }
 
-const DocPage: React.FC<DocPageProps> = ({ params }) => {
-  // If params.slug is undefined or empty, serve the index
-  const slug = params.slug?.length ? params.slug.join("/") : "docs";
+export default async function Page({ params }: PageProps) {
+  const slug = params.slug?.length ? params.slug.join('/') : 'index';
 
-  // Sort documents with "/docs" first, then alphabetically by title
-  const sortedDocs = [...docs].sort((a, b) => {
-    if (a.slug === "docs") return -1;
-    if (b.slug === "docs") return 1;
+  // Get current document content
+  const { data, content } = getDocBySlug(slug);
+  const mdxSource = await serialize(content, { scope: data });
+
+  // Get all documents for prev/next navigation
+  const allDocs = getAllDocs();
+  const sortedDocs = allDocs.sort((a, b) => {
+    if (a.slug === 'index') return -1;
+    if (b.slug === 'index') return 1;
     return a.title.localeCompare(b.title);
   });
 
-  // Find the document using the existing slug from the sortedDocs
-  const doc: Doc | undefined = sortedDocs.find((doc: Doc) => doc.slug === slug);
-
-  if (!doc) {
-    console.warn("Document not found for slug:", slug);
-    notFound();
-    return null;
-  }
-
-  const docIndex = sortedDocs.findIndex((d) => d.slug === doc.slug);
-  const prevDoc = sortedDocs[docIndex - 1];
-  const nextDoc = sortedDocs[docIndex + 1];
+  const currentIndex = sortedDocs.findIndex((doc) => doc.slug === slug);
+  const prevDoc = currentIndex > 0 ? sortedDocs[currentIndex - 1] : null;
+  const nextDoc = currentIndex < sortedDocs.length - 1 ? sortedDocs[currentIndex + 1] : null;
 
   return (
     <main className="container mx-auto">
@@ -57,45 +44,17 @@ const DocPage: React.FC<DocPageProps> = ({ params }) => {
               </a>
             </div>
             <ChevronRightIcon className="h-3.5 w-3.5" />
-            <div className="font-medium text-foreground">{doc.title}</div>
+            <div className="font-medium text-foreground">{data.title}</div>
           </div>
-          {doc.links && (
-            <div className="flex items-center space-x-2">
-              {doc.links.doc && (
-                <Link
-                  href={doc.links.doc}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={cn("badge-secondary gap-1")}
-                >
-                  Docs
-                  <ExternalLinkIcon className="h-3 w-3" />
-                </Link>
-              )}
-              {doc.links.api && (
-                <Link
-                  href={doc.links.api}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={cn("badge-secondary gap-1")}
-                >
-                  API Reference
-                  <ExternalLinkIcon className="h-3 w-3" />
-                </Link>
-              )}
-            </div>
-          )}
           <DocContent
-            title={doc.title}
-            description={doc.description}
-            doc={doc}
-            prevDoc={prevDoc}
-            nextDoc={nextDoc}
+            title={data.title}
+            description={data.description}
+            doc={{ code: mdxSource }}
+            prevDoc={prevDoc ? { title: prevDoc.title, slug: prevDoc.slug } : undefined}
+            nextDoc={nextDoc ? { title: nextDoc.title, slug: nextDoc.slug } : undefined}
           />
         </div>
       </div>
     </main>
   );
-};
-
-export default DocPage;
+}

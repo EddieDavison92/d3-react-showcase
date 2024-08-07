@@ -23,5 +23,9 @@ export interface NavLink {
     {
       href: "/heatmap",
       title: "Heatmap",
+    },
+    {
+      href: "/network-graph",
+      title: "Network Graph",
     }
   ];

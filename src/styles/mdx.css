@@ -1,39 +1,62 @@
-[data-rehype-pretty-code-figure] pre {
-  @apply px-0;
-}
+/* src/styles/mdx.css */
 
-[data-rehype-pretty-code-figure] code {
-  @apply text-sm !leading-loose md:text-base border-0 p-0;
-}
-
-[data-rehype-pretty-code-figure] code[data-line-numbers] {
+pre {
+  overflow-x: auto;
+  padding: 1rem;
+  background-color: #282c34;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-family: 'Fira Code', monospace;
+  color: #e2e8f0;
   counter-reset: line;
 }
 
-[data-rehype-pretty-code-figure] code[data-line-numbers] > [data-line]::before {
+pre [data-line] {
+  padding: 0 1rem;
+  display: block;
+}
+
+pre [data-line-numbers] > [data-line]::before {
   counter-increment: line;
   content: counter(line);
-  @apply mr-4 inline-block w-4 text-right text-foreground;
+  display: inline-block;
+  width: 2rem;
+  margin-right: 1rem;
+  text-align: right;
+  color: gray;
 }
 
-[data-rehype-pretty-code-figure] [data-line] {
-  @apply border-l-2 border-l-transparent px-3;
+.highlighted {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
-[data-rehype-pretty-code-figure] [data-highlighted-line] {
-  background: rgba(200, 200, 255, 0.1);
-  @apply border-l-blue-400;
+.highlighted-chars {
+  background-color: rgba(255, 0, 0, 0.1); /* Example highlighting for specific characters */
 }
 
-[data-rehype-pretty-code-figure] [data-highlighted-chars] {
-  @apply rounded bg-zinc-600/50;
-  box-shadow: 0 0 0 4px rgb(82 82 91 / 0.5);
+code {
+  font-family: inherit;
+  color: inherit;
+  background-color: transparent;
+  padding: 0;
+  display: block;
+  white-space: pre;
 }
 
-[data-rehype-pretty-code-figure] [data-chars-id] {
-  @apply border-b-2 p-1 shadow-none;
+[data-highlighted-line] {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
-.subheading-anchor {
-  @apply no-underline hover:underline;
+[data-line-numbers] {
+  counter-reset: line;
+}
+
+[data-line-numbers] > [data-line]::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 2rem;
+  margin-right: 1rem;
+  text-align: right;
+  color: gray;
 }

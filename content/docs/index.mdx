@@ -1,7 +1,58 @@
 ---
 title: Introduction
+description: Some subtitle
+published: true
 ---
 
 TO DO:
 - Explain purpose of the library
 
+## Installation
+
+Some installation instructions
+
+```python
+print("Hello, World!")
+```
+
+
+```typescript
+// src/app/docs/[[...slug]]/page.tsx
+
+import { getDocBySlug, getAllDocs } from '@/lib/docs';
+import { serialize } from 'next-mdx-remote/serialize';
+import DocContent from '@/components/DocContent';
+import { ChevronRightIcon } from '@radix-ui/react-icons';
+import Link from "next/link";
+
+export const metadata = {
+  title: 'Documentation',
+};
+
+interface PageProps {
+  params: { slug?: string[] };
+}
+
+export default async function Page({ params }: PageProps) {
+  const slug = params.slug?.length ? params.slug.join('/') : 'index';
+
+  // Get current document content
+  const { data, content } = getDocBySlug(slug);
+  const mdxSource = await serialize(content, { scope: data });
+
+  // Get all documents for prev/next navigation
+  const allDocs = getAllDocs();
+  const sortedDocs = allDocs.sort((a, b) => {
+    if (a.slug === 'index') return -1;
+    if (b.slug === 'index') return 1;
+    return a.title.localeCompare(b.title);
+  });
+```
+### Dependencies
+
+- [React](https://reactjs.org/)
+- [D3](https://d3js.org/)
+- [React D3](https://react-d3-library.github.io/)
+- [React D3 Components](https://react-d3-library.github.io/#/)
+- [React D3 Tooltip](https://react-d3-library.github.io/#/docs/tooltip)
+- [React D3 Zoomable Sunburst](https://react-d3-library.github.io/#/docs/sunburst)
