@@ -1,13 +1,15 @@
+// src/components/sidebar-nav.tsx
+
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SidebarNavItem } from "@/types/nav";
-import { type DocsConfig } from "@/config/docs";
 import { cn } from "@/lib/utils";
 
 export interface DocsSidebarNavProps {
-  config: DocsConfig;
+  config: { components: SidebarNavItem[] };
+  indexTitle: string; // Receive index title as a prop
 }
 
 interface DocsSidebarNavItemsProps {
@@ -25,10 +27,9 @@ const DocsSidebarNavItems = ({
         !item.disabled ? (
           <Link
             key={index}
-            href={item.href}
+            href={item.href ?? "#"} // Ensure a fallback for href
             className={cn(
               "group flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:underline",
-              item.disabled && "cursor-not-allowed opacity-60",
               pathname === item.href
                 ? "font-medium text-foreground"
                 : "text-muted-foreground"
@@ -64,7 +65,7 @@ const DocsSidebarNavItems = ({
   ) : null;
 };
 
-export function DocsSidebarNav({ config }: DocsSidebarNavProps) {
+export function DocsSidebarNav({ config, indexTitle }: DocsSidebarNavProps) {  // Ensure named export
   const pathname = usePathname();
 
   const items = config.components;
@@ -73,7 +74,7 @@ export function DocsSidebarNav({ config }: DocsSidebarNavProps) {
     <div className="w-full">
       <div className="mt-8 mb-4">
         <Link className="font-semibold" href="/docs">
-          Introduction
+          {indexTitle}
         </Link>
       </div>
       {items
@@ -81,7 +82,7 @@ export function DocsSidebarNav({ config }: DocsSidebarNavProps) {
         .map((item, index) => (
           <div key={index} className={cn("pb-4")}>
             <h4 className="mb-1 px-2 text-sm">
-              <Link href={item.href}>{item.title}</Link>
+              <Link href={item.href ?? "#"}>{item.title}</Link> {/* Use fallback for href */}
             </h4>
             {item.items?.length && (
               <DocsSidebarNavItems items={item.items} pathname={pathname} />

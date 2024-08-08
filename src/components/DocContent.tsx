@@ -2,12 +2,12 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { MDXContent } from '@/components/mdx-components';
-import { DocsPager } from '@/components/pager';
-import { DashboardTableOfContents } from '@/components/toc';
-import Balancer from 'react-wrap-balancer';
-import { MDXRemoteSerializeResult } from 'next-mdx-remote';
+import React, { useState, useEffect } from "react";
+import { MDXContent } from "@/components/mdx-components";
+import { DocsPager } from "@/components/pager";
+import { DashboardTableOfContents } from "@/components/toc";
+import Balancer from "react-wrap-balancer";
+import { MDXRemoteSerializeResult } from "next-mdx-remote";
 
 interface TOCItem {
   title: string;
@@ -39,19 +39,32 @@ const DocContent: React.FC<DocContentProps> = ({
   nextDoc,
 }) => {
   const [toc, setToc] = useState<{ items: TOCItem[] } | null>(null);
+  const [docLoaded, setDocLoaded] = useState(false);
 
   useEffect(() => {
-    const container = document.querySelector('.mdx') as HTMLElement;
-    if (container) {
-      const headings = Array.from(
-        container.querySelectorAll('h1, h2, h3, h4, h5, h6')
-      ).map((heading) => ({
-        title: heading.textContent || '',
-        url: `#${heading.id}`, // Corrected this line
-        depth: Number(heading.tagName[1]),
-      }));
-      const items = buildTocItems(headings);
-      setToc({ items });
+    if (doc.code) {
+      const updateToc = () => {
+        const container = document.querySelector(".mdx") as HTMLElement;
+        if (container) {
+          const headings = Array.from(
+            container.querySelectorAll("h1, h2, h3, h4, h5, h6")
+          ).map((heading) => ({
+            title: heading.textContent || "",
+            url: `#${heading.id}`,
+            depth: Number(heading.tagName[1]),
+          }));
+          const items = buildTocItems(headings);
+          setToc({ items });
+        }
+      };
+
+      // Use a timeout to ensure DOM is fully updated before processing TOC
+      const timeoutId = setTimeout(() => {
+        updateToc();
+        setDocLoaded(true);
+      }, 50); // A small delay to ensure rendering is complete
+
+      return () => clearTimeout(timeoutId);
     }
   }, [doc.code]);
 
@@ -78,18 +91,20 @@ const DocContent: React.FC<DocContentProps> = ({
         <div className="mdx">
           <MDXContent code={doc.code} />
         </div>
-        <DocsPager
-          prev={
-            prevDoc
-              ? { title: prevDoc.title, href: `/docs/${prevDoc.slug}` } // Corrected this line
-              : undefined
-          }
-          next={
-            nextDoc
-              ? { title: nextDoc.title, href: `/docs/${nextDoc.slug}` } // Corrected this line
-              : undefined
-          }
-        />
+        {docLoaded && (
+          <DocsPager
+            prev={
+              prevDoc
+                ? { title: prevDoc.title, href: `/docs/${prevDoc.slug}` }
+                : undefined
+            }
+            next={
+              nextDoc
+                ? { title: nextDoc.title, href: `/docs/${nextDoc.slug}` }
+                : undefined
+            }
+          />
+        )}
       </div>
     </div>
   );

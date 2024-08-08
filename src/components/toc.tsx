@@ -3,6 +3,7 @@
 "use client";
 
 import * as React from "react";
+import { useEffect } from "react";
 
 import { TableOfContents } from "@/lib/toc";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,28 @@ export function DashboardTableOfContents({ toc }: TocProps) {
 
   const activeHeading = useActiveItem(itemIds);
   const mounted = useMounted();
+
+  useEffect(() => {
+    // Ensure TOC updates on page load
+    const container = document.querySelector(".mdx");
+    if (container) {
+      const observer = new MutationObserver(() => {
+        // Recompute TOC when DOM changes
+        const newItemIds = toc.items
+          ? toc.items
+              .flatMap((item) => [item.url, item?.items?.map((item) => item.url)])
+              .flat()
+              .filter(Boolean)
+              .map((id) => id?.split("#")[1] as string)
+          : [];
+        // Update itemIds or trigger a rerender if needed
+      });
+
+      observer.observe(container, { childList: true, subtree: true });
+
+      return () => observer.disconnect();
+    }
+  }, [toc]);
 
   if (!toc?.items || !mounted) {
     return null;

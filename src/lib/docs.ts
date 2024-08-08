@@ -18,6 +18,7 @@ export function getAllDocs() {
 
       return {
         slug,
+        href: `/docs/${slug}`, // Ensure href is constructed
         title: data.title || '',
         published: data.published ?? true,
       };

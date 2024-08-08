@@ -7,7 +7,6 @@ import { ChevronRightIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import rehypeSlug from 'rehype-slug';
 import rehypePrettyCode from 'rehype-pretty-code';
-import { Element } from 'hast'; // Import the relevant type from hast
 
 // Import rehypeOptions from CommonJS module
 import rehypeConfig from '@utils/rehype-config';
@@ -51,28 +50,33 @@ export default async function Page({ params }: PageProps) {
   const prevDoc = currentIndex > 0 ? sortedDocs[currentIndex - 1] : null;
   const nextDoc = currentIndex < sortedDocs.length - 1 ? sortedDocs[currentIndex + 1] : null;
 
+  // Find the index document title
+  const indexTitle = allDocs.find((doc) => doc.slug === 'index')?.title || 'Docs';
+
   return (
-    <main className="container mx-auto">
-      <div className="flex flex-col gap-10">
-        <div className="flex-1">
-          <div className="mt-10 flex items-center space-x-1 text-sm leading-none text-muted-foreground">
-            <div className="truncate">
-              <a href="/docs" className="hover:underline hover:text-foreground">
-                Docs
-              </a>
-            </div>
-            <ChevronRightIcon className="h-3.5 w-3.5" />
-            <div className="font-medium text-foreground">{data.title}</div>
+    <div className="flex flex-col gap-10">
+      <div className="flex-1">
+        <div className="mt-10 flex items-center space-x-1 text-sm leading-none text-muted-foreground">
+          <div className="truncate">
+            <Link href="/docs" className="hover:underline hover:text-foreground">
+              {indexTitle}
+            </Link>
           </div>
-          <DocContent
-            title={data.title}
-            description={data.description}
-            doc={{ code: mdxSource }}
-            prevDoc={prevDoc ? { title: prevDoc.title, slug: prevDoc.slug } : undefined}
-            nextDoc={nextDoc ? { title: nextDoc.title, slug: nextDoc.slug } : undefined}
-          />
+          {slug !== 'index' && ( // Only show the chevron and current title if not on the index page
+            <>
+              <ChevronRightIcon className="h-3.5 w-3.5" />
+              <div className="font-medium text-foreground">{data.title}</div>
+            </>
+          )}
         </div>
+        <DocContent
+          title={data.title}
+          description={data.description}
+          doc={{ code: mdxSource }}
+          prevDoc={prevDoc ? { title: prevDoc.title, slug: prevDoc.slug } : undefined}
+          nextDoc={nextDoc ? { title: nextDoc.title, slug: nextDoc.slug } : undefined}
+        />
       </div>
-    </main>
+    </div>
   );
 }
