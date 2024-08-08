@@ -9,6 +9,10 @@ import rehypeSlug from 'rehype-slug';
 import rehypePrettyCode from 'rehype-pretty-code';
 import { Element } from 'hast'; // Import the relevant type from hast
 
+// Import rehypeOptions from CommonJS module
+import rehypeConfig from '@utils/rehype-config';
+const { rehypeOptions } = rehypeConfig;
+
 export const metadata = {
   title: 'Documentation',
 };
@@ -23,38 +27,13 @@ export default async function Page({ params }: PageProps) {
   // Get current document content
   const { data, content } = getDocBySlug(slug);
 
-  // Serialize the MDX content with the rehype-pretty-code plugin
+  // Serialize the MDX content with the rehype-pretty-code plugin using imported options
   const mdxSource = await serialize(content, {
     scope: data,
     mdxOptions: {
       remarkPlugins: [],
       rehypePlugins: [
-        [
-          rehypePrettyCode,
-          {
-            theme: 'github-dark-dimmed',
-            keepBackground: true,
-            grid: true,
-            defaultLang: 'sh',
-            onVisitLine(node: Element) {
-              if (node.children.length === 0) {
-                node.children = [{ type: 'text', value: ' ' }];
-              }
-            },
-            onVisitHighlightedLine(node: Element) {
-              const className = node.properties.className;
-              node.properties.className = Array.isArray(className)
-                ? [...className, 'highlighted-line']
-                : ['highlighted-line'];
-            },
-            onVisitLineNumbers(node: Element) {
-              const className = node.properties.className;
-              node.properties.className = Array.isArray(className)
-                ? [...className, 'line-number']
-                : ['line-number'];
-            },
-          },
-        ],
+        [rehypePrettyCode, rehypeOptions], // Use imported rehype options
         rehypeSlug,
       ],
     },

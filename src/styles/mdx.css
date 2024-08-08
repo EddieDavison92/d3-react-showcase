@@ -1,5 +1,6 @@
 /* src/styles/mdx.css */
 
+/* General Styles for preformatted code blocks */
 pre {
   overflow-x: auto;
   background-color: #282c34;
@@ -10,12 +11,12 @@ pre {
   padding: 0;
 }
 
-pre [data-line] {
+pre[data-line] {
   padding: 0 0.5rem;
   display: block;
 }
 
-pre [data-line-numbers] > [data-line]::before {
+pre[data-line-numbers] > [data-line]::before {
   counter-increment: line;
   content: counter(line);
   display: inline-block;
@@ -34,18 +35,19 @@ pre [data-line-numbers] > [data-line]::before {
 }
 
 code {
-  font-family: inherit;
+  font-family: 'Fira Code', monospace;
   color: inherit;
   background-color: transparent;
-  padding: 0;
-  display: block;
-  white-space: pre;
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+  display: inline;
+  white-space: nowrap;
 }
 
 [data-highlighted-line] {
   background-color: rgba(255, 255, 255, 0.1);
   display: block;
-  width: 100%; /* Ensure full width coverage */
+  width: 100%;
 }
 
 [data-line-numbers] {
@@ -56,8 +58,16 @@ code {
   counter-increment: line;
   content: counter(line);
   display: inline-block;
-  width: 1.5rem; /* Reduced width for line numbers */
-  margin-right: 0.5rem; /* Reduced margin */
+  width: 1.5rem;
+  margin-right: 0.5rem;
   text-align: right;
   color: gray;
 }
+
+/* Increase specificity by targeting a parent class or more context */
+.parent-class code[data-language="sh"] {
+  color: white !important;
+  background-color: #282c34 !important;
+}
+
+

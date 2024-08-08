@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@contentlayer/utils": "^0.3.4",
     "@mdx-js/esbuild": "^3.0.1",
     "@mdx-js/loader": "^3.0.1",
     "@mdx-js/mdx": "^3.0.1",
@@ -31,11 +30,11 @@
     "@radix-ui/react-toggle": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.1.2",
     "@types/d3-brush": "^3.0.6",
+    "@types/hast": "^3.0.4",
     "@vercel/analytics": "^1.3.1",
     "balancer": "^0.2.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "contentlayer": "^0.3.4",
     "d3": "^7.9.0",
     "d3-brush": "^3.0.0",
     "esbuild": "^0.23.0",
@@ -65,8 +64,7 @@
     "sharp": "^0.33.4",
     "shiki": "^1.12.1",
     "tailwind-merge": "^2.3.0",
-    "tailwindcss-animate": "^1.0.7",
-    "velite": "^0.1.1"
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@shikijs/rehype": "^1.12.1",

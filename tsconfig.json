@@ -35,6 +35,6 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "src/**/*.mdx"
-  ],
+, "src/utils/rehype-config.js"  ],
   "exclude": ["node_modules"]
 }

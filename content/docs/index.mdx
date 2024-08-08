@@ -9,50 +9,59 @@ TO DO:
 
 ## Installation
 
-Some installation instructions
+### Prerequisites
 
+#### 1. Install Node.jsif you haven't already. 
+
+You can download node from [here](https://nodejs.org/en/download/).
+
+Node is a JavaScript runtime that is required to run the site locally.
+
+#### 2. Install Git if you haven't already.
+
+You can download Git from [here](https://git-scm.com/downloads).
+
+Git is a version control system that is required to clone the repository, make changes, and push changes to the repository.
+
+#### 3. Clone the repository:
+
+```bash
+git clone 
 ```
-print("Hello, World!")
+
+
+#### 4. Navigate to the root directory of the repository:
+
+```bash
+cd 
 ```
 
+#### 5. Install the dependencies:
 
-```typescript {3-7} showLineNumbers
-// src/app/docs/[[...slug]]/page.tsx
-
-import { getDocBySlug, getAllDocs } from '@/lib/docs';
-import { serialize } from 'next-mdx-remote/serialize';
-import DocContent from '@/components/DocContent';
-import { ChevronRightIcon } from '@radix-ui/react-icons';
-import Link from "next/link";
-
-export const metadata = {
-  title: 'Documentation',
-};
-
-interface PageProps {
-  params: { slug?: string[] };
-}
-
-export default async function Page({ params }: PageProps) {
-  const slug = params.slug?.length ? params.slug.join('/') : 'index';
-
-  // Get current document content
-  const { data, content } = getDocBySlug(slug);
-  const mdxSource = await serialize(content, { scope: data });
-
-  // Get all documents for prev/next navigation
-  const allDocs = getAllDocs();
-  const sortedDocs = allDocs.sort((a, b) => {
-    if (a.slug === 'index') return -1;
-    if (b.slug === 'index') return 1;
-    return a.title.localeCompare(b.title);
-  });
+```bash
+npm install
 ```
-### Dependencies
 
-- [React](https://reactjs.org/)
-- [D3](https://d3js.org/)
-- [React D3](https://react-d3-library.github.io/)
-- [React D3 Components](https://react-d3-library.github.io/#/)
-- [React D3 Tooltip](https://react-d3-library.github.io/#/docs/tooltip)
-- [React D3 Zoomable Sunburst](https://react-d3-library.github.io/#/docs/sunburst)
+npm will install all modules listed as dependencies in package.json.
+
+## Running the site locally
+
+Navigate to the root directory of the repository and run:
+
+```bash
+npm run dev
+```
+
+This will start a development server at [http://localhost:3000](http://localhost:3000).
+
+## Deploying the site
+
+All changes committed to the `main` branch are automatically deployed to Vercel, the hosting platform for this site. This ensures that updates become live on the site within approximately one minute.
+
+In contrast, changes made to the `dev` branch are not automatically deployed. To ensure a controlled deployment process, follow these steps:
+
+1. **Commit Changes to the `dev` Branch:** Make all your changes and feature developments in the `dev` branch.
+   
+2. **Create a Pull Request to the `main` Branch:** Once your changes in the `dev` branch are ready and tested, create a pull request to merge them into the `main` branch. This will trigger the deployment process.
+
+By following this workflow, you can manage deployments efficiently and minimise the risk of introducing issues to the live site.
