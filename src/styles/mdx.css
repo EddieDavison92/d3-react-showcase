@@ -9,11 +9,14 @@ pre {
   color: #ffffff;
   counter-reset: line;
   padding: 0;
+  position: relative;
 }
 
 pre[data-line] {
-  padding: 0 0.5rem;
   display: block;
+  margin-left: -0.5rem; /* Offset padding added to code */
+  margin-right: -0.5rem; /* Offset padding added to code */
+  padding: 0 0.5rem;
 }
 
 pre[data-line-numbers] > [data-line]::before {
@@ -38,7 +41,8 @@ code {
   font-family: 'Fira Code', monospace;
   color: inherit;
   background-color: transparent;
-  padding: 0.1em 0.3em;
+  padding-left: 0.5rem; /* Add padding to the left of code */
+  padding-right: 0.5rem; /* Add padding to the right of code */
   border-radius: 3px;
   display: inline;
   white-space: nowrap;
@@ -48,6 +52,9 @@ code {
   background-color: rgba(255, 255, 255, 0.1);
   display: block;
   width: 100%;
+  margin-left: -0.5rem; /* Offset padding added to code */
+  margin-right: -0.5rem; /* Offset padding added to code */
+  padding: 0 0.5rem;
 }
 
 [data-line-numbers] {
@@ -69,5 +76,3 @@ code {
   color: white !important;
   background-color: #282c34 !important;
 }
-
-

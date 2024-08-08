@@ -114,15 +114,27 @@ function buildTocItems(
   headings: { title: string; url: string; depth: number }[]
 ): TOCItem[] {
   const tocItems: TOCItem[] = [];
+  let lastH2Item: TOCItem | null = null;
+
   headings.forEach((heading) => {
     const newItem: TOCItem = { title: heading.title, url: heading.url, items: [] };
-    let level = heading.depth;
-    let lastItem = tocItems;
-    while (--level > 0) {
-      lastItem = lastItem[lastItem.length - 1]?.items || lastItem;
+    if (heading.depth === 2) {
+      // If the heading is an H2, it becomes a top-level item
+      tocItems.push(newItem);
+      lastH2Item = newItem;
+    } else if (heading.depth > 2 && lastH2Item) {
+      // If the heading is deeper, it becomes a child of the last H2
+      let parent = lastH2Item;
+      for (let level = 3; level <= heading.depth; level++) {
+        if (parent.items.length === 0 || level > heading.depth) {
+          parent.items.push(newItem);
+          break;
+        }
+        parent = parent.items[parent.items.length - 1];
+      }
     }
-    lastItem.push(newItem);
   });
+
   return tocItems;
 }
 
