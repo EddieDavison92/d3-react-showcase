@@ -6,7 +6,6 @@ import React, { useState, useEffect } from "react";
 import { MDXContent } from "@/components/mdx-components";
 import { DocsPager } from "@/components/pager";
 import { DashboardTableOfContents } from "@/components/toc";
-import Balancer from "react-wrap-balancer";
 import { MDXRemoteSerializeResult } from "next-mdx-remote";
 
 interface TOCItem {
@@ -83,12 +82,12 @@ const DocContent: React.FC<DocContentProps> = ({
             {title}
           </h1>
           {description && (
-            <p className="text-base text-muted-foreground">
-              <Balancer className="mt-2 mb-4">{description}</Balancer>
+            <p className="text-base text-muted-foreground mt-2 mb-4">
+              {description}
             </p>
           )}
         </div>
-        <div className="mdx">
+        <div className="mdx mt-4">
           <MDXContent code={doc.code} />
         </div>
         {docLoaded && (

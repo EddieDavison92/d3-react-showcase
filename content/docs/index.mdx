@@ -1,67 +1,83 @@
 ---
-title: Introduction
-description: 
-published: true
+title: Introduction to D3.js  
+description: An overview of D3.js, its purpose, and how to leverage its features for data visualisation  
+published: true  
 ---
 
-TO DO:
-- Explain purpose of the library
+D3.js is a powerful JavaScript library used for creating dynamic, interactive data visualisations in web browsers. Its robust features allow developers to bind data to the Document Object Model (DOM) and apply data-driven transformations to web page elements. This flexibility makes D3.js a favourite among data visualisation enthusiasts and professionals.
 
-## Installation
+In this article, we'll explore the purpose of the D3.js library, delve into its core components, and illustrate how it can be used to create stunning visualisations.
 
-### Prerequisites
+## What is D3?
 
-#### 1. Install Node.jsif you haven't already. 
+D3.js, short for Data-Driven Documents, is an open-source JavaScript library developed by Mike Bostock. It enables developers to create complex visualisations by combining powerful data manipulation capabilities with HTML, SVG, and CSS. Unlike other charting libraries that provide predefined charts, D3 offers a low-level approach, giving users complete control over the final appearance of their visualisations.
 
-You can download node from [here](https://nodejs.org/en/download/).
+## Why Use D3?
 
-Node is a JavaScript runtime that is required to run the site locally.
+- **Flexibility and Power**: D3's low-level approach allows developers to design any type of visualisation imaginable, from simple bar charts to complex interactive dashboards.
+  
+- **Rich Ecosystem**: With a large community and numerous plugins, D3 provides a vast range of tools and resources to extend its capabilities.
+  
+- **Data Binding**: D3 excels at binding data to DOM elements, allowing for smooth transitions and real-time updates when data changes.
+  
+- **High Performance**: D3 leverages modern web standards to ensure that visualisations are rendered efficiently, even with large datasets.
+  
+- **Customisability**: D3 provides granular control over styles and transitions, allowing developers to tailor visualisations to specific needs and aesthetic preferences.
 
-#### 2. Install Git if you haven't already.
+## How to Use D3?
 
-You can download Git from [here](https://git-scm.com/downloads).
+### Primitives
 
-Git is a version control system that is required to clone the repository, track changes, and push changes to the repository.
+D3 offers several core modules and primitives to manipulate data and visual elements:
 
-#### 3. Clone the repository:
+- **Arrays**: Functions like `d3.min`, `d3.max`, `d3.mean`, and `d3.extent` help process data arrays efficiently.
 
-```bash
-git clone https://github.com/EddieDavison92/d3-react-showcase.git
+- **Numbers**: Methods for interpolating numbers, generating random numbers, and formatting numbers provide crucial numeric operations.
+
+- **Strings**: Functions for string interpolation and parsing, such as `d3.format`, allow for custom string representations.
+
+### Selections
+
+Selections are fundamental to D3, allowing you to select DOM elements and bind data to them. With selections, you can append new elements, remove existing ones, and apply transformations based on data changes. Here’s a basic example:
+
+```typescript
+// Select all paragraph elements and bind data
+d3.selectAll("p")
+  .data([4, 8, 15, 16, 23, 42])
+  .style("font-size", d => `${d}px`);
+  ```
+
+### Scales
+
+Scales are used to map data values to visual properties such as position, length, or colour. D3 provides various scale types like linear, ordinal, and time scales, each designed for different data types and visualisation needs. For example:
+
+```typescript
+// Create a linear scale for mapping data to pixels
+const xScale = d3.scaleLinear()
+  .domain([0, 100])
+  .range([0, 500]);
 ```
+### Other Features
+
+D3 also includes powerful tools for working with:
+
+- **Axes**: Automatically generate and update axes based on scales.
+- **Transitions**: Animate changes to visualisations over time.
+- **Layouts**: Create complex layouts such as treemaps, pie charts, and force-directed graphs.
+- **Geo**: Visualise geographic data using projections and paths.
+
+## Example Use Cases Over Other Libraries
+
+D3.js shines in scenarios where custom, interactive visualisations are required. Here are some examples:
+
+- **Real-Time Data Dashboards**: Update visual elements dynamically as new data streams in.
+  
+- **Complex Data Structures**: Visualise hierarchical or network data with treemaps, dendrograms, and force-directed graphs.
+  
+- **Data Exploration Tools**: Build interactive tools that allow users to explore and filter large datasets visually.
+
+Compared to other libraries that offer standard charts with limited customisability, D3.js provides the flexibility to create truly unique and responsive visual experiences. Whether you're visualising scientific data, business metrics, or creative storytelling, D3.js offers the tools to bring your data to life in the browser.
+
+By understanding and leveraging D3.js's core features, developers can unlock the potential of their data, transforming it into compelling visual narratives that engage and inform their audience.
 
 
-#### 4. Navigate to the root directory of the repository:
-
-```sh
-cd C:/path/to/d3-react-showcase
-```
-
-#### 5. Install the dependencies:
-
-```sh
-npm install
-```
-
-npm will install all modules listed as dependencies in package.json.
-
-## Running the site locally
-
-Navigate to the root directory of the repository and run:
-
-```sh
-npm run dev
-```
-
-This will start a development server at [http://localhost:3000](http://localhost:3000).
-
-## Deploying the site
-
-All changes committed to the `main` branch are automatically deployed to Vercel, the hosting platform for this site. Updates become live within approximately 1 minute after the changes are pushed to the `main` branch.
-
-In contrast, changes made to the `dev` branch are not automatically deployed. To ensure a controlled deployment process, follow these steps:
-
-1. **Commit Changes to the `dev` Branch:** Make all your changes and feature developments in the `dev` branch.
-   
-2. **Create a Pull Request to the `main` Branch:** Once your changes in the `dev` branch are ready and tested, create a pull request to merge them into the `main` branch. This will trigger the deployment process.
-
-By following this workflow, you can manage deployments efficiently and minimise the risk of introducing issues to the live site.
