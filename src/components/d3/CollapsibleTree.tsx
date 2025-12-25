@@ -17,8 +17,8 @@ interface CollapsibleTreeProps {
 
 const CollapsibleTree: React.FC<CollapsibleTreeProps> = ({
   data,
-  width = 2000,
-  height = 1200,
+  width = 1400,
+  height = 1000,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -30,25 +30,24 @@ const CollapsibleTree: React.FC<CollapsibleTreeProps> = ({
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
 
-    const margin = { top: 20, right: 200, bottom: 20, left: 200 };
+    const margin = { top: 50, right: 50, bottom: 50, left: 50 };
 
-    // Calculate dimensions based on data depth
-    const maxDepth = getMaxDepth(data);
-    const nodeSize = { width: 180, height: 40 };
-    const innerWidth = maxDepth * nodeSize.width;
+    // Calculate dimensions based on data
+    const nodeSize = { width: 150, height: 80 };
+    const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
-    // Create tree layout with fixed node size
+    // Create tree layout - vertical orientation (top to bottom)
     const tree = d3.tree<TreeNode>()
-      .nodeSize([nodeSize.height, nodeSize.width])
-      .separation((a, b) => (a.parent === b.parent ? 1 : 1.2));
+      .nodeSize([nodeSize.width, nodeSize.height])
+      .separation((a, b) => (a.parent === b.parent ? 1 : 1.5));
 
     // Create hierarchy
     const root = d3.hierarchy(data);
 
-    // Collapse all nodes initially except first three levels
+    // Start with all nodes collapsed except root
     root.descendants().forEach(d => {
-      if (d.depth > 2) {
+      if (d.depth > 0) {
         (d as any)._children = d.children;
         (d as any).children = null;
       }
@@ -66,11 +65,10 @@ const CollapsibleTree: React.FC<CollapsibleTreeProps> = ({
     svg
       .attr('width', '100%')
       .attr('height', height)
-      .attr('viewBox', `0 0 ${innerWidth + margin.left + margin.right} ${height}`)
       .call(zoom);
 
     const g = svg.append('g')
-      .attr('transform', `translate(${margin.left},${height / 2})`);
+      .attr('transform', `translate(${width / 2},${margin.top})`);
 
     // Color scale based on allegiance
     const allegianceColors: Record<string, string> = {
@@ -96,8 +94,11 @@ const CollapsibleTree: React.FC<CollapsibleTreeProps> = ({
 
       const nodeEnter = node.enter().append('g')
         .attr('class', 'node')
-        .attr('transform', d => `translate(${source.y0 || 0},${source.x0 || 0})`)
+        .attr('transform', d => `translate(${source.x0 || 0},${source.y0 || 0})`)
         .on('click', (event, d: any) => {
+          event.stopPropagation();
+
+          // Toggle children
           if (d.children) {
             d._children = d.children;
             d.children = null;
@@ -105,7 +106,11 @@ const CollapsibleTree: React.FC<CollapsibleTreeProps> = ({
             d.children = d._children;
             d._children = null;
           }
+
           update(d);
+
+          // Pan to clicked node
+          centerNode(d);
         })
         .style('cursor', 'pointer');
 
@@ -119,11 +124,11 @@ const CollapsibleTree: React.FC<CollapsibleTreeProps> = ({
         .attr('stroke', '#fff')
         .attr('stroke-width', 2);
 
-      // Add text labels
+      // Add text labels (vertical layout - text below nodes)
       nodeEnter.append('text')
-        .attr('dy', '.31em')
-        .attr('x', d => (d as any).children || (d as any)._children ? -10 : 10)
-        .attr('text-anchor', d => (d as any).children || (d as any)._children ? 'end' : 'start')
+        .attr('dy', '1.5em')
+        .attr('x', 0)
+        .attr('text-anchor', 'middle')
         .text(d => d.data.name)
         .attr('font-size', '11px')
         .attr('fill', 'currentColor')
@@ -133,12 +138,14 @@ const CollapsibleTree: React.FC<CollapsibleTreeProps> = ({
 
       // Add collapse indicator
       nodeEnter.append('text')
-        .attr('x', d => (d as any).children || (d as any)._children ? -18 : 18)
+        .attr('y', 20)
+        .attr('x', 0)
         .attr('text-anchor', 'middle')
-        .attr('font-size', '10px')
+        .attr('font-size', '12px')
+        .attr('font-weight', 'bold')
         .attr('fill', 'currentColor')
-        .attr('opacity', 0.6)
-        .text(d => (d as any)._children ? '+' : (d as any).children ? '−' : '');
+        .attr('opacity', 0.8)
+        .text(d => (d as any)._children ? '▼' : '');
 
       // Tooltip
       nodeEnter
@@ -181,7 +188,7 @@ const CollapsibleTree: React.FC<CollapsibleTreeProps> = ({
 
       nodeUpdate.transition()
         .duration(duration)
-        .attr('transform', d => `translate(${(d as any).y},${(d as any).x})`);
+        .attr('transform', d => `translate(${(d as any).x},${(d as any).y})`);
 
       nodeUpdate.select('circle')
         .attr('fill', d => {
@@ -192,7 +199,7 @@ const CollapsibleTree: React.FC<CollapsibleTreeProps> = ({
       // Transition exiting nodes
       const nodeExit = node.exit().transition()
         .duration(duration)
-        .attr('transform', d => `translate(${source.y},${source.x})`)
+        .attr('transform', d => `translate(${source.x},${source.y})`)
         .remove();
 
       nodeExit.select('circle')
@@ -238,16 +245,29 @@ const CollapsibleTree: React.FC<CollapsibleTreeProps> = ({
     }
 
     function diagonal(s: any, d: any) {
-      return `M ${s.y} ${s.x}
-              C ${(s.y + d.y) / 2} ${s.x},
-                ${(s.y + d.y) / 2} ${d.x},
-                ${d.y} ${d.x}`;
+      return `M ${s.x} ${s.y}
+              C ${s.x} ${(s.y + d.y) / 2},
+                ${d.x} ${(s.y + d.y) / 2},
+                ${d.x} ${d.y}`;
+    }
+
+    function centerNode(source: any) {
+      const scale = d3.zoomTransform(svg.node()!).k;
+      const x = -source.x * scale + width / 2;
+      const y = -source.y * scale + height / 3;
+
+      svg.transition()
+        .duration(750)
+        .call(
+          zoom.transform as any,
+          d3.zoomIdentity.translate(x, y).scale(scale)
+        );
     }
 
     update(root);
 
-    // Center initial view
-    svg.call(zoom.transform as any, d3.zoomIdentity.translate(margin.left, 0).scale(0.8));
+    // Center root node initially
+    centerNode(root);
 
   }, [data, width, height]);
 
@@ -286,7 +306,7 @@ const CollapsibleTree: React.FC<CollapsibleTreeProps> = ({
         </div>
       </div>
       <div className="mt-2 text-xs text-muted-foreground">
-        <p>💡 Click nodes to expand/collapse • Hover for details • Scroll to zoom • Drag to pan</p>
+        <p>💡 Click nodes to expand/collapse and auto-pan • Hover for details • Scroll to zoom • Drag to pan</p>
       </div>
     </div>
   );
