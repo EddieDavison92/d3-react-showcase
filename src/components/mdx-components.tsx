@@ -126,6 +126,12 @@ const components: Record<string, React.ComponentType<any>> = {
       <table className={cn('w-full', className)} {...props} />
     </div>
   ),
+  thead: ({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) => (
+    <thead className={cn('bg-muted', className)} {...props} />
+  ),
+  tbody: ({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) => (
+    <tbody className={className} {...props} />
+  ),
   tr: ({ className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) => (
     <tr className={cn('even:bg-muted m-0 border-t p-0', className)} {...props} />
   ),

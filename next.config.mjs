@@ -3,6 +3,7 @@
 import nextMDX from '@next/mdx';
 import rehypeSlug from 'rehype-slug';
 import rehypePrettyCode from 'rehype-pretty-code';
+import remarkGfm from 'remark-gfm';
 // Import the module and destructure to get rehypeOptions
 import pkg from './src/utils/rehype-config.js';
 const { rehypeOptions } = pkg; // Destructure to get rehypeOptions
@@ -19,7 +20,7 @@ plugins.push(
   nextMDX({
     extension: /\.mdx?$/,
     options: {
-      remarkPlugins: [],
+      remarkPlugins: [remarkGfm],
       rehypePlugins: [[rehypePrettyCode, rehypeOptions], rehypeSlug],
     },
   })

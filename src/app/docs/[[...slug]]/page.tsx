@@ -7,6 +7,7 @@ import { ChevronRightIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import rehypeSlug from 'rehype-slug';
 import rehypePrettyCode from 'rehype-pretty-code';
+import remarkGfm from 'remark-gfm';
 
 // Import rehypeOptions from CommonJS module
 import rehypeConfig from '@utils/rehype-config';
@@ -30,7 +31,7 @@ export default async function Page({ params }: PageProps) {
   const mdxSource = await serialize(content, {
     scope: data,
     mdxOptions: {
-      remarkPlugins: [],
+      remarkPlugins: [remarkGfm],
       rehypePlugins: [
         [rehypePrettyCode, rehypeOptions], // Use imported rehype options
         rehypeSlug,
