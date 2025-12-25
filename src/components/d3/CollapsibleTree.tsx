@@ -17,8 +17,8 @@ interface CollapsibleTreeProps {
 
 const CollapsibleTree: React.FC<CollapsibleTreeProps> = ({
   data,
-  width = 1400,
-  height = 1000,
+  width = 2000,
+  height = 1200,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -30,13 +30,17 @@ const CollapsibleTree: React.FC<CollapsibleTreeProps> = ({
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
 
-    const margin = { top: 20, right: 120, bottom: 20, left: 120 };
-    const innerWidth = width - margin.left - margin.right;
+    const margin = { top: 20, right: 200, bottom: 20, left: 200 };
+
+    // Calculate dimensions based on data depth
+    const maxDepth = getMaxDepth(data);
+    const nodeSize = { width: 180, height: 40 };
+    const innerWidth = maxDepth * nodeSize.width;
     const innerHeight = height - margin.top - margin.bottom;
 
-    // Create tree layout
+    // Create tree layout with fixed node size
     const tree = d3.tree<TreeNode>()
-      .size([innerHeight, innerWidth])
+      .nodeSize([nodeSize.height, nodeSize.width])
       .separation((a, b) => (a.parent === b.parent ? 1 : 1.2));
 
     // Create hierarchy
@@ -60,12 +64,13 @@ const CollapsibleTree: React.FC<CollapsibleTreeProps> = ({
       });
 
     svg
-      .attr('width', width)
+      .attr('width', '100%')
       .attr('height', height)
+      .attr('viewBox', `0 0 ${innerWidth + margin.left + margin.right} ${height}`)
       .call(zoom);
 
     const g = svg.append('g')
-      .attr('transform', `translate(${margin.left},${margin.top})`);
+      .attr('transform', `translate(${margin.left},${height / 2})`);
 
     // Color scale based on allegiance
     const allegianceColors: Record<string, string> = {
@@ -242,9 +247,14 @@ const CollapsibleTree: React.FC<CollapsibleTreeProps> = ({
     update(root);
 
     // Center initial view
-    svg.call(zoom.transform as any, d3.zoomIdentity.translate(margin.left, height / 2));
+    svg.call(zoom.transform as any, d3.zoomIdentity.translate(margin.left, 0).scale(0.8));
 
   }, [data, width, height]);
+
+  function getMaxDepth(node: TreeNode, currentDepth = 0): number {
+    if (!node.children || node.children.length === 0) return currentDepth;
+    return Math.max(...node.children.map(child => getMaxDepth(child, currentDepth + 1)));
+  }
 
   return (
     <div ref={containerRef} className="relative">
