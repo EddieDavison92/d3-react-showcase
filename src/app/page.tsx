@@ -61,6 +61,22 @@ export default function Home() {
           </CardFooter>
         </Card>
 
+        <Card>
+          <CardHeader>
+            <CardTitle>Force-Directed Graph</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>
+              This interactive network visualization uses D3&apos;s force simulation to display the relationships between Greek mythological deities. Features include drag-to-reposition nodes, click to highlight connections, zoom and pan capabilities, and color-coded allegiances.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button asChild>
+              <a href="force-graph">View Force Graph</a>
+            </Button>
+          </CardFooter>
+        </Card>
+
       </div>
     </div>
   );

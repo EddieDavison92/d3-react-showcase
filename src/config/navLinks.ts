@@ -23,5 +23,9 @@ export interface NavLink {
     {
       href: "/heatmap",
       title: "Heatmap",
+    },
+    {
+      href: "/force-graph",
+      title: "Force Graph",
     }
   ];
