@@ -1,9 +1,393 @@
 ---
 title: Animated Choropleth Map
+description: Interactive geographic visualization with animation and custom projections
 ---
 
-TO DO:
-- Install dependencies
-- How to use the component
-- How to adapt the code to your data
-- How to customise
+## Overview
+
+The Animated Choropleth Map is an interactive geographic visualization that displays data across geographic regions using color gradients. This implementation features smooth animations between data dimensions, interactive tooltips, clickable regions, and support for custom map projections.
+
+## Features
+
+- **Animated transitions** between different data dimensions
+- **25+ color schemes** from D3's color interpolators
+- **Custom projection support** using proj4 for coordinate system transformations
+- **Interactive tooltips** showing region details on hover
+- **Clickable regions** for detailed drill-down views
+- **Responsive design** that adapts to container size
+- **Color legend** with dynamic range based on current data
+
+## Dependencies
+
+```bash
+npm install d3 proj4
+npm install --save-dev @types/d3 @types/geojson
+```
+
+### Required D3 Modules
+
+- `d3-geo` - Geographic projections and path generators
+- `d3-scale` - Color scales for data mapping
+- `d3-selection` - DOM manipulation and event handling
+
+### Additional Libraries
+
+- `proj4` - Coordinate system transformations (for non-standard projections)
+- `geojson` types - TypeScript definitions for GeoJSON data structures
+
+## Data Requirements
+
+### JSON Data Format
+
+Your data file should be an array of objects with the following structure:
+
+```json
+[
+  {
+    "RegionID": "E54000033",
+    "RegionName": "NHS Black Country ICB",
+    "Dimension": 25,
+    "Value": 12345,
+    "Proportion": 5.67
+  }
+]
+```
+
+### GeoJSON Format
+
+The geographic boundaries file must be a valid GeoJSON FeatureCollection:
+
+```json
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "RegionID": "E54000033",
+        "RegionName": "NHS Black Country ICB"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[lon, lat], [lon, lat], ...]]
+      }
+    }
+  ]
+}
+```
+
+## Usage
+
+### Basic Implementation
+
+```tsx
+import AnimatedChoroplethMap from "@/components/d3/AnimatedChoroplethMap";
+import { interpolateBlues } from "d3-scale-chromatic";
+
+function MyMap() {
+  const [currentAge, setCurrentAge] = useState(25);
+  const [selectedRegion, setSelectedRegion] = useState(null);
+
+  return (
+    <AnimatedChoroplethMap
+      jsonDataPath="/data/your-data.json"
+      geojsonPath="/data/your-boundaries.geojson"
+      idField="RegionID"
+      nameField="RegionName"
+      dimensionField="Dimension"
+      valueField="Value"
+      proportionField="Proportion"
+      joinCondition={(jsonRow, geoProperties) =>
+        jsonRow.RegionID === geoProperties.RegionID
+      }
+      colorScheme={interpolateBlues}
+      currentDimension={currentAge}
+      setSelectedRegion={setSelectedRegion}
+      formatTooltipText={(name) => name}
+    />
+  );
+}
+```
+
+### With Animation Controls
+
+```tsx
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+
+function AnimatedMapExample() {
+  const [currentDimension, setCurrentDimension] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    const interval = setInterval(() => {
+      setCurrentDimension((prev) => (prev + 1) % 101);
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [isPlaying]);
+
+  return (
+    <div>
+      <AnimatedChoroplethMap
+        // ... props
+        currentDimension={currentDimension}
+      />
+
+      <div className="controls">
+        <Slider
+          value={[currentDimension]}
+          onValueChange={(val) => setCurrentDimension(val[0])}
+          min={0}
+          max={100}
+          step={1}
+        />
+
+        <Button onClick={() => setIsPlaying(!isPlaying)}>
+          {isPlaying ? "Stop" : "Play"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `jsonDataPath` | `string` | Path to the JSON data file |
+| `geojsonPath` | `string` | Path to the GeoJSON boundaries file |
+| `idField` | `string` | Field name for region identifier in JSON data |
+| `nameField` | `string` | Field name for region name in GeoJSON properties |
+| `dimensionField` | `string` | Field name for the dimension being animated (e.g., age, year) |
+| `valueField` | `string` | Field name for the raw value to display |
+| `proportionField` | `string` | Field name for the normalized proportion (0-100) |
+| `joinCondition` | `(jsonRow, geoProps) => boolean` | Function to match JSON data with GeoJSON features |
+| `colorScheme` | `(t: number) => string` | D3 color interpolator function |
+| `currentDimension` | `number` | Current dimension value to display |
+| `setSelectedRegion` | `(region) => void` | Callback when a region is clicked |
+| `formatTooltipText` | `(name: string) => string` | Function to format region names in tooltips |
+
+## Adapting to Your Data
+
+### 1. Prepare Your Data
+
+Ensure your data matches the required structure. For each region and dimension:
+
+```typescript
+interface YourDataPoint {
+  regionId: string;        // Unique identifier
+  regionName: string;      // Display name
+  dimension: number;       // E.g., year, age group, category
+  value: number;          // Raw count or measurement
+  proportion: number;     // Percentage (0-100)
+}
+```
+
+### 2. Configure Field Mappings
+
+Update the props to match your field names:
+
+```tsx
+<AnimatedChoroplethMap
+  idField="regionId"           // Your ID field
+  nameField="regionName"       // Your name field
+  dimensionField="dimension"   // Your dimension field
+  valueField="value"          // Your value field
+  proportionField="proportion" // Your proportion field
+  // ...
+/>
+```
+
+### 3. Define Join Condition
+
+The `joinCondition` function links your JSON data to GeoJSON features:
+
+```tsx
+joinCondition={(jsonRow, geoProperties) =>
+  jsonRow.stateCode === geoProperties.STATEFP
+}
+```
+
+### 4. Handle Custom Projections
+
+If your GeoJSON uses a non-standard coordinate system (not WGS84/EPSG:4326), add proj4 definition:
+
+```typescript
+import proj4 from "proj4";
+
+// Example: British National Grid
+proj4.defs(
+  "EPSG:27700",
+  "+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 " +
+  "+x_0=400000 +y_0=-100000 +ellps=airy +datum=OSGB36 +units=m +no_defs"
+);
+```
+
+The component will automatically reproject coordinates to WGS84 (EPSG:4326) for D3's `geoMercator` projection.
+
+## Customization
+
+### Color Schemes
+
+D3 provides 25+ color schemes. Import from `d3-scale-chromatic`:
+
+```typescript
+import {
+  interpolateBlues,
+  interpolateReds,
+  interpolateViridis,
+  interpolatePlasma,
+  interpolateRdYlBu,
+  // ... and many more
+} from "d3-scale-chromatic";
+```
+
+Create a color scheme selector:
+
+```tsx
+const COLOR_SCHEMES = {
+  Blues: interpolateBlues,
+  Reds: interpolateReds,
+  Viridis: interpolateViridis,
+  Plasma: interpolatePlasma,
+  RdYlBu: interpolateRdYlBu,
+};
+
+const [selectedScheme, setSelectedScheme] = useState("Blues");
+
+<AnimatedChoroplethMap
+  colorScheme={COLOR_SCHEMES[selectedScheme]}
+  // ...
+/>
+```
+
+### Styling
+
+The component uses Tailwind CSS classes. Customize appearance:
+
+```tsx
+// In AnimatedChoroplethMap.tsx, modify:
+.attr("stroke", "#333")           // Border color
+.attr("stroke-width", "1")        // Border width
+
+// Tooltip styling (line 198):
+className="bg-white text-black border-2 border-gray-300 rounded-lg p-3 shadow-lg"
+```
+
+### Map Size
+
+Adjust the container height:
+
+```tsx
+// Line 195 in component:
+style={{ height: '800px' }}  // Increase height
+```
+
+### Animation Speed
+
+Control animation timing in your parent component:
+
+```tsx
+const interval = setInterval(() => {
+  setCurrentDimension((prev) => (prev + 1) % totalDimensions);
+}, 200);  // 200ms = faster, 1000ms = slower
+```
+
+## Advanced Examples
+
+### Multiple Maps with Sync
+
+```tsx
+function SyncedMaps() {
+  const [dimension, setDimension] = useState(0);
+
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      <AnimatedChoroplethMap
+        currentDimension={dimension}
+        colorScheme={interpolateBlues}
+        {...commonProps}
+      />
+      <AnimatedChoroplethMap
+        currentDimension={dimension}
+        colorScheme={interpolateReds}
+        {...commonProps}
+      />
+    </div>
+  );
+}
+```
+
+### Custom Tooltip Content
+
+```tsx
+formatTooltipText={(name) => {
+  // Add custom formatting
+  return name
+    .replace("NHS", "")
+    .replace("ICB", "Integrated Care Board")
+    .trim();
+}}
+```
+
+### Region Click Handler
+
+```tsx
+const [selectedRegion, setSelectedRegion] = useState(null);
+
+<AnimatedChoroplethMap
+  setSelectedRegion={(region) => {
+    setSelectedRegion(region);
+    // Navigate to detail page
+    router.push(`/region/${region.RegionID}`);
+  }}
+  // ...
+/>
+```
+
+## Performance Tips
+
+1. **Data optimization**: Pre-filter and aggregate data before passing to component
+2. **Memoization**: Use `useMemo` for expensive calculations in parent component
+3. **Debounce resize**: The component already debounces window resize events
+4. **Simplify GeoJSON**: Use tools like `mapshaper` to reduce geometry complexity
+5. **Limit dimensions**: Keep animation range reasonable (avoid 1000+ steps)
+
+## Troubleshooting
+
+### Map not displaying
+
+- Verify GeoJSON is valid using [geojson.io](https://geojson.io)
+- Check coordinate system matches proj4 definition
+- Ensure data paths are correct and accessible
+- Open browser console for error messages
+
+### Colors not showing
+
+- Verify `proportionField` contains numeric values 0-100
+- Check that data joins successfully (inspect filtered data in console)
+- Ensure color scheme is imported correctly
+
+### Animation stuttering
+
+- Reduce animation speed (increase interval time)
+- Simplify GeoJSON geometry
+- Limit data points per dimension
+- Use `requestAnimationFrame` for smoother transitions
+
+## Related Components
+
+- `AreaChart` - Used for drill-down detail views
+- `d3-colour-selector` - Color scheme dropdown component
+
+## Resources
+
+- [D3 Geographic Projections](https://github.com/d3/d3-geo)
+- [D3 Color Schemes](https://github.com/d3/d3-scale-chromatic)
+- [Proj4 Documentation](http://proj4js.org/)
+- [GeoJSON Specification](https://geojson.org/)

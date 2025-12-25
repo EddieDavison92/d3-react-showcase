@@ -1,11 +1,532 @@
 ---
-title: Scatterplot Matrix
+title: Scatterplot Matrix (SPLOM)
+description: Interactive brushable scatterplot matrix for multi-dimensional data exploration
 ---
 
-TO DO:
-- Install dependencies
-- How to use the component
-- How to adapt the code to your data
-- How to customise
+## Overview
 
-<Image src="/img/culmen_depth.png" alt="Culmen Depth" width="600" height="400" className="mt-4 max-width" />
+The Scatterplot Matrix (also known as SPLOM) is a powerful visualization technique for exploring relationships between multiple numeric variables simultaneously. This implementation features interactive brushing that allows you to select data points across all plots in the matrix, making it easy to identify patterns and correlations in multi-dimensional datasets.
+
+<Image src="/img/culmen_depth.png" alt="Culmen Depth Measurement" width="600" height="400" className="mt-4" />
+
+## Features
+
+- **Multi-dimensional exploration** - View all pairwise relationships at once
+- **Interactive brushing** - Select points in any plot to highlight them across all plots
+- **Color-coded categories** - Distinguish data by species, category, or any categorical dimension
+- **Responsive legend** - Auto-generated legend based on your data
+- **Dark mode support** - Automatically adapts to theme changes
+- **Customizable axes** - Automatic scaling and tick generation
+
+## Dependencies
+
+```bash
+npm install d3
+npm install --save-dev @types/d3
+```
+
+### Required D3 Modules
+
+- `d3-scale` - Linear scales for axes and color mapping
+- `d3-axis` - Axis generators for X and Y axes
+- `d3-brush` - Interactive brushing behavior
+- `d3-selection` - DOM manipulation
+- `d3-array` - Data utilities (extent, cross)
+
+## Data Requirements
+
+### Data Format
+
+Your data should be an array of objects where:
+- Each object represents one data point
+- Numeric columns are the measures you want to compare
+- One categorical column for color-coding
+
+```typescript
+interface DataItem {
+  // Numeric measures (at least 2 required)
+  measure1: number;
+  measure2: number;
+  measure3: number;
+  measure4: number;
+
+  // Categorical dimension for coloring
+  category: string;
+
+  // Optional: Additional categorical dimensions
+  subcategory?: string;
+}
+```
+
+### Example Data
+
+```json
+[
+  {
+    "culmen_length_mm": 39.1,
+    "culmen_depth_mm": 18.7,
+    "flipper_length_mm": 181,
+    "body_mass_g": 3750,
+    "species": "Adelie",
+    "island": "Torgersen",
+    "sex": "MALE"
+  },
+  {
+    "culmen_length_mm": 39.5,
+    "culmen_depth_mm": 17.4,
+    "flipper_length_mm": 186,
+    "body_mass_g": 3800,
+    "species": "Adelie",
+    "island": "Torgersen",
+    "sex": "FEMALE"
+  }
+]
+```
+
+## Usage
+
+### Basic Implementation
+
+```tsx
+import ScatterplotMatrix from "@/components/d3/ScatterplotMatrix";
+import { useEffect, useState } from "react";
+import * as d3 from "d3";
+
+function MyScatterplotMatrix() {
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    d3.json("/data/your-data.json").then((data) => {
+      setData(data);
+    });
+  }, []);
+
+  const columns = [
+    "measure1",
+    "measure2",
+    "measure3",
+    "measure4"
+  ];
+
+  return (
+    <ScatterplotMatrix
+      data={data}
+      columns={columns}
+      dimension="category"
+    />
+  );
+}
+```
+
+### With Column Selection
+
+```tsx
+import { useState } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
+
+function SelectableScatterplotMatrix() {
+  const [data, setData] = useState([]);
+
+  const availableColumns = [
+    "length",
+    "width",
+    "height",
+    "weight",
+    "density",
+    "volume"
+  ];
+
+  const [selectedColumns, setSelectedColumns] = useState([
+    "length",
+    "width",
+    "height",
+    "weight"
+  ]);
+
+  const toggleColumn = (column: string) => {
+    setSelectedColumns(prev =>
+      prev.includes(column)
+        ? prev.filter(c => c !== column)
+        : [...prev, column]
+    );
+  };
+
+  return (
+    <div>
+      <div className="mb-4">
+        <h3>Select Measures:</h3>
+        {availableColumns.map(col => (
+          <label key={col} className="mr-4">
+            <Checkbox
+              checked={selectedColumns.includes(col)}
+              onCheckedChange={() => toggleColumn(col)}
+            />
+            <span className="ml-2">{col}</span>
+          </label>
+        ))}
+      </div>
+
+      <ScatterplotMatrix
+        data={data}
+        columns={selectedColumns}
+        dimension="species"
+      />
+    </div>
+  );
+}
+```
+
+### With Dimension Switcher
+
+```tsx
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
+function ScatterplotWithDimensions() {
+  const [data, setData] = useState([]);
+  const [dimension, setDimension] = useState("species");
+
+  const dimensions = ["species", "island", "sex"];
+
+  return (
+    <div>
+      <RadioGroup value={dimension} onValueChange={setDimension}>
+        {dimensions.map(dim => (
+          <div key={dim} className="flex items-center space-x-2">
+            <RadioGroupItem value={dim} id={dim} />
+            <label htmlFor={dim}>{dim}</label>
+          </div>
+        ))}
+      </RadioGroup>
+
+      <ScatterplotMatrix
+        data={data}
+        columns={["measure1", "measure2", "measure3"]}
+        dimension={dimension}
+      />
+    </div>
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `data` | `DataItem[]` | Array of data objects containing numeric and categorical fields |
+| `columns` | `string[]` | Array of column names (numeric fields) to display in the matrix |
+| `dimension` | `string` | Name of the categorical field to use for color-coding |
+
+## How It Works
+
+### Matrix Layout
+
+A scatterplot matrix with 4 measures creates a 4×4 grid:
+
+```
+         Measure1  Measure2  Measure3  Measure4
+Measure1    □        ○        ○        ○
+Measure2    ○        □        ○        ○
+Measure3    ○        ○        □        ○
+Measure4    ○        ○        ○        □
+```
+
+- **Diagonal cells** (□) show the measure name
+- **Off-diagonal cells** (○) show scatterplots comparing two measures
+- **Upper triangle** mirrors the **lower triangle**
+
+### Interactive Brushing
+
+1. Click and drag in any cell to create a brush selection
+2. Selected points appear in **color**
+3. Unselected points appear as small **gray/white dots**
+4. Selection is reflected across **all cells** in the matrix
+5. Click outside the brush or in another cell to clear selection
+
+### Color Encoding
+
+Each unique value in the `dimension` column gets a distinct color from the Observable10 color scheme:
+
+```typescript
+const colors = [
+  '#3366CC', '#DC3912', '#109618', '#FF9900', '#990099',
+  '#3B3EAC', '#0099C6', '#DD4477', '#66AA00', '#B82E2E'
+];
+```
+
+## Adapting to Your Data
+
+### 1. Load Your Data
+
+Support for JSON and CSV:
+
+```tsx
+// JSON
+d3.json("/data/mydata.json").then(setData);
+
+// CSV
+d3.csv("/data/mydata.csv").then(data => {
+  // Convert string values to numbers
+  const processed = data.map(d => ({
+    ...d,
+    measure1: +d.measure1,
+    measure2: +d.measure2,
+    measure3: +d.measure3,
+  }));
+  setData(processed);
+});
+```
+
+### 2. Define Numeric Columns
+
+Only include columns with numeric data:
+
+```tsx
+const columns = Object.keys(data[0] || {}).filter(key =>
+  typeof data[0][key] === 'number'
+);
+```
+
+### 3. Choose Color Dimension
+
+Select a categorical field with reasonable cardinality (2-10 categories work best):
+
+```tsx
+// Good: 3-5 categories
+dimension="species"  // Adelie, Chinstrap, Gentoo
+
+// Okay: Up to 10 categories
+dimension="region"
+
+// Avoid: Too many categories
+dimension="individual_id"  // 344 unique values
+```
+
+## Customization
+
+### Matrix Size
+
+Adjust the size in `ScatterplotMatrix.tsx`:
+
+```tsx
+// Line 35-36
+const width = 1200;   // Increase for larger matrix
+const height = 1200;
+```
+
+### Cell Padding
+
+Control spacing between cells:
+
+```tsx
+// Line 37
+const padding = 40;  // Increase for more space
+```
+
+### Point Styling
+
+Customize circle size and opacity:
+
+```tsx
+// Foreground circles (line 128-130)
+.attr('r', 4)                    // Increase radius
+.attr('fill-opacity', 0.8)        // Increase opacity
+
+// Background dots (line 116-117)
+.attr('r', 1)                    // Background dot size
+```
+
+### Colors
+
+Use a different color scheme:
+
+```tsx
+// Replace schemeObservable10 (lines 19-22) with:
+const schemeTableau10 = d3.schemeTableau10;
+const schemeCategory10 = d3.schemeCategory10;
+
+// Or create custom colors:
+const customColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'];
+```
+
+### Axis Ticks
+
+Adjust tick count and formatting:
+
+```tsx
+// Line 48-54
+const axisx = d3.axisBottom(x[0])
+  .ticks(8)                      // More ticks
+  .tickFormat(d3.format(".2f"));  // Format numbers
+
+const axisy = d3.axisLeft(y[0])
+  .ticks(8)
+  .tickFormat(d3.format(".2f"));
+```
+
+## Advanced Examples
+
+### Filter Data Before Plotting
+
+```tsx
+function FilteredScatterplot() {
+  const [rawData, setRawData] = useState([]);
+  const [minValue, setMinValue] = useState(0);
+
+  const filteredData = rawData.filter(d =>
+    d.measure1 >= minValue
+  );
+
+  return (
+    <div>
+      <input
+        type="range"
+        min="0"
+        max="100"
+        value={minValue}
+        onChange={(e) => setMinValue(+e.target.value)}
+      />
+      <p>Minimum: {minValue}</p>
+
+      <ScatterplotMatrix
+        data={filteredData}
+        columns={["measure1", "measure2", "measure3"]}
+        dimension="category"
+      />
+    </div>
+  );
+}
+```
+
+### Export Selected Data
+
+Enhance the component to track brush selection:
+
+```tsx
+// Add state to parent component
+const [selectedData, setSelectedData] = useState([]);
+
+// Modify brushed function in component to call callback:
+function brushed(event, [i, j]) {
+  const selection = event.selection;
+  if (selection) {
+    const [[x0, y0], [x1, y1]] = selection;
+    const selected = data.filter(d =>
+      x0 <= x[i](+d[columns[i]]) &&
+      x1 >= x[i](+d[columns[i]]) &&
+      y0 <= y[j](+d[columns[j]]) &&
+      y1 >= y[j](+d[columns[j]])
+    );
+    onSelectionChange?.(selected);
+  }
+}
+
+// In parent:
+<Button onClick={() => exportToCSV(selectedData)}>
+  Export Selected ({selectedData.length} points)
+</Button>
+```
+
+### Multiple Matrices Side-by-Side
+
+```tsx
+function CompareMatrices() {
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      <div>
+        <h3>Dataset A</h3>
+        <ScatterplotMatrix
+          data={dataA}
+          columns={columns}
+          dimension="category"
+        />
+      </div>
+      <div>
+        <h3>Dataset B</h3>
+        <ScatterplotMatrix
+          data={dataB}
+          columns={columns}
+          dimension="category"
+        />
+      </div>
+    </div>
+  );
+}
+```
+
+## Performance Tips
+
+1. **Limit data points**: For smooth interaction, keep data under 1,000 points
+2. **Limit columns**: 4-6 columns create a readable matrix; more than 8 becomes crowded
+3. **Pre-process data**: Filter and aggregate data before passing to component
+4. **Use memoization**: Wrap data transformations in `useMemo`
+5. **Debounce brush**: For large datasets, consider debouncing the brush event
+
+### Example: Data Sampling
+
+```tsx
+// Sample large datasets
+const sampledData = useMemo(() => {
+  if (data.length <= 500) return data;
+
+  const step = Math.ceil(data.length / 500);
+  return data.filter((_, i) => i % step === 0);
+}, [data]);
+
+<ScatterplotMatrix data={sampledData} ... />
+```
+
+## Interpreting the Matrix
+
+### Finding Correlations
+
+- **Positive correlation**: Points form upward-sloping line (↗)
+- **Negative correlation**: Points form downward-sloping line (↘)
+- **No correlation**: Points scattered randomly
+- **Non-linear**: Points form curves or clusters
+
+### Using Brushing Effectively
+
+1. **Identify outliers**: Brush extreme values to see their relationships across all dimensions
+2. **Find clusters**: Brush dense regions to highlight groups
+3. **Compare categories**: Look for separation between colored groups
+4. **Discover patterns**: Brush interesting patterns to trace them through other dimensions
+
+## Troubleshooting
+
+### Matrix not displaying
+
+- Check that `data` contains at least 2 data points
+- Verify `columns` array contains valid field names
+- Ensure column values are numbers, not strings
+- Check browser console for errors
+
+### Brush not working
+
+- Verify D3 brush module is installed
+- Check that SVG elements are being created
+- Ensure no CSS is blocking pointer events
+
+### Colors all the same
+
+- Verify `dimension` field exists in data
+- Check that dimension has multiple unique values
+- Ensure color scale domain is being set correctly
+
+### Performance issues
+
+- Reduce number of data points (sample or aggregate)
+- Limit number of columns in matrix
+- Check for memory leaks in useEffect cleanup
+
+## Related Visualizations
+
+- **Parallel Coordinates** - Alternative for high-dimensional data
+- **Correlation Heatmap** - Shows correlation coefficients numerically
+- **Bubble Chart** - For 3-4 dimensions with size/color encoding
+
+## Resources
+
+- [D3 Brush Documentation](https://github.com/d3/d3-brush)
+- [D3 Scales](https://github.com/d3/d3-scale)
+- [Mike Bostock's SPLOM Example](https://observablehq.com/@d3/splom)
+- [Palmer Penguins Dataset](https://allisonhorst.github.io/palmerpenguins/)

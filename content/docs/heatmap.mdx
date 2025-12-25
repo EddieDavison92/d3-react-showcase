@@ -1,11 +1,584 @@
 ---
-title: Heatmap
-description: Some title
+title: Temperature Anomaly Heatmap
+description: Interactive heatmap visualization with brushing and CSV export
 published: true
 ---
 
-TO DO:
-- Install dependencies
-- How to use the component
-- How to adapt the code to your data
-- How to customise
+## Overview
+
+The Temperature Anomaly Heatmap visualizes temporal patterns in climate data, displaying temperature anomalies across years and months. This implementation features dual-brush interaction (on both the heatmap and legend), data export capabilities, and a responsive design that makes it easy to explore long-term climate trends.
+
+## Features
+
+- **Dual brushing system** - Select data by drawing regions on the heatmap or by filtering temperature ranges on the legend
+- **RdYlBu color scale** - Intuitive blue (cold) to red (warm) gradient for temperature anomalies
+- **Export to CSV** - Download selected data for further analysis
+- **Interactive tooltips** - Hover to see exact values for year, month, and temperature
+- **Responsive design** - Automatically adapts to container width
+- **Data table** - View selected data in tabular format
+- **Range filtering** - Filter by min/max temperature thresholds
+
+## Dependencies
+
+```bash
+npm install d3
+npm install --save-dev @types/d3
+```
+
+### Required D3 Modules
+
+- `d3-scale` - Linear and band scales for axes and color mapping
+- `d3-axis` - Axis generators
+- `d3-brush` - 2D and 1D brushing behaviors
+- `d3-selection` - DOM manipulation and event handling
+- `d3-scale-chromatic` - Color schemes (interpolateRdYlBu)
+
+## Data Requirements
+
+### Data Format
+
+Your data should be an array of objects with:
+- A **time dimension** (year or date)
+- A **categorical dimension** (month, day, category)
+- A **numeric value** (temperature, count, measurement)
+
+```typescript
+interface DataPoint {
+  Year: number;          // Decimal year (e.g., 1880.04)
+  Anomaly: number | null; // Numeric value
+  YearFloor: number;     // Integer year (e.g., 1880)
+  MonthIndex: number;    // 0-11 for Jan-Dec
+}
+```
+
+### Example Data
+
+```json
+[
+  {
+    "Year": 1880.04,
+    "Anomaly": -0.48,
+    "YearFloor": 1880,
+    "MonthIndex": 0
+  },
+  {
+    "Year": 1880.13,
+    "Anomaly": -0.31,
+    "YearFloor": 1880,
+    "MonthIndex": 1
+  }
+]
+```
+
+### Data Preprocessing
+
+Transform your raw data before passing to the component:
+
+```tsx
+const processData = (rawData: any[]) => {
+  return rawData.map(d => {
+    const yearFloor = Math.floor(d.Year);
+    const monthIndex = Math.round((d.Year - yearFloor) * 12);
+
+    return {
+      Year: d.Year,
+      Anomaly: d.Anomaly,
+      YearFloor: yearFloor,
+      MonthIndex: monthIndex
+    };
+  });
+};
+```
+
+## Usage
+
+### Basic Implementation
+
+```tsx
+import TemperatureAnomalyHeatmap from "@/components/d3/TemperatureAnomalyHeatmap";
+import { useState, useEffect } from "react";
+import * as d3 from "d3";
+
+function MyHeatmap() {
+  const [data, setData] = useState([]);
+  const [brushedData, setBrushedData] = useState([]);
+  const [isBrushed, setIsBrushed] = useState(false);
+
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  ];
+
+  const colorScale = d3.scaleSequential(d3.interpolateRdYlBu)
+    .domain([1, -1]);  // Reversed for RdYlBu (high = red, low = blue)
+
+  useEffect(() => {
+    d3.json("/data/temperature-data.json").then((rawData: any) => {
+      const processed = processData(rawData);
+      setData(processed);
+    });
+  }, []);
+
+  return (
+    <TemperatureAnomalyHeatmap
+      data={data}
+      enableBrushing={true}
+      setBrushedData={setBrushedData}
+      setIsBrushed={setIsBrushed}
+      colorScale={colorScale}
+      months={months}
+    />
+  );
+}
+```
+
+### With Data Table and Export
+
+```tsx
+import { Button } from "@/components/ui/button";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+
+function HeatmapWithExport() {
+  const [data, setData] = useState([]);
+  const [brushedData, setBrushedData] = useState([]);
+  const [isBrushed, setIsBrushed] = useState(false);
+
+  const exportToCSV = () => {
+    const headers = ["Year", "Month", "Anomaly"];
+    const rows = brushedData.map(d => [
+      d.YearFloor,
+      months[d.MonthIndex],
+      d.Anomaly?.toFixed(2) || ""
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "temperature-anomalies.csv";
+    link.click();
+  };
+
+  return (
+    <div>
+      <TemperatureAnomalyHeatmap
+        data={data}
+        enableBrushing={true}
+        setBrushedData={setBrushedData}
+        setIsBrushed={setIsBrushed}
+        colorScale={colorScale}
+        months={months}
+      />
+
+      {isBrushed && (
+        <div className="mt-4">
+          <Button onClick={exportToCSV}>
+            Export Selected Data ({brushedData.length} points)
+          </Button>
+
+          <Table className="mt-4">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Year</TableHead>
+                <TableHead>Month</TableHead>
+                <TableHead>Anomaly (°C)</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {brushedData.slice(0, 10).map((d, i) => (
+                <TableRow key={i}>
+                  <TableCell>{d.YearFloor}</TableCell>
+                  <TableCell>{months[d.MonthIndex]}</TableCell>
+                  <TableCell>{d.Anomaly?.toFixed(2)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### With Min/Max Temperature Filter
+
+```tsx
+import { RangeSlider } from "@/components/ui/RangeSlider";
+
+function HeatmapWithFilters() {
+  const [data, setData] = useState([]);
+  const [tempRange, setTempRange] = useState([-2, 2]);
+
+  const filteredData = data.filter(d =>
+    d.Anomaly !== null &&
+    d.Anomaly >= tempRange[0] &&
+    d.Anomaly <= tempRange[1]
+  );
+
+  return (
+    <div>
+      <div className="mb-4">
+        <label>Temperature Range: {tempRange[0]}°C to {tempRange[1]}°C</label>
+        <RangeSlider
+          min={-3}
+          max={3}
+          step={0.1}
+          value={tempRange}
+          onValueChange={setTempRange}
+        />
+      </div>
+
+      <TemperatureAnomalyHeatmap
+        data={filteredData}
+        enableBrushing={true}
+        setBrushedData={setBrushedData}
+        setIsBrushed={setIsBrushed}
+        colorScale={colorScale}
+        months={months}
+      />
+    </div>
+  );
+}
+```
+
+## Props
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `data` | `DataPoint[]` | Array of data points with year, anomaly, and month info |
+| `enableBrushing` | `boolean` | Enable/disable interactive brushing on heatmap |
+| `setBrushedData` | `Dispatch<SetStateAction<DataPoint[]>>` | State setter for selected data |
+| `setIsBrushed` | `Dispatch<SetStateAction<boolean>>` | State setter for brush active state |
+| `colorScale` | `d3.ScaleSequential<string>` | D3 color scale for mapping values to colors |
+| `months` | `string[]` | Array of month labels (12 items) |
+
+## How It Works
+
+### Heatmap Layout
+
+The heatmap uses a grid structure:
+- **X-axis**: Years (continuous scale)
+- **Y-axis**: Months (band scale)
+- **Color**: Temperature anomaly value
+
+Each cell represents one month in one year, colored according to the temperature anomaly.
+
+### Dual Brushing System
+
+#### Heatmap Brush
+1. Click and drag on the heatmap to select a rectangular region
+2. Selected cells remain at full opacity
+3. Unselected cells dim to 20% opacity
+4. Clears legend brush when activated
+
+#### Legend Brush
+1. Click and drag on the color legend to select a temperature range
+2. Only cells within the selected range remain visible
+3. Useful for finding all instances of extreme temperatures
+4. Clears heatmap brush when activated
+
+### Color Scale
+
+The `interpolateRdYlBu` color scheme:
+- **Red** = High values (warm anomalies)
+- **Yellow** = Mid-range values
+- **Blue** = Low values (cold anomalies)
+
+Domain is reversed `[max, min]` so that red represents high temperatures.
+
+## Adapting to Your Data
+
+### 1. Define Your Time Dimensions
+
+For different temporal granularities:
+
+```tsx
+// Daily data
+const days = Array.from({length: 31}, (_, i) => `Day ${i + 1}`);
+
+// Hourly data
+const hours = Array.from({length: 24}, (_, i) => `${i}:00`);
+
+// Quarters
+const quarters = ["Q1", "Q2", "Q3", "Q4"];
+```
+
+### 2. Configure Color Scale
+
+Adjust the color scale domain based on your data:
+
+```tsx
+// Find actual min/max
+const minValue = d3.min(data, d => d.Anomaly);
+const maxValue = d3.max(data, d => d.Anomaly);
+
+// Symmetric around zero (for anomalies)
+const extent = Math.max(Math.abs(minValue), Math.abs(maxValue));
+const colorScale = d3.scaleSequential(d3.interpolateRdYlBu)
+  .domain([extent, -extent]);
+
+// Asymmetric (for absolute values)
+const colorScale = d3.scaleSequential(d3.interpolateBlues)
+  .domain([minValue, maxValue]);
+```
+
+### 3. Different Color Schemes
+
+Choose alternative D3 color interpolators:
+
+```tsx
+import {
+  interpolateViridis,
+  interpolatePlasma,
+  interpolateInferno,
+  interpolateTurbo,
+  interpolateCool,
+  interpolateWarm
+} from "d3-scale-chromatic";
+
+// Single-hue sequential
+const colorScale = d3.scaleSequential(interpolateBlues);
+
+// Diverging (for data with meaningful zero)
+const colorScale = d3.scaleSequential(interpolateRdYlGn);
+
+// Perceptually uniform
+const colorScale = d3.scaleSequential(interpolateViridis);
+```
+
+### 4. Custom Data Fields
+
+Adapt to your schema:
+
+```tsx
+// Your data structure
+interface CustomDataPoint {
+  timestamp: string;
+  value: number;
+  category: string;
+}
+
+// Transform to required format
+const transformed = rawData.map(d => ({
+  Year: new Date(d.timestamp).getFullYear() +
+        new Date(d.timestamp).getMonth() / 12,
+  Anomaly: d.value,
+  YearFloor: new Date(d.timestamp).getFullYear(),
+  MonthIndex: new Date(d.timestamp).getMonth()
+}));
+```
+
+## Customization
+
+### Cell Appearance
+
+Adjust cell styling in `TemperatureAnomalyHeatmap.tsx`:
+
+```tsx
+// Line 84-89
+cells
+  .attr('fill', d => colorScale(d.Anomaly as number))
+  .attr('stroke', '#ccc')           // Border color
+  .attr('stroke-width', 0.5)        // Border width
+  .attr('rx', 2);                   // Rounded corners
+```
+
+### Margins and Dimensions
+
+Modify constants at the top of the component:
+
+```tsx
+// Line 20-21
+const MARGIN = { top: 30, right: 80, bottom: 40, left: 60 };
+const LEGEND_DIMENSIONS = { height: 400, width: 25 };
+```
+
+### Tooltip Content
+
+Customize tooltip HTML (line 103):
+
+```tsx
+.html(`
+  <div class="font-bold">${months[d.MonthIndex]} ${d.YearFloor}</div>
+  <div class="text-sm">
+    Temperature: ${d.Anomaly?.toFixed(2)}°C
+    <br/>
+    ${d.Anomaly > 0 ? 'Above' : 'Below'} average
+  </div>
+`)
+```
+
+### Legend Position
+
+Move the legend to different positions:
+
+```tsx
+// Left side
+g.append('rect')
+  .attr('x', -40)              // Negative x for left
+  .attr('y', 0)
+  // ...
+
+// Bottom
+g.append('rect')
+  .attr('x', 0)
+  .attr('y', height + 40)      // Below heatmap
+  .attr('width', width)
+  .attr('height', 20)          // Horizontal legend
+```
+
+## Advanced Examples
+
+### Multiple Heatmaps for Comparison
+
+```tsx
+function CompareHeatmaps() {
+  const [data1, setData1] = useState([]);
+  const [data2, setData2] = useState([]);
+
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      <div>
+        <h3>Dataset A (1880-1950)</h3>
+        <TemperatureAnomalyHeatmap data={data1} {...props} />
+      </div>
+      <div>
+        <h3>Dataset B (1951-2024)</h3>
+        <TemperatureAnomalyHeatmap data={data2} {...props} />
+      </div>
+    </div>
+  );
+}
+```
+
+### Linked Brush Across Multiple Views
+
+```tsx
+function LinkedViews() {
+  const [brushedData, setBrushedData] = useState([]);
+  const [isBrushed, setIsBrushed] = useState(false);
+
+  return (
+    <div>
+      <TemperatureAnomalyHeatmap
+        data={data}
+        enableBrushing={true}
+        setBrushedData={setBrushedData}
+        setIsBrushed={setIsBrushed}
+        {...props}
+      />
+
+      {isBrushed && (
+        <LineChart
+          data={brushedData}
+          title="Selected Time Series"
+        />
+      )}
+    </div>
+  );
+}
+```
+
+### Yearly Aggregation View
+
+```tsx
+function AggregatedHeatmap() {
+  // Calculate annual average anomalies
+  const yearlyAvg = useMemo(() => {
+    const grouped = d3.group(data, d => d.YearFloor);
+    return Array.from(grouped, ([year, values]) => ({
+      Year: year,
+      Anomaly: d3.mean(values, v => v.Anomaly),
+      YearFloor: year,
+      MonthIndex: 0  // Use first month as placeholder
+    }));
+  }, [data]);
+
+  return <TemperatureAnomalyHeatmap data={yearlyAvg} {...props} />;
+}
+```
+
+## Performance Tips
+
+1. **Limit data range**: For large datasets, filter to relevant time periods
+2. **Aggregate when possible**: Show yearly or quarterly data instead of daily
+3. **Debounce brush events**: For very large datasets, debounce brush callbacks
+4. **Use canvas for huge datasets**: Consider switching to canvas rendering for 10,000+ cells
+5. **Memoize transformations**: Wrap data processing in `useMemo`
+
+### Example: Data Window
+
+```tsx
+const [yearRange, setYearRange] = useState([2000, 2024]);
+
+const windowedData = useMemo(() => {
+  return data.filter(d =>
+    d.YearFloor >= yearRange[0] &&
+    d.YearFloor <= yearRange[1]
+  );
+}, [data, yearRange]);
+```
+
+## Interpreting the Heatmap
+
+### Patterns to Look For
+
+- **Vertical stripes**: Anomalies across an entire year
+- **Horizontal stripes**: Persistent monthly patterns across years
+- **Gradients**: Long-term trends (e.g., warming over time)
+- **Isolated hotspots**: Extreme events in specific months/years
+
+### Using Brushing Effectively
+
+1. **Identify extremes**: Use legend brush to find all instances of extreme values
+2. **Compare periods**: Brush different decades to compare patterns
+3. **Seasonal analysis**: Brush specific months across all years
+4. **Export for analysis**: Download selected data for statistical testing
+
+## Troubleshooting
+
+### Heatmap not rendering
+
+- Check data array is not empty
+- Verify all data points have valid `YearFloor` and `MonthIndex`
+- Ensure `Anomaly` values are numeric
+- Check color scale domain matches data range
+
+### Brush not working
+
+- Verify `enableBrushing={true}`
+- Check that state setters are provided
+- Ensure no CSS is blocking pointer events
+- Check browser console for brush errors
+
+### Colors look wrong
+
+- Verify color scale domain is correct
+- For diverging scales, ensure domain is symmetric
+- Check if domain is reversed (high to low)
+- Inspect actual min/max values in data
+
+### Legend axis incorrect
+
+- Verify color scale domain matches data
+- Check legend scale range matches legend height
+- Ensure tick format is appropriate for your data
+
+## Related Visualizations
+
+- **Time Series Line Chart** - Shows trends over time
+- **Calendar Heatmap** - Alternative layout for temporal data
+- **Choropleth Map** - Geographic heatmap
+
+## Resources
+
+- [D3 Brush Documentation](https://github.com/d3/d3-brush)
+- [D3 Color Scales](https://github.com/d3/d3-scale-chromatic)
+- [Heatmap Best Practices](https://www.data-to-viz.com/graph/heatmap.html)
+- [NASA GISTEMP Data](https://data.giss.nasa.gov/gistemp/)
