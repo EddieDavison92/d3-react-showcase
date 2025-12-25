@@ -29,10 +29,12 @@ export default function ForceGraphPage() {
     d3.csv('/data/greek_gods_full_lineage_with_categories.csv').then((rawData: any[]) => {
       const typedData = rawData as RawDataRow[];
 
-      // Build tree structure from parent-child relationships
+      // Build tree structure - for tree visualization, we need to handle multiple parents
+      // by only keeping the first parent-child relationship we encounter
       const nodeMap = new Map<string, TreeNode>();
+      const assignedChildren = new Set<string>(); // Track which children have been assigned
 
-      // First pass: create all nodes
+      // First pass: create all unique nodes
       typedData.forEach(row => {
         if (!nodeMap.has(row.Child)) {
           nodeMap.set(row.Child, {
@@ -42,12 +44,6 @@ export default function ForceGraphPage() {
             classification: row.Classification,
             allegiance: row.Allegiance,
           });
-        } else {
-          // Update existing node with details
-          const node = nodeMap.get(row.Child)!;
-          node.domain = row.Domain;
-          node.classification = row.Classification;
-          node.allegiance = row.Allegiance;
         }
 
         if (!nodeMap.has(row.Parent)) {
@@ -59,21 +55,25 @@ export default function ForceGraphPage() {
       });
 
       // Second pass: build parent-child relationships
+      // For entities with multiple parents, only use the first relationship
       typedData.forEach(row => {
+        if (assignedChildren.has(row.Child)) {
+          return; // Skip if this child is already assigned to a parent
+        }
+
         const parent = nodeMap.get(row.Parent);
         const child = nodeMap.get(row.Child);
-        if (parent && child && !parent.children?.includes(child)) {
+
+        if (parent && child) {
           parent.children!.push(child);
+          assignedChildren.add(row.Child);
         }
       });
 
       // Find root nodes (nodes that are not children of anyone)
-      const childrenSet = new Set<string>();
-      typedData.forEach(row => childrenSet.add(row.Child));
-
       const roots: TreeNode[] = [];
       nodeMap.forEach((node, name) => {
-        if (!childrenSet.has(name)) {
+        if (!assignedChildren.has(name)) {
           roots.push(node);
         }
       });
@@ -86,10 +86,21 @@ export default function ForceGraphPage() {
             children: roots,
           };
 
+      // Clean up empty children arrays
+      cleanEmptyChildren(tree);
+
       setTreeData(tree);
       setLoading(false);
     });
   }, []);
+
+  function cleanEmptyChildren(node: TreeNode) {
+    if (node.children && node.children.length === 0) {
+      delete node.children;
+    } else if (node.children) {
+      node.children.forEach(child => cleanEmptyChildren(child));
+    }
+  }
 
   if (loading || !treeData) {
     return (

@@ -46,9 +46,9 @@ const CollapsibleTree: React.FC<CollapsibleTreeProps> = ({
     // Create hierarchy
     const root = d3.hierarchy(data);
 
-    // Collapse all nodes initially except first two levels
+    // Collapse all nodes initially except first three levels
     root.descendants().forEach(d => {
-      if (d.depth > 1) {
+      if (d.depth > 2) {
         (d as any)._children = d.children;
         (d as any).children = null;
       }
