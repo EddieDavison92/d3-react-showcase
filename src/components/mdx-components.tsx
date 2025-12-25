@@ -1,9 +1,10 @@
 // src/components/mdx-components.tsx
 
+'use client';
+
 import React, { useState } from 'react';
-import dynamic from 'next/dynamic';
 import Image, { StaticImageData } from 'next/image';
-import { MDXRemoteSerializeResult } from 'next-mdx-remote';
+import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { cn } from '@/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -12,11 +13,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { CopyIcon, CheckIcon } from '@radix-ui/react-icons';
 import '@/styles/mdx.css';
-
-// Use dynamic import for MDXRemote
-const MDXRemote = dynamic(() => import('next-mdx-remote').then((mod) => mod.MDXRemote), {
-  ssr: false,
-});
 
 // Custom CodeBlock component with copy button
 const CodeBlock: React.FC<React.HTMLAttributes<HTMLPreElement>> = ({ className, children, ...props }) => {

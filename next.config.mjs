@@ -12,6 +12,7 @@ const plugins = [];
 const nextConfig = {
   reactStrictMode: true,
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
+  transpilePackages: ['next-mdx-remote'],
 };
 
 plugins.push(
