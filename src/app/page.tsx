@@ -77,6 +77,22 @@ export default function Home() {
           </CardFooter>
         </Card>
 
+        <Card>
+          <CardHeader>
+            <CardTitle>Hierarchical Visualizations</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>
+              Explore hierarchical data through two complementary views: a radial sunburst chart and a rectangular treemap. Both visualizations display a technology stack hierarchy with interactive zooming, tooltips, and size-proportional representations.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button asChild>
+              <a href="hierarchical">View Hierarchical Charts</a>
+            </Button>
+          </CardFooter>
+        </Card>
+
       </div>
     </div>
   );

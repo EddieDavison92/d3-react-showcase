@@ -1,0 +1,130 @@
+{
+  "name": "Technology Stack",
+  "children": [
+    {
+      "name": "Frontend",
+      "children": [
+        {
+          "name": "Frameworks",
+          "children": [
+            { "name": "React", "value": 3500 },
+            { "name": "Vue", "value": 2800 },
+            { "name": "Angular", "value": 2200 },
+            { "name": "Svelte", "value": 1500 }
+          ]
+        },
+        {
+          "name": "Styling",
+          "children": [
+            { "name": "Tailwind CSS", "value": 2500 },
+            { "name": "Styled Components", "value": 1800 },
+            { "name": "SASS/SCSS", "value": 2000 },
+            { "name": "CSS Modules", "value": 1200 }
+          ]
+        },
+        {
+          "name": "State Management",
+          "children": [
+            { "name": "Redux", "value": 2000 },
+            { "name": "Zustand", "value": 1000 },
+            { "name": "MobX", "value": 800 },
+            { "name": "Recoil", "value": 600 }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Backend",
+      "children": [
+        {
+          "name": "Runtime",
+          "children": [
+            { "name": "Node.js", "value": 4000 },
+            { "name": "Deno", "value": 800 },
+            { "name": "Bun", "value": 600 }
+          ]
+        },
+        {
+          "name": "Frameworks",
+          "children": [
+            { "name": "Express", "value": 3000 },
+            { "name": "Fastify", "value": 1500 },
+            { "name": "NestJS", "value": 2000 },
+            { "name": "Hono", "value": 700 }
+          ]
+        },
+        {
+          "name": "Databases",
+          "children": [
+            { "name": "PostgreSQL", "value": 3500 },
+            { "name": "MongoDB", "value": 2800 },
+            { "name": "Redis", "value": 2000 },
+            { "name": "MySQL", "value": 2500 }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DevOps",
+      "children": [
+        {
+          "name": "Containerization",
+          "children": [
+            { "name": "Docker", "value": 3800 },
+            { "name": "Kubernetes", "value": 2500 },
+            { "name": "Podman", "value": 500 }
+          ]
+        },
+        {
+          "name": "CI/CD",
+          "children": [
+            { "name": "GitHub Actions", "value": 2200 },
+            { "name": "GitLab CI", "value": 1800 },
+            { "name": "Jenkins", "value": 1500 },
+            { "name": "CircleCI", "value": 1000 }
+          ]
+        },
+        {
+          "name": "Cloud Platforms",
+          "children": [
+            { "name": "AWS", "value": 4500 },
+            { "name": "Azure", "value": 3000 },
+            { "name": "Google Cloud", "value": 2500 },
+            { "name": "Vercel", "value": 1500 }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tools",
+      "children": [
+        {
+          "name": "Build Tools",
+          "children": [
+            { "name": "Vite", "value": 2000 },
+            { "name": "Webpack", "value": 2500 },
+            { "name": "esbuild", "value": 1200 },
+            { "name": "Turbopack", "value": 800 }
+          ]
+        },
+        {
+          "name": "Testing",
+          "children": [
+            { "name": "Jest", "value": 2500 },
+            { "name": "Vitest", "value": 1500 },
+            { "name": "Playwright", "value": 1800 },
+            { "name": "Cypress", "value": 1600 }
+          ]
+        },
+        {
+          "name": "Version Control",
+          "children": [
+            { "name": "Git", "value": 5000 },
+            { "name": "GitHub", "value": 4000 },
+            { "name": "GitLab", "value": 2000 }
+          ]
+        }
+      ]
+    }
+  ]
+}
