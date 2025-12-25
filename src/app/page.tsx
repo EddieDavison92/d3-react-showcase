@@ -63,16 +63,16 @@ export default function Home() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Force-Directed Graph</CardTitle>
+            <CardTitle>Greek Mythology Family Tree</CardTitle>
           </CardHeader>
           <CardContent>
             <p>
-              This interactive network visualization uses D3&apos;s force simulation to display the relationships between Greek mythological deities. Features include drag-to-reposition nodes, click to highlight connections, zoom and pan capabilities, and color-coded allegiances.
+              This collapsible tree diagram visualizes the genealogical relationships between Greek deities using D3&apos;s tree layout. Click to expand/collapse branches, hover for details, and explore the divine lineage from primordial chaos through multiple generations with color-coded allegiances.
             </p>
           </CardContent>
           <CardFooter>
             <Button asChild>
-              <a href="force-graph">View Force Graph</a>
+              <a href="force-graph">View Family Tree</a>
             </Button>
           </CardFooter>
         </Card>

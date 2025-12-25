@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import * as d3 from 'd3';
-import ForceDirectedGraph from '@/components/d3/ForceDirectedGraph';
+import CollapsibleTree from '@/components/d3/CollapsibleTree';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface RawDataRow {
@@ -13,99 +13,122 @@ interface RawDataRow {
   Allegiance: string;
 }
 
-interface Node {
-  id: string;
-  group: string;
-  allegiance: string;
-  domain: string;
-}
-
-interface Link {
-  source: string;
-  target: string;
+interface TreeNode {
+  name: string;
+  children?: TreeNode[];
+  domain?: string;
+  classification?: string;
+  allegiance?: string;
 }
 
 export default function ForceGraphPage() {
-  const [data, setData] = useState<{ nodes: Node[]; links: Link[] }>({ nodes: [], links: [] });
+  const [treeData, setTreeData] = useState<TreeNode | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     d3.csv('/data/greek_gods_full_lineage_with_categories.csv').then((rawData: any[]) => {
       const typedData = rawData as RawDataRow[];
 
-      // Create nodes and links from the CSV data
-      const nodeMap = new Map<string, Node>();
-      const links: Link[] = [];
+      // Build tree structure from parent-child relationships
+      const nodeMap = new Map<string, TreeNode>();
 
+      // First pass: create all nodes
       typedData.forEach(row => {
-        // Add parent node
-        if (!nodeMap.has(row.Parent)) {
-          nodeMap.set(row.Parent, {
-            id: row.Parent,
-            group: 'Unknown',
-            allegiance: 'Neutral',
-            domain: 'Unknown',
-          });
-        }
-
-        // Add child node
         if (!nodeMap.has(row.Child)) {
           nodeMap.set(row.Child, {
-            id: row.Child,
-            group: row.Classification,
-            allegiance: row.Allegiance,
+            name: row.Child,
+            children: [],
             domain: row.Domain,
+            classification: row.Classification,
+            allegiance: row.Allegiance,
           });
         } else {
-          // Update child node with more specific info
+          // Update existing node with details
           const node = nodeMap.get(row.Child)!;
-          node.group = row.Classification;
-          node.allegiance = row.Allegiance;
           node.domain = row.Domain;
+          node.classification = row.Classification;
+          node.allegiance = row.Allegiance;
         }
 
-        // Add link
-        links.push({
-          source: row.Parent,
-          target: row.Child,
-        });
+        if (!nodeMap.has(row.Parent)) {
+          nodeMap.set(row.Parent, {
+            name: row.Parent,
+            children: [],
+          });
+        }
       });
 
-      const nodes = Array.from(nodeMap.values());
+      // Second pass: build parent-child relationships
+      typedData.forEach(row => {
+        const parent = nodeMap.get(row.Parent);
+        const child = nodeMap.get(row.Child);
+        if (parent && child && !parent.children?.includes(child)) {
+          parent.children!.push(child);
+        }
+      });
 
-      setData({ nodes, links });
+      // Find root nodes (nodes that are not children of anyone)
+      const childrenSet = new Set<string>();
+      typedData.forEach(row => childrenSet.add(row.Child));
+
+      const roots: TreeNode[] = [];
+      nodeMap.forEach((node, name) => {
+        if (!childrenSet.has(name)) {
+          roots.push(node);
+        }
+      });
+
+      // Create a single root if multiple roots exist
+      const tree: TreeNode = roots.length === 1
+        ? roots[0]
+        : {
+            name: 'Greek Mythology',
+            children: roots,
+          };
+
+      setTreeData(tree);
       setLoading(false);
     });
   }, []);
 
-  if (loading) {
+  if (loading || !treeData) {
     return (
       <div className="container mx-auto p-8">
         <div className="flex items-center justify-center h-96">
-          <p className="text-lg text-muted-foreground">Loading Greek mythology network...</p>
+          <p className="text-lg text-muted-foreground">Loading Greek mythology family tree...</p>
         </div>
       </div>
     );
   }
 
+  const countNodes = (node: TreeNode): number => {
+    let count = 1;
+    if (node.children) {
+      count += node.children.reduce((sum, child) => sum + countNodes(child), 0);
+    }
+    return count;
+  };
+
+  const totalNodes = countNodes(treeData);
+
   return (
     <div className="container mx-auto p-8">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Force-Directed Graph</h1>
+        <h1 className="text-4xl font-bold mb-2">Greek Mythology Family Tree</h1>
         <p className="text-lg text-muted-foreground">
-          Interactive network visualization of Greek mythology lineage
+          Interactive hierarchical tree visualization of divine lineage
         </p>
       </div>
 
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle>Greek Gods Family Tree</CardTitle>
+          <CardTitle>Collapsible Tree Diagram</CardTitle>
           <CardDescription>
-            Explore the relationships between {data.nodes.length} deities from Greek mythology
+            Explore the genealogical relationships between {totalNodes} deities from Greek mythology
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ForceDirectedGraph data={data} />
+          <CollapsibleTree data={treeData} />
         </CardContent>
       </Card>
 
@@ -116,9 +139,9 @@ export default function ForceGraphPage() {
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <p>
-              This force-directed graph uses D3's force simulation to visualize the complex
-              relationships in Greek mythology. Each node represents a deity or mythological entity,
-              and links show parent-child relationships.
+              This collapsible tree diagram shows the hierarchical lineage of Greek mythology from
+              the primordial deities down through multiple generations. The layout makes it easy to
+              trace family lines and understand divine genealogy.
             </p>
             <p>
               The color of each node indicates their allegiance:
@@ -129,6 +152,10 @@ export default function ForceGraphPage() {
               <li><span className="text-red-400">Red</span> - Malevolent beings</li>
               <li><span className="text-purple-400">Purple</span> - Chaotic forces</li>
             </ul>
+            <p className="mt-2">
+              Nodes with a <strong>−</strong> symbol can be collapsed, while <strong>+</strong> indicates
+              collapsed nodes that can be expanded.
+            </p>
           </CardContent>
         </Card>
 
@@ -138,13 +165,19 @@ export default function ForceGraphPage() {
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <ul className="space-y-2">
-              <li><strong>Drag nodes</strong> - Click and drag any node to reposition it</li>
-              <li><strong>Highlight connections</strong> - Click a node to see its direct relationships</li>
+              <li><strong>Expand/Collapse</strong> - Click nodes to show or hide their descendants</li>
+              <li><strong>Hover for details</strong> - See domain, type, and allegiance information</li>
               <li><strong>Zoom</strong> - Use mouse wheel to zoom in and out</li>
-              <li><strong>Pan</strong> - Click and drag the background to move the entire graph</li>
-              <li><strong>Hover</strong> - Hover over nodes to see detailed information</li>
-              <li><strong>Reset</strong> - Click the background to clear highlighting</li>
+              <li><strong>Pan</strong> - Click and drag to move around the tree</li>
+              <li><strong>Navigate efficiently</strong> - Start collapsed, then expand branches of interest</li>
             </ul>
+            <div className="mt-3 p-3 bg-muted rounded">
+              <p className="text-xs font-semibold mb-1">💡 Pro Tip</p>
+              <p className="text-xs text-muted-foreground">
+                The tree starts with deeper levels collapsed to reduce visual complexity. Click on nodes
+                with the <strong>+</strong> symbol to explore their descendants.
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -152,9 +185,10 @@ export default function ForceGraphPage() {
       <div className="mt-6 p-4 bg-muted rounded-lg">
         <h3 className="font-semibold mb-2">Dataset Information</h3>
         <p className="text-sm text-muted-foreground">
-          This visualization uses a dataset of Greek mythology lineage, showing relationships between
-          primordial beings, Titans, Olympians, and other mythological entities. The network contains{' '}
-          {data.nodes.length} nodes and {data.links.length} connections.
+          This visualization uses a dataset of Greek mythology lineage showing parent-child relationships
+          from the primordial chaos through Titans, Olympians, and their descendants. The tree structure
+          makes it much easier to understand genealogical connections compared to a force-directed layout.
+          Total entities: {totalNodes}.
         </p>
       </div>
     </div>

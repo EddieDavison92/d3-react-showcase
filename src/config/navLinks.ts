@@ -26,7 +26,7 @@ export interface NavLink {
     },
     {
       href: "/force-graph",
-      title: "Force Graph",
+      title: "Family Tree",
     },
     {
       href: "/hierarchical",
