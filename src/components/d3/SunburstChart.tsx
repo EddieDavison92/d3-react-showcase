@@ -118,8 +118,11 @@ const SunburstChart: React.FC<SunburstChartProps> = ({
       });
 
     // Add labels for larger arcs
+    const labelData = (root.descendants() as d3.HierarchyRectangularNode<HierarchyNode>[])
+      .filter(d => d.depth > 0 && (d.x1 - d.x0) > 0.1);
+
     g.selectAll('text')
-      .data(root.descendants().filter(d => d.depth > 0 && (d.x1 - d.x0) > 0.1) as d3.HierarchyRectangularNode<HierarchyNode>[])
+      .data(labelData)
       .enter()
       .append('text')
       .attr('transform', d => {
