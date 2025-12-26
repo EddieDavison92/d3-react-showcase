@@ -1,0 +1,179 @@
+---
+title: Bump Chart
+description: Interactive bump chart visualisation with smooth transitions between rank and value views
+published: true
+---
+
+## Overview
+
+The Bump Chart is an interactive visualisation that displays how entities change in rank or value over time. This implementation features smooth transitions between two view modes: rank changes (showing position shifts) and adoption percentages (showing actual values). Perfect for visualising technology trends, survey results, or any ranked data over time.
+
+## Features
+
+- **Dual view modes** - Toggle between rank changes and adoption percentage views with smooth transitions
+- **Interactive tooltips** - Hover over data points to see detailed information
+- **Smooth animations** - D3 transitions provide fluid movement when switching modes
+- **Rank labels** - Automatically displays rank numbers in rank mode, hidden in value mode
+- **Entity labels** - Left-side labels with backgrounds for readability
+- **Data point markers** - Circular markers on each line at every time point
+- **Hover effects** - Highlighted lines and labels on hover
+- **Responsive design** - Adapts to container size
+
+## Dependencies
+
+```bash
+npm install d3
+npm install --save-dev @types/d3
+```
+
+### Required D3 Modules
+
+- `d3-scale` - Point scales for categorical time axes, linear scales for numeric values
+- `d3-axis` - Axis generators for Y-axis labels
+- `d3-selection` - DOM manipulation and event handling
+- `d3-transition` - Smooth animations between states
+- `d3-shape` - Line generators with curve interpolation (curveBumpX)
+- `d3-scale-chromatic` - Colour schemes for entity differentiation
+
+## Data Requirements
+
+### Data Format
+
+Your data should be structured with years, categories, and technologies with values for each year:
+
+```typescript
+interface Technology {
+  name: string;
+  values: number[]; // Array of values, one per year
+}
+
+interface Category {
+  name: string;
+  technologies: Technology[];
+}
+
+interface TechTrendsData {
+  metadata: {
+    source: string;
+    attribution: string;
+    url: string;
+    description: string;
+  };
+  years: string[]; // Array of year strings, e.g., ["2022", "2023", "2024", "2025"]
+  categories: Category[];
+}
+```
+
+### Example Data
+
+```json
+{
+  "metadata": {
+    "source": "Stack Overflow Annual Developer Survey",
+    "attribution": "Stack Overflow",
+    "url": "https://survey.stackoverflow.co/",
+    "description": "Developer technology adoption trends"
+  },
+  "years": ["2022", "2023", "2024", "2025"],
+  "categories": [
+    {
+      "name": "Web Frameworks",
+      "technologies": [
+        {
+          "name": "React",
+          "values": [42.6, 40.5, 42.1, 44.7]
+        },
+        {
+          "name": "Node.js",
+          "values": [47.1, 45.2, 46.8, 48.7]
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Usage
+
+```tsx
+import BumpChart from '@/components/d3/BumpChart';
+
+<BumpChart
+  data={techTrendsData}
+  categoryName="Web Frameworks"
+  width={1200}
+  height={700}
+  topN={12}
+/>
+```
+
+### Props
+
+- `data` (required) - The complete dataset with years, categories, and technologies
+- `categoryName` (required) - The name of the category to display
+- `width` (optional) - Chart width in pixels (default: 1200)
+- `height` (optional) - Chart height in pixels (default: 700)
+- `topN` (optional) - Number of top entities to display (default: 12)
+
+## View Modes
+
+### Rank Changes Mode
+
+In rank mode, the chart displays entities ranked by their values at each time point. The Y-axis shows rank positions (1, 2, 3, etc.), and rank labels appear on the left and right sides of the chart. This view is ideal for understanding how entities move up or down in rankings over time.
+
+### Adoption Percentage Mode
+
+In value mode, the chart displays the actual percentage values. The Y-axis shows percentage values (0%, 10%, 20%, etc.), and rank labels are hidden. This view is ideal for understanding the magnitude of changes and actual adoption rates.
+
+## Key Implementation Details
+
+### Smooth Transitions
+
+The chart uses D3's transition system to smoothly animate between view modes. When switching modes:
+
+- Lines transition from their current position to their new position
+- Labels move vertically to align with new Y positions
+- Circles (data point markers) transition to new positions
+- Rank labels fade in/out based on the current mode
+
+### Initial Render
+
+On initial render, all elements (lines, circles, labels) appear immediately without animation. Transitions only occur when:
+
+- Switching between rank and value modes
+- Data changes
+- View mode changes
+
+### Positioning
+
+- **Entity labels**: Positioned on the left with a translate offset of -60px, with background rectangles extending from -190px to -5px
+- **Rank labels**: Positioned at -280px (left) to avoid overlap with entity labels
+- **Y-axis**: Positioned at x=0, with ticks showing either ranks or percentages
+- **Data markers**: Circular markers on each line at every time point
+
+### Hover Effects
+
+When hovering over a line or data point:
+
+- The corresponding line becomes more prominent
+- Entity labels are raised to the front (z-index)
+- Background rectangles get a coloured border matching the line colour
+- Other elements fade slightly for focus
+
+## Styling
+
+The chart uses Tailwind CSS classes and inline styles. Key styling considerations:
+
+- Entity labels have white backgrounds with rounded corners
+- Rank labels use grey text (#6b7280)
+- Lines have 3px stroke width with 0.8 base opacity
+- Circles have white strokes for visibility
+- Hover states increase opacity and stroke width
+
+## Performance Considerations
+
+- The chart only re-renders when data or view mode changes
+- Hover effects are handled separately to avoid full re-renders
+- Initial render skips transitions for immediate display
+- Data is filtered to top N entities to limit rendering complexity
+

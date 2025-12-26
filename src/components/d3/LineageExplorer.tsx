@@ -37,85 +37,81 @@ const LineageExplorer: React.FC<LineageExplorerProps> = ({ data }) => {
   const [selectedDeity, setSelectedDeity] = useState<string | null>(null);
 
   // Build deity information map
-  const deityMap = new Map<string, DeityInfo>();
+  const deityMap = React.useMemo(() => {
+    const map = new Map<string, DeityInfo>();
 
-  // First pass: collect all deity info from when they appear as children
-  const deityInfoFromChild = new Map<string, Partial<DeityInfo>>();
+    // First pass: collect all deity info from when they appear as children
+    const deityInfoFromChild = new Map<string, Partial<DeityInfo>>();
 
-  // Add Chaos manually since it never appears as a child
-  deityInfoFromChild.set('Chaos', {
-    domain: 'Void and primordial existence',
-    classification: 'Primordial',
-    allegiance: 'Neutral',
-    description: 'The primordial void from which all existence emerged. The first entity in Greek cosmogony, representing the formless state before creation.',
-  });
+    // Add Chaos manually since it never appears as a child
+    deityInfoFromChild.set('Chaos', {
+      domain: 'Void and primordial existence',
+      classification: 'Primordial',
+      allegiance: 'Neutral',
+      description: 'The primordial void from which all existence emerged. The first entity in Greek cosmogony, representing the formless state before creation.',
+    });
 
-  data.forEach(row => {
-    if (!deityInfoFromChild.has(row.Child)) {
-      deityInfoFromChild.set(row.Child, {
-        domain: row.Domain,
-        classification: row.Classification,
-        allegiance: row.Allegiance,
-        description: row.Description,
-      });
-    }
-  });
+    data.forEach(row => {
+      if (!deityInfoFromChild.has(row.Child)) {
+        deityInfoFromChild.set(row.Child, {
+          domain: row.Domain,
+          classification: row.Classification,
+          allegiance: row.Allegiance,
+          description: row.Description,
+        });
+      }
+    });
 
-  data.forEach(row => {
-    // Add parent
-    if (!deityMap.has(row.Parent)) {
-      const parentInfo = deityInfoFromChild.get(row.Parent) || {};
-      deityMap.set(row.Parent, {
-        name: row.Parent,
-        domain: parentInfo.domain,
-        classification: parentInfo.classification,
-        allegiance: parentInfo.allegiance,
-        description: parentInfo.description,
-        parents: [],
-        children: []
-      });
-    }
+    data.forEach(row => {
+      // Add parent
+      if (!map.has(row.Parent)) {
+        const parentInfo = deityInfoFromChild.get(row.Parent) || {};
+        map.set(row.Parent, {
+          name: row.Parent,
+          domain: parentInfo.domain,
+          classification: parentInfo.classification,
+          allegiance: parentInfo.allegiance,
+          description: parentInfo.description,
+          parents: [],
+          children: []
+        });
+      }
 
-    // Add child
-    if (!deityMap.has(row.Child)) {
-      deityMap.set(row.Child, {
-        name: row.Child,
-        domain: row.Domain,
-        classification: row.Classification,
-        allegiance: row.Allegiance,
-        description: row.Description,
-        parents: [],
-        children: []
-      });
-    }
+      // Add child
+      if (!map.has(row.Child)) {
+        map.set(row.Child, {
+          name: row.Child,
+          domain: row.Domain,
+          classification: row.Classification,
+          allegiance: row.Allegiance,
+          description: row.Description,
+          parents: [],
+          children: []
+        });
+      }
 
-    // Add relationships
-    const parent = deityMap.get(row.Parent)!;
-    const child = deityMap.get(row.Child)!;
+      // Add relationships
+      const parent = map.get(row.Parent)!;
+      const child = map.get(row.Child)!;
 
-    if (!parent.children.includes(row.Child)) {
-      parent.children.push(row.Child);
-    }
-    if (!child.parents.includes(row.Parent)) {
-      child.parents.push(row.Parent);
-    }
+      if (!parent.children.includes(row.Child)) {
+        parent.children.push(row.Child);
+      }
+      if (!child.parents.includes(row.Parent)) {
+        child.parents.push(row.Parent);
+      }
 
-    // Update child info (in case it appears multiple times)
-    if (row.Domain) child.domain = row.Domain;
-    if (row.Classification) child.classification = row.Classification;
-    if (row.Allegiance) child.allegiance = row.Allegiance;
-    if (row.Description) child.description = row.Description;
-  });
+      // Update child info (in case it appears multiple times)
+      if (row.Domain) child.domain = row.Domain;
+      if (row.Classification) child.classification = row.Classification;
+      if (row.Allegiance) child.allegiance = row.Allegiance;
+      if (row.Description) child.description = row.Description;
+    });
 
-  const handleSelectChild = (childName: string) => {
-    setHistory([...history, focusedDeity]);
-    setFocusedDeity(childName);
-    setSelectedDeity(null); // Clear selection when drilling down
-  };
+    return map;
+  }, [data]);
 
-  const handleViewDeity = (deityName: string) => {
-    setSelectedDeity(deityName);
-  };
+
 
   const handleBack = () => {
     if (history.length > 0) {
@@ -129,12 +125,22 @@ const LineageExplorer: React.FC<LineageExplorerProps> = ({ data }) => {
 
   const currentDeity = deityMap.get(focusedDeity);
 
-  const allegianceColors: Record<string, string> = {
+  const allegianceColors: Record<string, string> = React.useMemo(() => ({
     'Benevolent': '#4ade80',
     'Neutral': '#60a5fa',
     'Malevolent': '#f87171',
     'Chaotic': '#a78bfa',
-  };
+  }), []);
+
+  const handleSelectChild = React.useCallback((childName: string) => {
+    setHistory(prev => [...prev, focusedDeity]);
+    setFocusedDeity(childName);
+    setSelectedDeity(null); // Clear selection when drilling down
+  }, [focusedDeity]);
+
+  const handleViewDeity = React.useCallback((deityName: string) => {
+    setSelectedDeity(deityName);
+  }, []);
 
   useEffect(() => {
     if (!svgRef.current || !currentDeity || !containerRef.current) return;
@@ -298,7 +304,7 @@ const LineageExplorer: React.FC<LineageExplorerProps> = ({ data }) => {
       }
     });
 
-  }, [focusedDeity, currentDeity]);
+  }, [focusedDeity, currentDeity, allegianceColors, deityMap, handleSelectChild, handleViewDeity]);
 
   const allegianceColorClasses: Record<string, string> = {
     'Benevolent': 'bg-green-100 border-green-300 text-green-900',

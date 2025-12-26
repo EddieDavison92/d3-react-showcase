@@ -217,7 +217,7 @@ const BumpChart: React.FC<BumpChartProps> = ({
 
     // Draw lines with transitions
     const lines = g.selectAll('.bump-line')
-      .data(lineData, d => d.name);
+      .data(lineData, (d: typeof lineData[0]) => d.name);
 
     const linesEnter = lines.enter()
       .append('g')

@@ -17,6 +17,10 @@ export const docsConfig: DocsConfig = {
 			title: 'Heatmap',
 			href: '/docs/heatmap',
 		},
+		{
+			title: 'Bump Chart',
+			href: '/docs/bump-chart',
+		},
 		// Additional components can be added here
 	],
 };
