@@ -397,7 +397,8 @@ const BumpChart: React.FC<BumpChartProps> = ({
 
     // Labels on the right (last year) with transitions
     const lastYearIdx = filteredRankings.length - 1;
-    const rightLabels = g.selectAll<SVGGElement, { tech: typeof filteredRankings[lastYearIdx][0]; rank: number }>('.right-label')
+    type TechType = { name: string; value: number };
+    const rightLabels = g.selectAll<SVGGElement, { tech: TechType; rank: number }>('.right-label')
       .data(
         filteredRankings[lastYearIdx]
           .map((tech, rank) => ({ tech, rank }))
@@ -496,7 +497,7 @@ const BumpChart: React.FC<BumpChartProps> = ({
 
     // Mark that initial render is complete
     isInitialRender.current = false;
-  }, [data, categoryName, width, height, topN]);
+  }, [data, categoryName, width, height, topN, viewMode]);
 
   // Separate effect for view mode transitions - only animates positions, doesn't re-render
   useEffect(() => {
