@@ -29,7 +29,7 @@ export interface NavLink {
       title: "Lineage Explorer",
     },
     {
-      href: "/hierarchical",
-      title: "Hierarchical",
+      href: "/bump-chart",
+      title: "Bump Chart",
     }
   ];

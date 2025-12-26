@@ -79,16 +79,16 @@ export default function Home() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Hierarchical Visualizations</CardTitle>
+            <CardTitle>Bump Chart</CardTitle>
           </CardHeader>
           <CardContent>
             <p>
-              Explore hierarchical data through two complementary views: a radial sunburst chart and a rectangular treemap. Both visualizations display a technology stack hierarchy with interactive zooming, tooltips, and size-proportional representations.
+              An interactive bump chart visualisation showing rank changes and adoption percentages over time. Features smooth transitions between rank and value views, with interactive tooltips and hover effects.
             </p>
           </CardContent>
           <CardFooter>
             <Button asChild>
-              <a href="hierarchical">View Hierarchical Charts</a>
+              <a href="bump-chart">View Bump Chart</a>
             </Button>
           </CardFooter>
         </Card>
