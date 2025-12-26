@@ -255,7 +255,7 @@ function HeatmapWithFilters() {
 | `enableBrushing` | `boolean` | Enable/disable interactive brushing on heatmap |
 | `setBrushedData` | `Dispatch<SetStateAction<DataPoint[]>>` | State setter for selected data |
 | `setIsBrushed` | `Dispatch<SetStateAction<boolean>>` | State setter for brush active state |
-| `colorScale` | `d3.ScaleSequential<string>` | D3 color scale for mapping values to colors |
+| `colorScale` | `d3.ScaleSequential<string>` | D3 colour scale for mapping values to colours |
 | `months` | `string[]` | Array of month labels (12 items) |
 
 ## How It Works
@@ -548,7 +548,7 @@ const windowedData = useMemo(() => {
 - Check data array is not empty
 - Verify all data points have valid `YearFloor` and `MonthIndex`
 - Ensure `Anomaly` values are numeric
-- Check color scale domain matches data range
+- Check colour scale domain matches data range
 
 ### Brush not working
 
