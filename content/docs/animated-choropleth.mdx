@@ -1,21 +1,21 @@
 ---
 title: Animated Choropleth Map
-description: Interactive geographic visualization with animation and custom projections
+description: Interactive geographic visualisation with animation and custom projections
 ---
 
 ## Overview
 
-The Animated Choropleth Map is an interactive geographic visualization that displays data across geographic regions using color gradients. This implementation features smooth animations between data dimensions, interactive tooltips, clickable regions, and support for custom map projections.
+The Animated Choropleth Map is an interactive geographic visualisation that displays data across geographic regions using colour gradients. This implementation features smooth animations between data dimensions, interactive tooltips, clickable regions, and support for custom map projections.
 
 ## Features
 
 - **Animated transitions** between different data dimensions
-- **25+ color schemes** from D3's color interpolators
+- **25+ colour schemes** from D3's colour interpolators
 - **Custom projection support** using proj4 for coordinate system transformations
 - **Interactive tooltips** showing region details on hover
 - **Clickable regions** for detailed drill-down views
 - **Responsive design** that adapts to container size
-- **Color legend** with dynamic range based on current data
+- **Colour legend** with dynamic range based on current data
 
 ## Dependencies
 
@@ -27,7 +27,7 @@ npm install --save-dev @types/d3 @types/geojson
 ### Required D3 Modules
 
 - `d3-geo` - Geographic projections and path generators
-- `d3-scale` - Color scales for data mapping
+- `d3-scale` - Colour scales for data mapping
 - `d3-selection` - DOM manipulation and event handling
 
 ### Additional Libraries
@@ -230,11 +230,11 @@ proj4.defs(
 
 The component will automatically reproject coordinates to WGS84 (EPSG:4326) for D3's `geoMercator` projection.
 
-## Customization
+## Customisation
 
-### Color Schemes
+### Colour Schemes
 
-D3 provides 25+ color schemes. Import from `d3-scale-chromatic`:
+D3 provides 25+ colour schemes. Import from `d3-scale-chromatic`:
 
 ```typescript
 import {
@@ -247,7 +247,7 @@ import {
 } from "d3-scale-chromatic";
 ```
 
-Create a color scheme selector:
+Create a colour scheme selector:
 
 ```tsx
 const COLOR_SCHEMES = {
@@ -272,7 +272,7 @@ The component uses Tailwind CSS classes. Customize appearance:
 
 ```tsx
 // In AnimatedChoroplethMap.tsx, modify:
-.attr("stroke", "#333")           // Border color
+.attr("stroke", "#333")           // Border colour
 .attr("stroke-width", "1")        // Border width
 
 // Tooltip styling (line 198):
@@ -352,7 +352,7 @@ const [selectedRegion, setSelectedRegion] = useState(null);
 
 ## Performance Tips
 
-1. **Data optimization**: Pre-filter and aggregate data before passing to component
+1. **Data optimisation**: Pre-filter and aggregate data before passing to component
 2. **Memoization**: Use `useMemo` for expensive calculations in parent component
 3. **Debounce resize**: The component already debounces window resize events
 4. **Simplify GeoJSON**: Use tools like `mapshaper` to reduce geometry complexity
@@ -367,11 +367,11 @@ const [selectedRegion, setSelectedRegion] = useState(null);
 - Ensure data paths are correct and accessible
 - Open browser console for error messages
 
-### Colors not showing
+### Colours not showing
 
 - Verify `proportionField` contains numeric values 0-100
 - Check that data joins successfully (inspect filtered data in console)
-- Ensure color scheme is imported correctly
+- Ensure colour scheme is imported correctly
 
 ### Animation stuttering
 
@@ -383,11 +383,11 @@ const [selectedRegion, setSelectedRegion] = useState(null);
 ## Related Components
 
 - `AreaChart` - Used for drill-down detail views
-- `d3-colour-selector` - Color scheme dropdown component
+- `d3-colour-selector` - Colour scheme dropdown component
 
 ## Resources
 
 - [D3 Geographic Projections](https://github.com/d3/d3-geo)
-- [D3 Color Schemes](https://github.com/d3/d3-scale-chromatic)
+- [D3 Colour Schemes](https://github.com/d3/d3-scale-chromatic)
 - [Proj4 Documentation](http://proj4js.org/)
 - [GeoJSON Specification](https://geojson.org/)

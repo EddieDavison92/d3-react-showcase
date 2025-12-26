@@ -1,17 +1,17 @@
 ---
 title: Temperature Anomaly Heatmap
-description: Interactive heatmap visualization with brushing and CSV export
+description: Interactive heatmap visualisation with brushing and CSV export
 published: true
 ---
 
 ## Overview
 
-The Temperature Anomaly Heatmap visualizes temporal patterns in climate data, displaying temperature anomalies across years and months. This implementation features dual-brush interaction (on both the heatmap and legend), data export capabilities, and a responsive design that makes it easy to explore long-term climate trends.
+The Temperature Anomaly Heatmap visualises temporal patterns in climate data, displaying temperature anomalies across years and months. This implementation features dual-brush interaction (on both the heatmap and legend), data export capabilities, and a responsive design that makes it easy to explore long-term climate trends.
 
 ## Features
 
 - **Dual brushing system** - Select data by drawing regions on the heatmap or by filtering temperature ranges on the legend
-- **RdYlBu color scale** - Intuitive blue (cold) to red (warm) gradient for temperature anomalies
+- **RdYlBu colour scale** - Intuitive blue (cold) to red (warm) gradient for temperature anomalies
 - **Export to CSV** - Download selected data for further analysis
 - **Interactive tooltips** - Hover to see exact values for year, month, and temperature
 - **Responsive design** - Automatically adapts to container width
@@ -27,11 +27,11 @@ npm install --save-dev @types/d3
 
 ### Required D3 Modules
 
-- `d3-scale` - Linear and band scales for axes and color mapping
+- `d3-scale` - Linear and band scales for axes and colour mapping
 - `d3-axis` - Axis generators
-- `d3-brush` - 2D and 1D brushing behaviors
+- `d3-brush` - 2D and 1D brushing behaviours
 - `d3-selection` - DOM manipulation and event handling
-- `d3-scale-chromatic` - Color schemes (interpolateRdYlBu)
+- `d3-scale-chromatic` - Colour schemes (interpolateRdYlBu)
 
 ## Data Requirements
 
@@ -265,9 +265,9 @@ function HeatmapWithFilters() {
 The heatmap uses a grid structure:
 - **X-axis**: Years (continuous scale)
 - **Y-axis**: Months (band scale)
-- **Color**: Temperature anomaly value
+- **Colour**: Temperature anomaly value
 
-Each cell represents one month in one year, colored according to the temperature anomaly.
+Each cell represents one month in one year, coloured according to the temperature anomaly.
 
 ### Dual Brushing System
 
@@ -278,14 +278,14 @@ Each cell represents one month in one year, colored according to the temperature
 4. Clears legend brush when activated
 
 #### Legend Brush
-1. Click and drag on the color legend to select a temperature range
+1. Click and drag on the colour legend to select a temperature range
 2. Only cells within the selected range remain visible
 3. Useful for finding all instances of extreme temperatures
 4. Clears heatmap brush when activated
 
-### Color Scale
+### Colour Scale
 
-The `interpolateRdYlBu` color scheme:
+The `interpolateRdYlBu` colour scheme:
 - **Red** = High values (warm anomalies)
 - **Yellow** = Mid-range values
 - **Blue** = Low values (cold anomalies)
@@ -309,9 +309,9 @@ const hours = Array.from({length: 24}, (_, i) => `${i}:00`);
 const quarters = ["Q1", "Q2", "Q3", "Q4"];
 ```
 
-### 2. Configure Color Scale
+### 2. Configure Colour Scale
 
-Adjust the color scale domain based on your data:
+Adjust the colour scale domain based on your data:
 
 ```tsx
 // Find actual min/max
@@ -328,9 +328,9 @@ const colorScale = d3.scaleSequential(d3.interpolateBlues)
   .domain([minValue, maxValue]);
 ```
 
-### 3. Different Color Schemes
+### 3. Different Colour Schemes
 
-Choose alternative D3 color interpolators:
+Choose alternative D3 colour interpolators:
 
 ```tsx
 import {
@@ -374,7 +374,7 @@ const transformed = rawData.map(d => ({
 }));
 ```
 
-## Customization
+## Customisation
 
 ### Cell Appearance
 
@@ -384,7 +384,7 @@ Adjust cell styling in `TemperatureAnomalyHeatmap.tsx`:
 // Line 84-89
 cells
   .attr('fill', d => colorScale(d.Anomaly as number))
-  .attr('stroke', '#ccc')           // Border color
+  .attr('stroke', '#ccc')           // Border colour
   .attr('stroke-width', 0.5)        // Border width
   .attr('rx', 2);                   // Rounded corners
 ```
@@ -557,20 +557,20 @@ const windowedData = useMemo(() => {
 - Ensure no CSS is blocking pointer events
 - Check browser console for brush errors
 
-### Colors look wrong
+### Colours look wrong
 
-- Verify color scale domain is correct
+- Verify colour scale domain is correct
 - For diverging scales, ensure domain is symmetric
 - Check if domain is reversed (high to low)
 - Inspect actual min/max values in data
 
 ### Legend axis incorrect
 
-- Verify color scale domain matches data
+- Verify colour scale domain matches data
 - Check legend scale range matches legend height
 - Ensure tick format is appropriate for your data
 
-## Related Visualizations
+## Related Visualisations
 
 - **Time Series Line Chart** - Shows trends over time
 - **Calendar Heatmap** - Alternative layout for temporal data
@@ -579,6 +579,6 @@ const windowedData = useMemo(() => {
 ## Resources
 
 - [D3 Brush Documentation](https://github.com/d3/d3-brush)
-- [D3 Color Scales](https://github.com/d3/d3-scale-chromatic)
+- [D3 Colour Scales](https://github.com/d3/d3-scale-chromatic)
 - [Heatmap Best Practices](https://www.data-to-viz.com/graph/heatmap.html)
 - [NASA GISTEMP Data](https://data.giss.nasa.gov/gistemp/)
