@@ -216,8 +216,8 @@ const BumpChart: React.FC<BumpChartProps> = ({
       .curve(d3.curveBumpX);
 
     // Draw lines with transitions
-    const lines = g.selectAll('.bump-line')
-      .data(lineData, (d: typeof lineData[0]) => d.name);
+    const lines = g.selectAll<SVGGElement, typeof lineData[0]>('.bump-line')
+      .data(lineData, d => d.name);
 
     const linesEnter = lines.enter()
       .append('g')
