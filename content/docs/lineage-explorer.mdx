@@ -1,0 +1,219 @@
+---
+title: Lineage Explorer
+description: Interactive radial tree visualisation for exploring hierarchical parent-child relationships
+published: true
+---
+
+## Overview
+
+The Lineage Explorer is an interactive radial tree visualisation that displays hierarchical relationships in a parent-child structure. This implementation uses D3.js to create a dynamic layout where a parent node is positioned at the centre, with children arranged in a circular arc around it. Perfect for visualising genealogies, organisational hierarchies, or any tree-structured data.
+
+## Features
+
+- **Radial tree layout** - Parent node at centre, children arranged in a circular arc
+- **Interactive navigation** - Click child nodes to drill down into their lineage
+- **History tracking** - Navigate back through previously viewed nodes
+- **Colour-coded nodes** - Visual distinction based on categorical attributes (e.g., allegiance)
+- **Child count badges** - Small indicators showing number of descendants
+- **Smooth hover effects** - D3 transitions for interactive feedback
+- **Detailed information cards** - Display metadata for selected entities
+- **Responsive design** - Adapts to container width
+
+## Dependencies
+
+```bash
+npm install d3
+npm install --save-dev @types/d3
+```
+
+### Required D3 Modules
+
+- `d3-selection` - DOM manipulation and event handling
+- `d3-transition` - Smooth animations for hover effects
+- `d3-scale` - Colour scales for categorical data (optional)
+
+## Data Requirements
+
+### Data Format
+
+Your data should be a CSV or array of objects representing parent-child relationships:
+
+```typescript
+interface RawDataRow {
+  Parent: string;        // Name of the parent entity
+  Child: string;          // Name of the child entity
+  Domain?: string;        // Optional: Domain or category
+  Classification?: string; // Optional: Classification type
+  Allegiance?: string;    // Optional: Categorical attribute for colouring
+  Description?: string;  // Optional: Descriptive text
+}
+```
+
+### Example Data
+
+```csv
+Parent,Child,Domain,Classification,Allegiance,Description
+Chaos,Gaia,Earth,Primordial,Neutral,The primordial earth goddess
+Chaos,Tartarus,Underworld,Primordial,Neutral,The deep abyss
+Gaia,Uranus,Sky,Primordial,Neutral,The sky god
+Gaia,Pontus,Sea,Primordial,Neutral,The sea god
+```
+
+Or as JSON:
+
+```json
+[
+  {
+    "Parent": "Chaos",
+    "Child": "Gaia",
+    "Domain": "Earth",
+    "Classification": "Primordial",
+    "Allegiance": "Neutral",
+    "Description": "The primordial earth goddess"
+  },
+  {
+    "Parent": "Chaos",
+    "Child": "Tartarus",
+    "Domain": "Underworld",
+    "Classification": "Primordial",
+    "Allegiance": "Neutral",
+    "Description": "The deep abyss"
+  }
+]
+```
+
+## Usage
+
+```tsx
+import LineageExplorer from '@/components/d3/LineageExplorer';
+
+// Load data from CSV
+const [data, setData] = useState<RawDataRow[]>([]);
+
+useEffect(() => {
+  d3.csv('/data/lineage.csv').then((rawData: any[]) => {
+    setData(rawData as RawDataRow[]);
+  });
+}, []);
+
+<LineageExplorer data={data} />
+```
+
+### Props
+
+- `data` (required) - Array of `RawDataRow` objects representing parent-child relationships
+
+## Layout Algorithm
+
+### Radial Positioning
+
+The component uses a radial layout algorithm:
+
+1. **Parent node**: Positioned at the centre of the SVG (`width/2, height/2`)
+2. **Child nodes**: Arranged in a circle around the parent using trigonometry:
+   - Angle step: `(2π) / childCount` - divides the circle evenly
+   - Radius: Dynamically calculated based on container size and child count
+   - Position: `x = centerX + radius * cos(angle)`, `y = centerY + radius * sin(angle)`
+
+### Dynamic Sizing
+
+- **Base radius**: `Math.min(width * 0.4, height * 0.4)`
+- **Radius adjustment**: Increases by 10% if more than 15 children
+- **Node size**: 40px radius (35px for >15 children)
+- **Font size**: 13px (11px for >15 children)
+
+## Key Implementation Details
+
+### Data Structure Building
+
+The component builds an internal `Map<string, DeityInfo>` structure:
+
+1. **First pass**: Collects all entity information from child records
+2. **Second pass**: Builds the relationship graph with parent-child links
+3. **Memoisation**: Uses `React.useMemo` to avoid rebuilding on every render
+
+### Navigation
+
+- **Forward navigation**: Click a child node to set it as the new focused entity
+- **Back navigation**: Uses a history stack to return to previous nodes
+- **Selection**: Click nodes without children to view detailed information
+
+### Colour Coding
+
+Nodes are coloured based on categorical attributes (e.g., allegiance):
+
+```typescript
+const allegianceColors = {
+  'Benevolent': '#4ade80',  // Green
+  'Neutral': '#60a5fa',    // Blue
+  'Malevolent': '#f87171', // Red
+  'Chaotic': '#a78bfa',    // Purple
+};
+```
+
+### Hover Effects
+
+D3 transitions provide smooth hover feedback:
+
+- **Circle expansion**: Radius increases by 5px on hover
+- **Stroke width**: Increases from 2px to 4px
+- **Duration**: 200ms transition for smooth animation
+
+## Styling
+
+The component uses a combination of D3 styling and Tailwind CSS:
+
+- **Node circles**: Coloured fills with black strokes
+- **Connecting lines**: Coloured based on child allegiance, 30% opacity
+- **Text labels**: Bold, black text, centred on nodes
+- **Child count badges**: White circles with black borders and text
+- **Information cards**: Tailwind card components with responsive grid layout
+
+## Performance Considerations
+
+- **Memoised data structure**: The deity map is only rebuilt when data changes
+- **Conditional rendering**: SVG is only rendered when current deity exists
+- **Efficient selections**: D3 selections are cached and reused where possible
+- **Event delegation**: Click and hover events are handled efficiently through D3
+
+## React Integration Pattern
+
+This component demonstrates the **D3 + React pattern**:
+
+- **D3 handles**: SVG rendering, positioning, transitions, and visual effects
+- **React handles**: State management (focused deity, history, selection), component lifecycle, and UI updates
+
+The separation allows D3 to focus on what it does best (visualisation) while React manages application state and user interactions.
+
+## Customisation
+
+### Changing Initial Focus
+
+Set the initial focused entity:
+
+```tsx
+const [focusedDeity, setFocusedDeity] = useState<string>('YourRootNode');
+```
+
+### Adjusting Layout
+
+Modify the radial layout parameters:
+
+```typescript
+const baseRadius = Math.min(width * 0.4, height * 0.4);
+const radiusAdjustment = childCount > 15 ? 1.1 : 1.0;
+const radius = baseRadius * radiusAdjustment;
+```
+
+### Custom Colours
+
+Update the colour mapping:
+
+```typescript
+const allegianceColors: Record<string, string> = {
+  'Category1': '#your-color',
+  'Category2': '#your-color',
+  // ...
+};
+```
+

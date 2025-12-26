@@ -21,6 +21,10 @@ export const docsConfig: DocsConfig = {
 			title: 'Bump Chart',
 			href: '/docs/bump-chart',
 		},
+		{
+			title: 'Lineage Explorer',
+			href: '/docs/lineage-explorer',
+		},
 		// Additional components can be added here
 	],
 };
