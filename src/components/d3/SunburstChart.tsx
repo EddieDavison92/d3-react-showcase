@@ -20,7 +20,7 @@ const SunburstChart: React.FC<SunburstChartProps> = ({
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
-  const [selectedPath, setSelectedPath] = useState<string>('');
+  const [selectedNode, setSelectedNode] = useState<string>('');
 
   useEffect(() => {
     if (!data || !svgRef.current) return;
@@ -44,6 +44,13 @@ const SunburstChart: React.FC<SunburstChartProps> = ({
     // Create color scale
     const color = d3.scaleOrdinal(d3.schemeCategory10);
 
+    // Color function - uses depth 1 ancestor
+    const getColor = (d: d3.HierarchyRectangularNode<HierarchyNode>) => {
+      let node = d;
+      while (node.depth > 1) node = node.parent!;
+      return color(node.data.name);
+    };
+
     // Create arc generator
     const arc = d3.arc<d3.HierarchyRectangularNode<HierarchyNode>>()
       .startAngle(d => d.x0)
@@ -61,28 +68,23 @@ const SunburstChart: React.FC<SunburstChartProps> = ({
       .append('g');
 
     // Create arcs
-    const arcs = g.selectAll('path')
-      .data(root.descendants().filter(d => d.depth > 0))
+    g.selectAll('path')
+      .data(root.descendants().filter(d => d.depth > 0) as d3.HierarchyRectangularNode<HierarchyNode>[])
       .enter()
       .append('path')
       .attr('d', arc)
-      .attr('fill', d => {
-        while (d.depth > 1) d = d.parent!;
-        return color(d.data.name);
-      })
-      .attr('fill-opacity', d => arcOpacity(d))
+      .attr('fill', d => getColor(d))
+      .attr('fill-opacity', 0.7)
       .attr('stroke', 'white')
       .attr('stroke-width', 1)
-      .style('cursor', 'pointer');
-
-    // Add interactivity
-    arcs
+      .style('cursor', 'pointer')
       .on('mouseover', function(event, d) {
         const path = getPath(d);
-        setSelectedPath(path);
+        setSelectedNode(path);
 
         d3.select(this)
-          .attr('fill-opacity', 1);
+          .attr('fill-opacity', 1)
+          .attr('stroke-width', 2);
 
         const tooltip = d3.select(tooltipRef.current);
         tooltip
@@ -95,6 +97,9 @@ const SunburstChart: React.FC<SunburstChartProps> = ({
             <div class="text-xs mt-1 text-muted-foreground">
               ${path}
             </div>
+            <div class="text-xs mt-1">
+              ${((d.value || 0) / (root.value || 1) * 100).toFixed(1)}% of total
+            </div>
           `);
       })
       .on('mousemove', function(event) {
@@ -103,21 +108,18 @@ const SunburstChart: React.FC<SunburstChartProps> = ({
           .style('left', `${event.pageX + 10}px`)
           .style('top', `${event.pageY - 10}px`);
       })
-      .on('mouseout', function(event, d) {
+      .on('mouseout', function() {
         d3.select(this)
-          .attr('fill-opacity', arcOpacity(d));
+          .attr('fill-opacity', 0.7)
+          .attr('stroke-width', 1);
 
         d3.select(tooltipRef.current)
           .style('visibility', 'hidden');
-      })
-      .on('click', function(event, d) {
-        event.stopPropagation();
-        zoom(d);
       });
 
     // Add labels for larger arcs
-    const labels = g.selectAll('text')
-      .data(root.descendants().filter(d => d.depth > 0 && (d.x1 - d.x0) > 0.1))
+    g.selectAll('text')
+      .data(root.descendants().filter(d => d.depth > 0 && (d.x1 - d.x0) > 0.1) as d3.HierarchyRectangularNode<HierarchyNode>[])
       .enter()
       .append('text')
       .attr('transform', d => {
@@ -133,69 +135,12 @@ const SunburstChart: React.FC<SunburstChartProps> = ({
       .text(d => d.data.name);
 
     // Add center label
-    const centerLabel = g.append('text')
+    g.append('text')
       .attr('text-anchor', 'middle')
       .attr('font-size', '24px')
       .attr('font-weight', 'bold')
       .attr('fill', 'currentColor')
       .text(data.name);
-
-    const centerSubLabel = g.append('text')
-      .attr('text-anchor', 'middle')
-      .attr('y', 25)
-      .attr('font-size', '12px')
-      .attr('fill', 'currentColor')
-      .attr('opacity', 0.7)
-      .text('Click to zoom');
-
-    // Zoom functionality
-    let currentNode = root;
-
-    function zoom(d: d3.HierarchyRectangularNode<HierarchyNode>) {
-      currentNode = d;
-
-      const path = getPath(d);
-      setSelectedPath(path);
-
-      centerLabel.text(d.data.name);
-      centerSubLabel.text(d.parent ? 'Click to zoom out' : 'Click to zoom');
-
-      const transition = svg.transition()
-        .duration(750);
-
-      arcs
-        .transition(transition as any)
-        .tween('data', (node: any) => {
-          const i = d3.interpolate(node.current, node);
-          return (t: number) => node.current = i(t);
-        })
-        .attrTween('d', (node: any) => () => arc(node.current));
-
-      labels
-        .transition(transition as any)
-        .attr('opacity', node => {
-          return isVisible(node, d) ? 1 : 0;
-        });
-    }
-
-    function isVisible(d: d3.HierarchyRectangularNode<HierarchyNode>, current: d3.HierarchyRectangularNode<HierarchyNode>): boolean {
-      return d.y0 >= current.y0 && d.y1 <= current.y1 && d.x0 >= current.x0 && d.x1 <= current.x1;
-    }
-
-    // Click on center to go back
-    svg.on('click', () => {
-      if (currentNode.parent) {
-        zoom(currentNode.parent);
-      } else {
-        zoom(root);
-      }
-    });
-
-    function arcOpacity(d: d3.HierarchyRectangularNode<HierarchyNode>): number {
-      const baseOpacity = 0.6;
-      const depthFactor = 1 - (d.depth * 0.1);
-      return Math.max(baseOpacity, depthFactor);
-    }
 
     function getPath(d: d3.HierarchyRectangularNode<HierarchyNode>): string {
       const ancestors = d.ancestors().reverse();
@@ -212,14 +157,14 @@ const SunburstChart: React.FC<SunburstChartProps> = ({
         className="absolute invisible bg-background text-foreground border border-border rounded-lg p-3 shadow-lg pointer-events-none z-10"
         style={{ maxWidth: '300px' }}
       />
-      {selectedPath && (
+      {selectedNode && (
         <div className="mt-4 p-3 bg-muted rounded-lg max-w-2xl">
-          <div className="text-sm font-semibold text-muted-foreground mb-1">Current Path:</div>
-          <div className="text-sm">{selectedPath}</div>
+          <div className="text-sm font-semibold text-muted-foreground mb-1">Selected Path:</div>
+          <div className="text-sm">{selectedNode}</div>
         </div>
       )}
       <div className="mt-4 text-xs text-muted-foreground text-center">
-        <p>💡 Hover over segments for details • Click to zoom in/out • Click center to go back</p>
+        <p>💡 Hover over segments to see hierarchy path and percentage of total</p>
       </div>
     </div>
   );

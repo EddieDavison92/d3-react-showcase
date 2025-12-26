@@ -50,7 +50,7 @@ const TreemapChart: React.FC<TreemapChartProps> = ({
       .attr('height', height)
       .attr('viewBox', `0 0 ${width} ${height}`)
       .selectAll('g')
-      .data(root.leaves())
+      .data(root.leaves() as d3.HierarchyRectangularNode<HierarchyNode>[])
       .enter()
       .append('g')
       .attr('transform', d => `translate(${d.x0},${d.y0})`);

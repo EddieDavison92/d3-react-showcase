@@ -25,8 +25,8 @@ export interface NavLink {
       title: "Heatmap",
     },
     {
-      href: "/force-graph",
-      title: "Family Tree",
+      href: "/lineage-explorer",
+      title: "Lineage Explorer",
     },
     {
       href: "/hierarchical",

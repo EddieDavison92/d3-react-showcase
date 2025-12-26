@@ -63,16 +63,16 @@ export default function Home() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Greek Mythology Family Tree</CardTitle>
+            <CardTitle>Greek Mythology Lineage Explorer</CardTitle>
           </CardHeader>
           <CardContent>
             <p>
-              This collapsible tree diagram visualizes the genealogical relationships between Greek deities using D3&apos;s tree layout. Click to expand/collapse branches, hover for details, and explore the divine lineage from primordial chaos through multiple generations with color-coded allegiances.
+              This interactive explorer lets you navigate through Greek mythology one generation at a time. Click through deity cards to explore their children, discovering the complex genealogical relationships without overwhelming visual clutter. Each card displays classification, domain, parents, and offspring count.
             </p>
           </CardContent>
           <CardFooter>
             <Button asChild>
-              <a href="force-graph">View Family Tree</a>
+              <a href="force-graph">View Lineage Explorer</a>
             </Button>
           </CardFooter>
         </Card>
