@@ -767,10 +767,10 @@ const BumpChart: React.FC<BumpChartProps> = ({
       }
       
       // Ensure background exists and is styled properly
-      let bg = labelG.select('.label-bg');
+      let bg = labelG.select<SVGRectElement>('.label-bg');
       if (bg.empty()) {
         // Create background if it doesn't exist (shouldn't happen, but safety check)
-        bg = labelG.insert('rect', ':first-child')
+        bg = labelG.insert<SVGRectElement>('rect', ':first-child')
           .attr('class', 'label-bg');
         if (labelG.classed('left-label')) {
           bg.attr('x', -190)
