@@ -671,16 +671,29 @@ const BumpChart: React.FC<BumpChartProps> = ({
         .attr('opacity', 0)
         .remove();
       
-      // Show Y-axis for value mode
-      g.selectAll('.y-axis-value').remove();
+      // Show Y-axis for value mode with smooth transition
+      // Remove old axis with fade out
+      g.selectAll('.y-axis-value')
+        .transition()
+        .duration(375)
+        .attr('opacity', 0)
+        .remove();
       g.selectAll('.y-axis-label').remove();
-      
+
       const yAxisOffset = 0;
-      g.append('g')
+      const yAxisGroup = g.append('g')
         .attr('class', 'y-axis-value')
         .attr('transform', `translate(${yAxisOffset}, 0)`)
-        .call(d3.axisLeft(yScaleValue).ticks(8).tickFormat(d => `${d}%`))
+        .attr('opacity', 0)
         .style('font-size', '12px');
+
+      // Fade in new axis
+      yAxisGroup
+        .call(d3.axisLeft(yScaleValue).ticks(8).tickFormat(d => `${d}%`))
+        .transition()
+        .duration(375)
+        .delay(375)
+        .attr('opacity', 1);
       
       // No Y-axis label - cleaner look without it
     } else {
@@ -693,10 +706,14 @@ const BumpChart: React.FC<BumpChartProps> = ({
       const styles = getComputedStyle(document.documentElement);
       const mutedForegroundColor = `hsl(${styles.getPropertyValue('--muted-foreground')})`;
 
-      // Remove existing rank labels first
-      g.selectAll('.rank-left, .rank-right').remove();
+      // Remove existing rank labels first with fade out
+      g.selectAll('.rank-left, .rank-right')
+        .transition()
+        .duration(375)
+        .attr('opacity', 0)
+        .remove();
 
-      // Add left rank labels
+      // Add left rank labels with fade in
       filteredRankings[0].forEach((tech, rank) => {
         if (!topTechs.includes(tech.name)) return;
         g.append('text')
@@ -708,11 +725,15 @@ const BumpChart: React.FC<BumpChartProps> = ({
           .attr('font-size', '14px')
           .attr('font-weight', '600')
           .attr('fill', mutedForegroundColor)
-          .attr('opacity', 1) // Always visible
-          .text(`#${rank + 1}`);
+          .attr('opacity', 0)
+          .text(`#${rank + 1}`)
+          .transition()
+          .duration(375)
+          .delay(375)
+          .attr('opacity', 1);
       });
 
-      // Add right rank labels
+      // Add right rank labels with fade in
       const lastYearIdx = filteredRankings.length - 1;
       filteredRankings[lastYearIdx].forEach((tech, rank) => {
         if (!topTechs.includes(tech.name)) return;
@@ -725,11 +746,20 @@ const BumpChart: React.FC<BumpChartProps> = ({
           .attr('font-size', '14px')
           .attr('font-weight', '600')
           .attr('fill', mutedForegroundColor)
-          .text(`#${rank + 1}`);
+          .attr('opacity', 0)
+          .text(`#${rank + 1}`)
+          .transition()
+          .duration(375)
+          .delay(375)
+          .attr('opacity', 1);
       });
-      
-      // Hide Y-axis in rank mode
-      g.selectAll('.y-axis-value').remove();
+
+      // Hide Y-axis in rank mode with fade out
+      g.selectAll('.y-axis-value')
+        .transition()
+        .duration(375)
+        .attr('opacity', 0)
+        .remove();
       g.selectAll('.y-axis-label').remove();
     }
 
