@@ -137,7 +137,14 @@ export default function Home() {
       sidebarContent={sidebarContent}
       sidebarDefaultOpen={true}
     >
-      <ScatterplotMatrix data={filteredData} columns={numericColumns} dimension={dimension} />
+      <Card className="max-w-6xl mx-auto">
+        <CardHeader>
+          <CardTitle>Palmer Penguins Scatterplot Matrix</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ScatterplotMatrix data={filteredData} columns={numericColumns} dimension={dimension} />
+        </CardContent>
+      </Card>
     </VisualizationLayout>
   );
 }

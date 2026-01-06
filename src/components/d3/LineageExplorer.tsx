@@ -228,6 +228,9 @@ const LineageExplorer: React.FC<LineageExplorerProps> = ({ data }) => {
       .attr('font-size', '18px')
       .attr('font-weight', 'bold')
       .attr('fill', '#000')
+      .attr('stroke', '#fff')
+      .attr('stroke-width', '3px')
+      .attr('paint-order', 'stroke')
       .text(currentDeity.name);
 
     // Draw child nodes
@@ -280,6 +283,9 @@ const LineageExplorer: React.FC<LineageExplorerProps> = ({ data }) => {
         .attr('font-size', childCount > 15 ? '11px' : '13px')
         .attr('font-weight', 'bold')
         .attr('fill', '#000')
+        .attr('stroke', '#fff')
+        .attr('stroke-width', '3px')
+        .attr('paint-order', 'stroke')
         .text(childInfo.name);
 
       // Show child count if they have children
@@ -325,7 +331,7 @@ const LineageExplorer: React.FC<LineageExplorerProps> = ({ data }) => {
           <ChevronLeft className="w-4 h-4 mr-1" />
           Back
         </Button>
-        <div className="text-sm text-muted-foreground ml-2">
+        <div className="text-sm text-foreground/70 ml-2">
           {history.length > 0 && `Depth: ${history.length + 1}`}
         </div>
       </div>
@@ -333,7 +339,7 @@ const LineageExplorer: React.FC<LineageExplorerProps> = ({ data }) => {
       {/* How to Navigate Instructions */}
       <div className="p-3 bg-muted/50 rounded-lg border">
         <p className="text-sm font-semibold mb-1">💡 How to Navigate</p>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-foreground/80">
           Click any child node to view its description. Nodes with number badges can be explored further to see their descendants.
           Use the Back button to navigate up the family tree.
         </p>
@@ -365,14 +371,14 @@ const LineageExplorer: React.FC<LineageExplorerProps> = ({ data }) => {
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                       <span>{displayDeity.name}</span>
-                      <span className="text-sm font-normal text-muted-foreground">
+                      <span className="text-sm font-normal text-foreground/60">
                         {isSelected ? 'Selected' : 'Current Focus'}
                       </span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3 text-sm">
                     {displayDeity.description && (
-                      <div className="pb-2 mb-2 border-b italic text-muted-foreground whitespace-pre-line">
+                      <div className="pb-2 mb-2 border-b italic text-foreground/80 whitespace-pre-line">
                         {displayDeity.description.replace(/\\n/g, '\n')}
                       </div>
                     )}

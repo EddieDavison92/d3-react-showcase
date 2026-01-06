@@ -186,14 +186,21 @@ export default function Home() {
             sidebarContent={sidebarContent}
             sidebarDefaultOpen={true}
         >
-            <TemperatureAnomalyHeatmap
-                data={data}
-                enableBrushing={enableBrushing}
-                setBrushedData={handleSetBrushedData}
-                setIsBrushed={handleSetIsBrushed}
-                colorScale={colorScale}
-                months={MONTHS}
-            />
+            <Card className="max-w-7xl mx-auto">
+                <CardHeader>
+                    <CardTitle>Interactive Temperature Anomaly Heatmap</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <TemperatureAnomalyHeatmap
+                        data={data}
+                        enableBrushing={enableBrushing}
+                        setBrushedData={handleSetBrushedData}
+                        setIsBrushed={handleSetIsBrushed}
+                        colorScale={colorScale}
+                        months={MONTHS}
+                    />
+                </CardContent>
+            </Card>
         </VisualizationLayout>
     );
 }

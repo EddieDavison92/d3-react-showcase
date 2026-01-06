@@ -38,7 +38,7 @@ const TemperatureAnomalyHeatmap: React.FC<TemperatureAnomalyHeatmapProps> = ({
         const handleResize = () => {
             const container = svgRef.current?.parentElement;
             if (container) {
-                setDimensions({ width: container.clientWidth - MARGIN.left - MARGIN.right, height: 600 - MARGIN.top - MARGIN.bottom });
+                setDimensions({ width: container.clientWidth - MARGIN.left - MARGIN.right, height: 700 - MARGIN.top - MARGIN.bottom });
             }
         };
 

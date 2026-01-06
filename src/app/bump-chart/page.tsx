@@ -143,25 +143,23 @@ export default function TechTrendsPage() {
       sidebarDefaultOpen={true}
     >
       {selectedCategoryData && (
-        <div className="w-full">
-          <Card>
-            <CardHeader>
-              <CardTitle>{selectedCategoryData.name} Trends</CardTitle>
-              <CardDescription>
-                Year-over-year trends in {selectedCategoryData.name.toLowerCase()} adoption ({data.years[0]}-{data.years[data.years.length - 1]})
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <BumpChart
-                data={data}
-                categoryName={selectedCategoryData.name}
-                width={1200}
-                height={700}
-                topN={12}
-              />
-            </CardContent>
-          </Card>
-        </div>
+        <Card className="max-w-7xl mx-auto">
+          <CardHeader>
+            <CardTitle>{selectedCategoryData.name} Trends</CardTitle>
+            <CardDescription>
+              Year-over-year trends in {selectedCategoryData.name.toLowerCase()} adoption ({data.years[0]}-{data.years[data.years.length - 1]})
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <BumpChart
+              data={data}
+              categoryName={selectedCategoryData.name}
+              width={1200}
+              height={700}
+              topN={12}
+            />
+          </CardContent>
+        </Card>
       )}
     </VisualizationLayout>
   );

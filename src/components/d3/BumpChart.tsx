@@ -503,7 +503,7 @@ const BumpChart: React.FC<BumpChartProps> = ({
 
     // Mark that initial render is complete
     isInitialRender.current = false;
-  }, [data, categoryName, width, height, topN, viewMode]);
+  }, [data, categoryName, width, height, topN]);
 
   // Separate effect for view mode transitions - only animates positions, doesn't re-render
   useEffect(() => {
@@ -797,10 +797,15 @@ const BumpChart: React.FC<BumpChartProps> = ({
         }
       }
       
+      // Get theme colors for background
+      const styles = getComputedStyle(document.documentElement);
+      const cardColor = `hsl(${styles.getPropertyValue('--card')})`;
+
       bg.attr('stroke', isHovered ? color : '#e5e7eb')
         .attr('stroke-width', isHovered ? 2 : 1)
         .attr('opacity', hoveredTech === null || isHovered ? 1 : 0.3)
-        .attr('fill', 'white'); // Ensure background is always white for readability
+        .attr('fill', isHovered ? cardColor : 'white')
+        .style('filter', isHovered ? `drop-shadow(0 2px 8px ${color}40)` : 'none'); // Add glow when hovered
     });
   }, [hoveredTech]);
 

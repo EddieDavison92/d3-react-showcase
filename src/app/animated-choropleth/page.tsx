@@ -181,21 +181,28 @@ export default function Home() {
       sidebarContent={sidebarContent}
       sidebarDefaultOpen={true}
     >
-      <div className="space-y-6">
-        <AnimatedChoroplethMap
-          jsonDataPath="/data/TS007_icb.json"
-          geojsonPath="/data/icb_2022_BUC.geojson"
-          idField="ICB22CD"
-          nameField="ICB22NM"
-          dimensionField="AgeCode"
-          valueField="Obs"
-          proportionField="Prop"
-          joinCondition={(jsonRow, geojsonProperties) => jsonRow["ICBCode"] === geojsonProperties["ICB22CD"]}
-          colorScheme={colorScheme}
-          currentDimension={currentDimension}
-          setSelectedRegion={setSelectedRegion}
-          formatTooltipText={handleNameTruncation}
-        />
+      <div className="space-y-6 max-w-7xl mx-auto">
+        <Card>
+          <CardHeader>
+            <CardTitle>UK Population Distribution by Age</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AnimatedChoroplethMap
+              jsonDataPath="/data/TS007_icb.json"
+              geojsonPath="/data/icb_2022_BUC.geojson"
+              idField="ICB22CD"
+              nameField="ICB22NM"
+              dimensionField="AgeCode"
+              valueField="Obs"
+              proportionField="Prop"
+              joinCondition={(jsonRow, geojsonProperties) => jsonRow["ICBCode"] === geojsonProperties["ICB22CD"]}
+              colorScheme={colorScheme}
+              currentDimension={currentDimension}
+              setSelectedRegion={setSelectedRegion}
+              formatTooltipText={handleNameTruncation}
+            />
+          </CardContent>
+        </Card>
 
         {selectedRegion && (
           <Card>
