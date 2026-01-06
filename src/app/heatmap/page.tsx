@@ -7,6 +7,9 @@ import { Switch } from '@/components/ui/switch';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Button } from "@/components/ui/button";
 import { DownloadIcon } from '@radix-ui/react-icons';
+import { VisualizationLayout } from '@/components/layouts/VisualizationLayout';
+import { VisualizationSidebarSection } from '@/components/ui/visualization-sidebar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface DataPoint {
     Year: number;
@@ -112,43 +115,85 @@ export default function Home() {
         }
     }, [enableBrushing]);
 
+    const sidebarContent = (
+        <>
+            <VisualizationSidebarSection title="About">
+                <Card>
+                    <CardContent className="p-4 space-y-2 text-sm">
+                        <p className="text-muted-foreground">
+                            This heatmap illustrates global temperature anomalies from January to December for each year since 1880.
+                        </p>
+                        <p className="text-muted-foreground">
+                            The data, provided by NASA&apos;s GISS Surface Temperature Analysis (GISTEMP), is color-coded from blue to red,
+                            representing the transition from colder to warmer anomalies.
+                        </p>
+                        <p className="text-muted-foreground">
+                            Anomalies are calculated relative to the base period of 1980-2015.
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                            Most recent data: {maxMonth} {maxYear}
+                        </p>
+                        <a
+                            href="https://data.giss.nasa.gov/gistemp/"
+                            target="_blank"
+                            className="text-primary hover:underline text-xs block mt-2"
+                        >
+                            Visit NASA GISS page →
+                        </a>
+                    </CardContent>
+                </Card>
+            </VisualizationSidebarSection>
+
+            <VisualizationSidebarSection title="Controls">
+                <Card>
+                    <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                            <label className="text-sm font-medium">Enable Brushing</label>
+                            <Switch checked={enableBrushing} onCheckedChange={setEnableBrushing} />
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">
+                            Brush over the heatmap and legend to highlight specific periods and anomalies
+                        </p>
+                    </CardContent>
+                </Card>
+            </VisualizationSidebarSection>
+
+            {isBrushed && (
+                <VisualizationSidebarSection title="Selected Data">
+                    <Card>
+                        <CardHeader className="p-4 pb-2">
+                            <CardTitle className="text-sm">Temperature Anomalies</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-4 pt-2 space-y-3">
+                            <Button className="w-full" onClick={() => exportToCSV(brushedData)}>
+                                <DownloadIcon className="mr-2 h-4 w-4" />
+                                Export to CSV
+                            </Button>
+                            <div className="max-h-[300px] overflow-auto">
+                                <DataTable brushedData={brushedData} />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </VisualizationSidebarSection>
+            )}
+        </>
+    );
+
     return (
-        <div className="p-4 max-w-6xl mx-auto justify-center">
-            <h1 className="text-2xl font-semibold mt-4 mb-4 text-left">Temperature Anomaly Heatmap</h1>
-            <p className="mb-4">
-                This heatmap illustrates global temperature anomalies from January to December for each year since 1880. 
-                The data, provided by NASA&apos;s GISS Surface Temperature Analysis (GISTEMP), is color-coded from blue to red, 
-                representing the transition from colder to warmer anomalies. The anomalies are calculated relative to the 
-                base period of 1980-2015.
-            </p>
-            <p className="mb-4">The most recent data available is from {maxMonth} {maxYear}. For more details and data, visit the 
-                <a href="https://data.giss.nasa.gov/gistemp/" target="_blank" className="font-medium text-primary underline underline-offset-4">{" "}NASA GISS page</a>.
-            </p>
-            <p className="mb-4">
-                You can brush over the heatmap and the legend to highlight and focus on particular periods and anomalies.
-            </p>
-            <div className="mb-4 flex items-center">
-                <label className="mr-2 font-semibold">Enable Brushing</label>
-                <Switch checked={enableBrushing} onCheckedChange={setEnableBrushing} />
-            </div>
-            <TemperatureAnomalyHeatmap 
-                data={data} 
-                enableBrushing={enableBrushing} 
-                setBrushedData={handleSetBrushedData} 
-                setIsBrushed={handleSetIsBrushed} 
+        <VisualizationLayout
+            title="Temperature Anomaly Heatmap"
+            description="Explore global temperature anomalies since 1880 with interactive brushing"
+            sidebarContent={sidebarContent}
+            sidebarDefaultOpen={true}
+        >
+            <TemperatureAnomalyHeatmap
+                data={data}
+                enableBrushing={enableBrushing}
+                setBrushedData={handleSetBrushedData}
+                setIsBrushed={handleSetIsBrushed}
                 colorScale={colorScale}
                 months={MONTHS}
             />
-            {isBrushed && (
-                <div className="max-w-[350px] mt-4">
-                    <h2 className="text-lg font-bold mb-2">Selected Temperature Anomalies</h2>
-                    <Button className="mb-2" onClick={() => exportToCSV(brushedData)}>
-                        < DownloadIcon className="mr-2 h-4 w-4" />
-                        {" "}Export to CSV
-                    </Button>
-                    <DataTable brushedData={brushedData} />
-                </div>
-            )}
-        </div>
+        </VisualizationLayout>
     );
 }

@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import D3ColourSelector from "@/components/d3/d3-colour-selector";
 import { PlayIcon, StopIcon } from '@radix-ui/react-icons';
 import * as d3 from "d3";
+import { VisualizationLayout } from '@/components/layouts/VisualizationLayout';
+import { VisualizationSidebarSection } from '@/components/ui/visualization-sidebar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
@@ -72,95 +75,139 @@ export default function Home() {
     }
   };
 
-  return (
-    <div className="p-4 mx-auto max-w-6xl">
-      <h1 className="text-2xl text-left mt-4 font-bold mb-4">Animated Choropleth Map</h1>
-      <p className="mb-4 text-left">
-        This map displays the proportion of the population in each region by single-year age groups, utilising data from the{" "}
-        <a
-          className="font-medium text-primary underline underline-offset-4"
-          href="https://www.ons.gov.uk/datasets/TS007/editions/2021/versions/3"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          2021 Census 
-        </a>
-        {" "}provided by the Office for National Statistics.
-      </p>
-      <p className="mb-4 text-left">
-        The regions on the map are colour-coded to reflect the proportion of the population in each single-year age group, normalised across England. 
-      </p>
-      <p className="mb-4 text-left"> 
-        Click &quot;Start&quot; to observe the population distribution transitioning through each age group, or drag the slider.
-      </p>
-      {isLoading ? (
-        <div className="text-center">Loading...</div>
-      ) : (
-        <>
-          <div className="flex">
-            <label className="mr-2 mt-2 font-semibold mb-4">Select Colour Scheme:</label>
-            <D3ColourSelector onSelect={handleSchemeSelect} />
-          </div>
-          <div className="flex justify-center mt-4 mb-2">
-            <Button onClick={toggleAnimation} variant={isAnimating ? "outline" : "default"} className="mr-4">
-              {isAnimating ? (
-                <>
-                  <StopIcon className="mr-2 h-4 w-4" /> Stop
-                </>
-              ) : (
-                <>
-                  <PlayIcon className="mr-2 h-4 w-4" /> Start
-                </>
-              )}
-            </Button>
-            <div className="ml-2 mt-1">
-              <span className="text-lg font-bold">Current Age: {currentDimension}</span>
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-lg text-muted-foreground">Loading census data...</p>
+      </div>
+    );
+  }
+
+  const sidebarContent = (
+    <>
+      <VisualizationSidebarSection title="About">
+        <Card>
+          <CardContent className="p-4 space-y-2 text-sm">
+            <p className="text-muted-foreground">
+              This map displays the proportion of the population in each region by single-year age groups, utilising data from the{" "}
+              <a
+                className="font-medium text-primary underline underline-offset-4"
+                href="https://www.ons.gov.uk/datasets/TS007/editions/2021/versions/3"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                2021 Census
+              </a>
+              {" "}provided by the Office for National Statistics.
+            </p>
+            <p className="text-muted-foreground">
+              The regions on the map are colour-coded to reflect the proportion of the population in each single-year age group, normalised across England.
+            </p>
+            <p className="text-muted-foreground">
+              Click &quot;Start&quot; to observe the population distribution transitioning through each age group, or drag the slider.
+            </p>
+          </CardContent>
+        </Card>
+      </VisualizationSidebarSection>
+
+      <VisualizationSidebarSection title="Controls">
+        <Card>
+          <CardContent className="p-4 space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Colour Scheme</label>
+              <D3ColourSelector onSelect={handleSchemeSelect} />
             </div>
-          </div>
-          <div className="flex justify-center my-4">
-            <label className="mr-2">Select Age:</label>
-            <div className="w-64 mt-2">
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">Animation</label>
+              <Button onClick={toggleAnimation} variant={isAnimating ? "outline" : "default"} className="w-full">
+                {isAnimating ? (
+                  <>
+                    <StopIcon className="mr-2 h-4 w-4" /> Stop
+                  </>
+                ) : (
+                  <>
+                    <PlayIcon className="mr-2 h-4 w-4" /> Start
+                  </>
+                )}
+              </Button>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">Current Age: {currentDimension}</label>
               <RangeSlider value={[currentDimension]} onValueChange={handleDimensionChange} min={0} max={100} step={1} />
             </div>
-          </div>
-          <AnimatedChoroplethMap
-            jsonDataPath="/data/TS007_icb.json"
-            geojsonPath="/data/icb_2022_BUC.geojson"
-            idField="ICB22CD"
-            nameField="ICB22NM"
-            dimensionField="AgeCode"
-            valueField="Obs"
-            proportionField="Prop"
-            joinCondition={(jsonRow, geojsonProperties) => jsonRow["ICBCode"] === geojsonProperties["ICB22CD"]}
-            colorScheme={colorScheme}
-            currentDimension={currentDimension}
-            setSelectedRegion={setSelectedRegion}
-            formatTooltipText={handleNameTruncation}
-          />
-          {selectedRegion ? (
-            <div className="flex flex-col items-start max-w-2xl mt-8 mx-auto">
-              <h2 className="text-xl text-left font-bold mb-2">{handleNameTruncation(selectedRegion["ICB22NM"])}</h2>
-              <p className="text-lg font-bold mt-2 mb-2">
-                Population: {data.filter((d) => d["ICBCode"] === selectedRegion["ICB22CD"]).reduce((acc, d) => acc + d["Obs"], 0).toLocaleString()}
-              </p>
-              <p className="text-left mb-2">This chart shows the number of people in single year-ages for the selected region.</p>
-              <AreaChart
-                data={data.filter((d) => d["ICBCode"] === selectedRegion["ICB22CD"])}
-                valueField="Obs"
-                dimensionField="AgeCode"
-                proportionField="Prop"
-                colorScheme={colorScheme}
-                xLabel="Age"
-                yLabel="Number of People"
-                tooltipDimensionLabel="Age"
-                tooltipValueLabel="People"
-              />
-            </div>
-          ) : (
-            <p className="text-center font-bold mt-4">Click on a region to see more detail</p>
-          )}
-        </>
+          </CardContent>
+        </Card>
+      </VisualizationSidebarSection>
+
+      {selectedRegion && (
+        <VisualizationSidebarSection title="Selected Region">
+          <Card>
+            <CardHeader className="p-4 pb-2">
+              <CardTitle className="text-sm">{handleNameTruncation(selectedRegion["ICB22NM"])}</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-2 space-y-3">
+              <div>
+                <p className="text-xs text-muted-foreground">Total Population</p>
+                <p className="text-lg font-bold">
+                  {data.filter((d) => d["ICBCode"] === selectedRegion["ICB22CD"]).reduce((acc, d) => acc + d["Obs"], 0).toLocaleString()}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Age Distribution</p>
+                <AreaChart
+                  data={data.filter((d) => d["ICBCode"] === selectedRegion["ICB22CD"])}
+                  valueField="Obs"
+                  dimensionField="AgeCode"
+                  proportionField="Prop"
+                  colorScheme={colorScheme}
+                  xLabel="Age"
+                  yLabel="Number of People"
+                  tooltipDimensionLabel="Age"
+                  tooltipValueLabel="People"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </VisualizationSidebarSection>
       )}
-    </div>
+
+      {!selectedRegion && (
+        <VisualizationSidebarSection title="">
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-sm text-muted-foreground text-center">
+                Click on a region to see detailed information
+              </p>
+            </CardContent>
+          </Card>
+        </VisualizationSidebarSection>
+      )}
+    </>
+  );
+
+  return (
+    <VisualizationLayout
+      title="Animated Choropleth Map"
+      description="Explore UK population distribution by age across Integrated Care Boards"
+      sidebarContent={sidebarContent}
+      sidebarDefaultOpen={true}
+    >
+      <AnimatedChoroplethMap
+        jsonDataPath="/data/TS007_icb.json"
+        geojsonPath="/data/icb_2022_BUC.geojson"
+        idField="ICB22CD"
+        nameField="ICB22NM"
+        dimensionField="AgeCode"
+        valueField="Obs"
+        proportionField="Prop"
+        joinCondition={(jsonRow, geojsonProperties) => jsonRow["ICBCode"] === geojsonProperties["ICB22CD"]}
+        colorScheme={colorScheme}
+        currentDimension={currentDimension}
+        setSelectedRegion={setSelectedRegion}
+        formatTooltipText={handleNameTruncation}
+      />
+    </VisualizationLayout>
   );
 }
