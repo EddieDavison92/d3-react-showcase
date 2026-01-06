@@ -147,27 +147,14 @@ export default function Home() {
             <CardHeader className="p-4 pb-2">
               <CardTitle className="text-sm">{handleNameTruncation(selectedRegion["ICB22NM"])}</CardTitle>
             </CardHeader>
-            <CardContent className="p-4 pt-2 space-y-3">
-              <div>
-                <p className="text-xs text-muted-foreground">Total Population</p>
-                <p className="text-lg font-bold">
-                  {data.filter((d) => d["ICBCode"] === selectedRegion["ICB22CD"]).reduce((acc, d) => acc + d["Obs"], 0).toLocaleString()}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground mb-2">Age Distribution</p>
-                <AreaChart
-                  data={data.filter((d) => d["ICBCode"] === selectedRegion["ICB22CD"])}
-                  valueField="Obs"
-                  dimensionField="AgeCode"
-                  proportionField="Prop"
-                  colorScheme={colorScheme}
-                  xLabel="Age"
-                  yLabel="Number of People"
-                  tooltipDimensionLabel="Age"
-                  tooltipValueLabel="People"
-                />
-              </div>
+            <CardContent className="p-4 pt-2">
+              <p className="text-xs text-muted-foreground">Total Population</p>
+              <p className="text-2xl font-bold">
+                {data.filter((d) => d["ICBCode"] === selectedRegion["ICB22CD"]).reduce((acc, d) => acc + d["Obs"], 0).toLocaleString()}
+              </p>
+              <p className="text-xs text-muted-foreground mt-3">
+                View age distribution chart below the map
+              </p>
             </CardContent>
           </Card>
         </VisualizationSidebarSection>
@@ -194,20 +181,43 @@ export default function Home() {
       sidebarContent={sidebarContent}
       sidebarDefaultOpen={true}
     >
-      <AnimatedChoroplethMap
-        jsonDataPath="/data/TS007_icb.json"
-        geojsonPath="/data/icb_2022_BUC.geojson"
-        idField="ICB22CD"
-        nameField="ICB22NM"
-        dimensionField="AgeCode"
-        valueField="Obs"
-        proportionField="Prop"
-        joinCondition={(jsonRow, geojsonProperties) => jsonRow["ICBCode"] === geojsonProperties["ICB22CD"]}
-        colorScheme={colorScheme}
-        currentDimension={currentDimension}
-        setSelectedRegion={setSelectedRegion}
-        formatTooltipText={handleNameTruncation}
-      />
+      <div className="space-y-6">
+        <AnimatedChoroplethMap
+          jsonDataPath="/data/TS007_icb.json"
+          geojsonPath="/data/icb_2022_BUC.geojson"
+          idField="ICB22CD"
+          nameField="ICB22NM"
+          dimensionField="AgeCode"
+          valueField="Obs"
+          proportionField="Prop"
+          joinCondition={(jsonRow, geojsonProperties) => jsonRow["ICBCode"] === geojsonProperties["ICB22CD"]}
+          colorScheme={colorScheme}
+          currentDimension={currentDimension}
+          setSelectedRegion={setSelectedRegion}
+          formatTooltipText={handleNameTruncation}
+        />
+
+        {selectedRegion && (
+          <Card>
+            <CardHeader>
+              <CardTitle>{handleNameTruncation(selectedRegion["ICB22NM"])} - Age Distribution</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AreaChart
+                data={data.filter((d) => d["ICBCode"] === selectedRegion["ICB22CD"])}
+                valueField="Obs"
+                dimensionField="AgeCode"
+                proportionField="Prop"
+                colorScheme={colorScheme}
+                xLabel="Age"
+                yLabel="Number of People"
+                tooltipDimensionLabel="Age"
+                tooltipValueLabel="People"
+              />
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </VisualizationLayout>
   );
 }

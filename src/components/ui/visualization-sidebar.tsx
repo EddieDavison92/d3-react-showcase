@@ -40,18 +40,18 @@ export function VisualizationSidebar({
       <aside
         className={cn(
           "relative border-l border-border bg-background transition-all duration-300 ease-in-out hidden md:flex flex-col",
-          isOpen ? "w-80" : "w-0 overflow-hidden",
+          isOpen ? "w-96" : "w-0 overflow-hidden",
           className
         )}
       >
-        {/* Collapse/Expand Button */}
+        {/* Collapse/Expand Button - Always visible */}
         <Button
           variant="ghost"
           size="icon"
           onClick={toggle}
           className={cn(
-            "absolute -left-10 top-4 h-8 w-8 rounded-md border border-border bg-background hover:bg-accent z-10",
-            !isOpen && "left-2"
+            "absolute top-4 h-8 w-8 rounded-md border border-border bg-background hover:bg-accent z-50",
+            isOpen ? "-left-10" : "left-2"
           )}
         >
           {isOpen ? (

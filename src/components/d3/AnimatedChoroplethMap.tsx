@@ -195,7 +195,7 @@ const AnimatedChoroplethMap: React.FC<AnimatedChoroplethMapProps> = ({
       <div ref={mapContainerRef} className="relative mx-auto max-w-4xl flex justify-center w-full" style={{ height: '600px' }}>
         <svg ref={svgRef} className="block w-full h-full"></svg>
       </div>
-      <div ref={tooltipRef} className="absolute bg-background text-foreground border border-border rounded p-2 pointer-events-none text-sm" style={{ display: 'none', whiteSpace: 'nowrap' }}></div>
+      <div ref={tooltipRef} className="absolute bg-background text-foreground border border-border rounded p-2 pointer-events-none text-sm z-[100]" style={{ display: 'none', whiteSpace: 'nowrap' }}></div>
     </div>
   );
 };

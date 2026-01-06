@@ -118,6 +118,12 @@ const BumpChart: React.FC<BumpChartProps> = ({
         '#ec4899', '#f43f5e'
       ]);
 
+    // Get CSS colors from theme
+    const styles = getComputedStyle(document.documentElement);
+    const foregroundColor = `hsl(${styles.getPropertyValue('--foreground')})`;
+    const mutedColor = `hsl(${styles.getPropertyValue('--muted')})`;
+    const mutedForegroundColor = `hsl(${styles.getPropertyValue('--muted-foreground')})`;
+
     // Draw year columns
     data.years.forEach((year, i) => {
       const x = xScale(year) || 0;
@@ -128,8 +134,8 @@ const BumpChart: React.FC<BumpChartProps> = ({
         .attr('y', -20)
         .attr('width', 80)
         .attr('height', chartHeight + 40)
-        .attr('fill', i % 2 === 0 ? '#f9fafb' : '#ffffff')
-        .attr('opacity', 0.5);
+        .attr('fill', mutedColor)
+        .attr('opacity', i % 2 === 0 ? 0.3 : 0.1);
 
       // Year label at top
       g.append('text')
@@ -138,7 +144,7 @@ const BumpChart: React.FC<BumpChartProps> = ({
         .attr('text-anchor', 'middle')
         .attr('font-size', '18px')
         .attr('font-weight', 'bold')
-        .attr('fill', '#111827')
+        .attr('fill', foregroundColor)
         .text(year);
     });
 
@@ -154,7 +160,7 @@ const BumpChart: React.FC<BumpChartProps> = ({
           .attr('text-anchor', 'end')
           .attr('font-size', '14px')
           .attr('font-weight', '600')
-          .attr('fill', '#6b7280')
+          .attr('fill', mutedForegroundColor)
           .attr('opacity', 1) // Always visible
           .text(`#${rank + 1}`);
       });
@@ -171,7 +177,7 @@ const BumpChart: React.FC<BumpChartProps> = ({
           .attr('text-anchor', 'start')
           .attr('font-size', '14px')
           .attr('font-weight', '600')
-          .attr('fill', '#6b7280')
+          .attr('fill', mutedForegroundColor)
           .text(`#${rank + 1}`);
       });
     }
@@ -342,7 +348,7 @@ const BumpChart: React.FC<BumpChartProps> = ({
       .attr('dy', '0.35em')
       .attr('font-size', '13px')
       .attr('font-weight', '600')
-      .attr('fill', '#111827');
+      .attr('fill', foregroundColor);
 
     leftLabelsEnter.append('text')
       .attr('class', 'label-value')
@@ -439,7 +445,7 @@ const BumpChart: React.FC<BumpChartProps> = ({
       .attr('dy', '0.35em')
       .attr('font-size', '13px')
       .attr('font-weight', '600')
-      .attr('fill', '#111827');
+      .attr('fill', foregroundColor);
 
     rightLabelsEnter.append('text')
       .attr('class', 'label-value')
@@ -681,9 +687,13 @@ const BumpChart: React.FC<BumpChartProps> = ({
         yearRanking.filter(tech => topTechs.includes(tech.name))
       );
       
+      // Get theme colors
+      const styles = getComputedStyle(document.documentElement);
+      const mutedForegroundColor = `hsl(${styles.getPropertyValue('--muted-foreground')})`;
+
       // Remove existing rank labels first
       g.selectAll('.rank-left, .rank-right').remove();
-      
+
       // Add left rank labels
       filteredRankings[0].forEach((tech, rank) => {
         if (!topTechs.includes(tech.name)) return;
@@ -695,7 +705,7 @@ const BumpChart: React.FC<BumpChartProps> = ({
           .attr('text-anchor', 'end')
           .attr('font-size', '14px')
           .attr('font-weight', '600')
-          .attr('fill', '#6b7280')
+          .attr('fill', mutedForegroundColor)
           .attr('opacity', 1) // Always visible
           .text(`#${rank + 1}`);
       });
@@ -712,7 +722,7 @@ const BumpChart: React.FC<BumpChartProps> = ({
           .attr('text-anchor', 'start')
           .attr('font-size', '14px')
           .attr('font-weight', '600')
-          .attr('fill', '#6b7280')
+          .attr('fill', mutedForegroundColor)
           .text(`#${rank + 1}`);
       });
       

@@ -100,7 +100,7 @@ export default function ForceGraphPage() {
       sidebarContent={sidebarContent}
       sidebarDefaultOpen={true}
     >
-      <Card>
+      <Card className="max-w-5xl mx-auto">
         <CardHeader>
           <CardTitle>Interactive Lineage Visualisation</CardTitle>
           <CardDescription>
