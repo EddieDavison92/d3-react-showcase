@@ -26,7 +26,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <body className={cn("min-h-screen antialiased flex flex-col", fontSans.className)}>
           <ThemeProvider
             attribute="class"
-            defaultTheme="light"
+            defaultTheme="dark"
             enableSystem
             disableTransitionOnChange
           >
