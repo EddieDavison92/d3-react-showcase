@@ -70,14 +70,14 @@ Transform the D3 React Showcase application from its current light, conventional
   - `--glow`: For subtle glows on hover
   - Richer chart colors
 
-**Example dark palette**:
+**Example dark palette** (with D3-inspired orange accents):
 ```css
 .dark {
   --background: 222 47% 5%;           /* Deep dark background */
   --foreground: 210 40% 98%;          /* Crisp white text */
-  --primary: 217 91% 60%;             /* Vibrant blue */
-  --accent: 280 85% 65%;              /* Purple accent */
-  --accent-vibrant: 180 100% 50%;     /* Cyan highlights */
+  --primary: 25 95% 53%;              /* D3 orange (#F26D21) */
+  --accent: 25 95% 53%;               /* Orange accent */
+  --accent-vibrant: 33 100% 50%;      /* Bright orange highlights */
   --muted: 217 33% 17%;               /* Dark muted */
   --border: 217 33% 17%;              /* Subtle borders */
   /* Add custom variables for gradients, glows, etc. */
@@ -109,29 +109,36 @@ Transform the D3 React Showcase application from its current light, conventional
 
 **Features**:
 - Full-width main area for chart
-- Collapsible sidebar for controls
-- Responsive (mobile uses sheet/drawer)
+- Collapsible shadcn sidebar for controls (right side)
+- Desktop: Sidebar always available but collapsible
+- Mobile: Hide sidebar, use Sheet/Drawer for controls
 - Props:
   - `title`: Page title
   - `description`: Page description
   - `sidebarContent`: React node for controls
   - `children`: Visualization component
-  - `sidebarPosition?: 'left' | 'right'`: Default right
   - `sidebarDefaultOpen?: boolean`: Default true
 
-**Structure**:
+**Structure** (using shadcn Sidebar):
 ```tsx
-<div className="flex h-full">
-  {/* Sidebar - fixed width, scrollable */}
-  <aside className="w-80 border-r bg-card/50 backdrop-blur">
-    {/* Controls here */}
-  </aside>
+<SidebarProvider defaultOpen={true}>
+  <div className="flex h-full w-full">
+    {/* Main visualization area - flex-1 */}
+    <main className="flex-1 overflow-auto">
+      {children}
+    </main>
 
-  {/* Main visualization area - flex-1 */}
-  <main className="flex-1 overflow-auto">
-    {/* Chart here */}
-  </main>
-</div>
+    {/* Sidebar on right - collapsible, desktop only */}
+    <Sidebar side="right" className="hidden md:flex">
+      {sidebarContent}
+    </Sidebar>
+
+    {/* Mobile: Sheet/Drawer for controls */}
+    <Sheet>
+      {/* Mobile controls */}
+    </Sheet>
+  </div>
+</SidebarProvider>
 ```
 
 #### 2.2 Create Sidebar Control Panel Component
@@ -215,12 +222,10 @@ For each visualization page, refactor to use the new layout:
 #### 4.1 Update D3 Visualizations
 **Files**: All components in `src/components/d3/`
 
-**Changes**:
-- Update color scales to match new dark theme
-- Ensure good contrast on dark backgrounds
-- Use new accent colors for highlights
-- Update hover states with new glow effects
-- Adjust text colors for readability
+**Changes** (MINIMAL - charts already support light/dark mode):
+- Verify charts render properly in dark mode
+- Minor tweaks if needed for contrast
+- Most D3 charts should work as-is with theme switching
 
 #### 4.2 Enhance UI Components
 **Files**: `src/components/ui/*`
@@ -308,24 +313,14 @@ src/
 - [x] Maintains usability and accessibility
 - [x] No regressions in functionality
 
-## Design Decisions to Confirm
+## Design Decisions - CONFIRMED ✓
 
-Before implementation, clarify:
-
-1. **Sidebar position**: Right side (standard for controls) or left side?
-2. **Sidebar behavior**:
-   - Always visible on desktop?
-   - Collapsible/toggleable?
-   - Resizable?
-3. **Color palette**:
-   - Purple/blue accent theme?
-   - Cyan/magenta for highlights?
-   - Or specific brand colors?
-4. **Visual effects**:
-   - Glassmorphism on sidebar?
-   - Glow effects on interactive elements?
-   - Subtle animations/transitions?
-5. **Mobile breakpoint**: 768px (md) or 1024px (lg)?
+1. **Sidebar position**: Right side ✓
+2. **Sidebar behavior**: Collapsible using shadcn sidebar component ✓
+3. **Sidebar visibility**: Only on visualization pages (not homepage/docs) ✓
+4. **Color palette**: Orange accent to mirror D3 branding ✓
+5. **D3 chart updates**: Minimal changes needed - already compatible with light/dark mode ✓
+6. **Mobile approach**: Hide sidebar, use alternative controls (sheet/drawer) ✓
 
 ## Risks & Considerations
 
