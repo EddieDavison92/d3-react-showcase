@@ -40,6 +40,7 @@ const BumpChart: React.FC<BumpChartProps> = ({
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoveredTech, setHoveredTech] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('rank');
+  const [tooltip, setTooltip] = useState<{ x: number; y: number; content: string } | null>(null);
   const isInitialRender = useRef(true);
 
   useEffect(() => {
@@ -294,19 +295,25 @@ const BumpChart: React.FC<BumpChartProps> = ({
       .on('mouseover', function(event, d) {
         setHoveredTech(d.tech.name);
         d3.select(this).attr('r', 7);
+
+        // Show tooltip at cursor position
+        const tooltipContent = `
+          <div class="font-bold text-sm mb-1">${d.tech.name}</div>
+          <div class="text-xs">Year: ${d.point.year}</div>
+          <div class="text-xs">${viewMode === 'rank' ? `Rank: #${d.point.rank + 1}` : ''}</div>
+          <div class="text-xs">Adoption: ${d.point.value}%</div>
+        `;
+        setTooltip({ x: event.pageX, y: event.pageY, content: tooltipContent });
+      })
+      .on('mousemove', function(event) {
+        if (tooltip) {
+          setTooltip(prev => prev ? { ...prev, x: event.pageX, y: event.pageY } : null);
+        }
       })
       .on('mouseout', function(event, d) {
         setHoveredTech(null);
+        setTooltip(null);
         d3.select(this).attr('r', 5);
-      })
-      .append('title')
-      .text(d => `${d.tech.name}\n${d.point.year}: ${viewMode === 'rank' ? `#${d.point.rank + 1}` : ''} (${d.point.value}%)`);
-
-    // Update tooltip text for all circles
-    circlesEnter.merge(circles as any).select('title')
-      .text(d => {
-        const rankText = viewMode === 'rank' ? `#${d.point.rank + 1} ` : '';
-        return `${d.tech.name}\n${d.point.year}: ${rankText}(${d.point.value}%)`;
       });
 
     circles.exit()
@@ -867,15 +874,15 @@ const BumpChart: React.FC<BumpChartProps> = ({
         </Button>
       </div>
       <svg ref={svgRef} className="w-full" />
-      {hoveredTech && (
-        <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-lg shadow-sm">
-          <div className="text-lg font-bold text-blue-900">
-            {hoveredTech}
-          </div>
-          <div className="text-sm text-blue-700 mt-1">
-            Hover over points to see detailed {viewMode === 'rank' ? 'ranking' : 'percentage'} and percentage for each year
-          </div>
-        </div>
+      {tooltip && (
+        <div
+          className="fixed pointer-events-none z-50 px-3 py-2 bg-card border border-border rounded-md shadow-lg text-foreground"
+          style={{
+            left: `${tooltip.x + 10}px`,
+            top: `${tooltip.y + 10}px`,
+          }}
+          dangerouslySetInnerHTML={{ __html: tooltip.content }}
+        />
       )}
     </div>
   );
