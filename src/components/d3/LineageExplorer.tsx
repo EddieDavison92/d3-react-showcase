@@ -228,9 +228,6 @@ const LineageExplorer: React.FC<LineageExplorerProps> = ({ data }) => {
       .attr('font-size', '18px')
       .attr('font-weight', 'bold')
       .attr('fill', '#000')
-      .attr('stroke', '#fff')
-      .attr('stroke-width', '3px')
-      .attr('paint-order', 'stroke')
       .text(currentDeity.name);
 
     // Draw child nodes
@@ -313,10 +310,10 @@ const LineageExplorer: React.FC<LineageExplorerProps> = ({ data }) => {
   }, [focusedDeity, currentDeity, allegianceColors, deityMap, handleSelectChild, handleViewDeity]);
 
   const allegianceColorClasses: Record<string, string> = {
-    'Benevolent': 'bg-green-100 border-green-300 text-green-900',
-    'Neutral': 'bg-blue-100 border-blue-300 text-blue-900',
-    'Malevolent': 'bg-red-100 border-red-300 text-red-900',
-    'Chaotic': 'bg-purple-100 border-purple-300 text-purple-900',
+    'Benevolent': 'border-green-500',
+    'Neutral': 'border-blue-500',
+    'Malevolent': 'border-red-500',
+    'Chaotic': 'border-purple-500',
   };
 
   return (
@@ -367,7 +364,7 @@ const LineageExplorer: React.FC<LineageExplorerProps> = ({ data }) => {
               const isSelected = selectedDeity !== null;
 
               return (
-                <Card className={`border-2 flex-1 ${displayDeity.allegiance ? allegianceColorClasses[displayDeity.allegiance] : 'bg-gray-100 border-gray-300'}`}>
+                <Card className={`border-2 flex-1 ${displayDeity.allegiance ? allegianceColorClasses[displayDeity.allegiance] : 'border-border'}`}>
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                       <span>{displayDeity.name}</span>

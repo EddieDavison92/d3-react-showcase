@@ -123,6 +123,8 @@ const BumpChart: React.FC<BumpChartProps> = ({
     const foregroundColor = `hsl(${styles.getPropertyValue('--foreground')})`;
     const mutedColor = `hsl(${styles.getPropertyValue('--muted')})`;
     const mutedForegroundColor = `hsl(${styles.getPropertyValue('--muted-foreground')})`;
+    const cardColor = `hsl(${styles.getPropertyValue('--card')})`;
+    const borderColor = `hsl(${styles.getPropertyValue('--border')})`;
 
     // Draw year columns
     data.years.forEach((year, i) => {
@@ -336,9 +338,9 @@ const BumpChart: React.FC<BumpChartProps> = ({
       .attr('y', -14)
       .attr('width', 185)
       .attr('height', 28)
-      .attr('fill', 'white')
+      .attr('fill', cardColor)
       .attr('rx', 6)
-      .attr('stroke', '#e5e7eb')
+      .attr('stroke', borderColor)
       .attr('stroke-width', 1)
       .attr('opacity', 1);
 
@@ -429,9 +431,9 @@ const BumpChart: React.FC<BumpChartProps> = ({
       .attr('y', -14)
       .attr('width', 185)
       .attr('height', 28)
-      .attr('fill', 'white')
+      .attr('fill', cardColor)
       .attr('rx', 6)
-      .attr('stroke', '#e5e7eb')
+      .attr('stroke', borderColor)
       .attr('stroke-width', 1)
       .attr('opacity', 1);
 
@@ -800,11 +802,12 @@ const BumpChart: React.FC<BumpChartProps> = ({
       // Get theme colors for background
       const styles = getComputedStyle(document.documentElement);
       const cardColor = `hsl(${styles.getPropertyValue('--card')})`;
+      const borderColor = `hsl(${styles.getPropertyValue('--border')})`;
 
-      bg.attr('stroke', isHovered ? color : '#e5e7eb')
+      bg.attr('stroke', isHovered ? color : borderColor)
         .attr('stroke-width', isHovered ? 2 : 1)
         .attr('opacity', hoveredTech === null || isHovered ? 1 : 0.3)
-        .attr('fill', isHovered ? cardColor : 'white')
+        .attr('fill', cardColor)
         .style('filter', isHovered ? `drop-shadow(0 2px 8px ${color}40)` : 'none'); // Add glow when hovered
     });
   }, [hoveredTech]);
