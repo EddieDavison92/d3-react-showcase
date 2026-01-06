@@ -122,7 +122,7 @@ const TemperatureAnomalyHeatmap: React.FC<TemperatureAnomalyHeatmapProps> = ({
             <svg ref={svgRef}></svg>
             <div
                 ref={tooltipRef}
-                className="tooltip absolute invisible bg-white border border-gray-300 p-2 rounded shadow-lg pointer-events-none"
+                className="tooltip fixed invisible bg-card border border-border p-2 rounded shadow-lg pointer-events-none z-[200] text-foreground text-sm"
             ></div>
         </div>
     );
