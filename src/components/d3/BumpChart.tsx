@@ -799,18 +799,23 @@ const BumpChart: React.FC<BumpChartProps> = ({
         }
       }
       
-      // Get theme colors for background
+      // Get theme colors for background and text
       const styles = getComputedStyle(document.documentElement);
       const cardColor = `hsl(${styles.getPropertyValue('--card')})`;
       const borderColor = `hsl(${styles.getPropertyValue('--border')})`;
+      const foregroundColor = `hsl(${styles.getPropertyValue('--foreground')})`;
 
       bg.attr('stroke', isHovered ? color : borderColor)
         .attr('stroke-width', isHovered ? 2 : 1)
         .attr('opacity', hoveredTech === null || isHovered ? 1 : 0.3)
         .attr('fill', cardColor)
         .style('filter', isHovered ? `drop-shadow(0 2px 8px ${color}40)` : 'none'); // Add glow when hovered
+
+      // Update text color to match current theme (ensures theme switching works)
+      labelG.select('.label-name')
+        .attr('fill', foregroundColor);
     });
-  }, [hoveredTech]);
+  }, [hoveredTech, data, categoryName, width, height, topN, viewMode]);
 
   return (
     <div className="relative">
