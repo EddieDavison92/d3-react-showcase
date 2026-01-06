@@ -6,6 +6,9 @@ import * as d3 from "d3";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Image from "next/image";
+import { VisualizationLayout } from '@/components/layouts/VisualizationLayout';
+import { VisualizationSidebarSection } from '@/components/ui/visualization-sidebar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
@@ -42,53 +45,99 @@ export default function Home() {
   // Filter data based on the selected dimension
   const filteredData = data.filter(d => d[dimension] !== null && d[dimension] !== undefined && d[dimension] !== "");
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-lg text-muted-foreground">Loading penguin data...</p>
+      </div>
+    );
+  }
+
+  const sidebarContent = (
+    <>
+      <VisualizationSidebarSection title="About">
+        <Card>
+          <CardContent className="p-4 space-y-2 text-sm">
+            <p className="text-muted-foreground">
+              The scatterplot matrix (SPLOM) shows how different measures relate to each other.
+              Each cell is a scatterplot comparing two variables.
+            </p>
+            <p className="text-muted-foreground">
+              This matrix displays{" "}
+              <a className="font-medium text-primary underline underline-offset-4" href="data/penguins.csv" target="_blank">
+                data
+              </a>
+              {" "}from Palmer Station in Antarctica collected by{" "}
+              <a className="font-medium text-primary underline underline-offset-4" href="https://allisonhorst.github.io/palmerpenguins/" target="_blank">
+                Kristen Gorman.
+              </a>
+            </p>
+            <p className="text-muted-foreground">
+              Inspired by{" "}
+              <a className="font-medium text-primary underline underline-offset-4" href="https://observablehq.com/@d3/brushable-scatterplot-matrix" target="_blank">
+                Mike Bostock&apos;s example
+              </a>.
+            </p>
+          </CardContent>
+        </Card>
+      </VisualizationSidebarSection>
+
+      <VisualizationSidebarSection title="Controls">
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm font-medium mb-3">Colour Dimension</p>
+            <RadioGroup defaultValue="species" onValueChange={(value) => setDimension(value)}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="species" id="species" />
+                <Label htmlFor="species">Species</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="island" id="island" />
+                <Label htmlFor="island">Island</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="sex" id="sex" />
+                <Label htmlFor="sex">Sex</Label>
+              </div>
+            </RadioGroup>
+            <p className="text-xs text-muted-foreground mt-3">
+              Brush over the matrix to select data points by clicking and dragging
+            </p>
+          </CardContent>
+        </Card>
+      </VisualizationSidebarSection>
+
+      <VisualizationSidebarSection title="Meet the Penguins">
+        <Card>
+          <CardContent className="p-4 space-y-3">
+            <div>
+              <p className="text-xs text-muted-foreground mb-2">
+                Different species of penguins in the dataset:
+              </p>
+              <Image src="/img/penguins-image.jpg" alt="Penguins" width="300" height="120" className="rounded" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold mb-1">What is a Culmen?</p>
+              <p className="text-xs text-muted-foreground mb-2">
+                The culmen is the ridge along the top part of a bird&apos;s bill.
+              </p>
+              <Image src="/img/culmen_depth.png" alt="Culmen Depth" width="300" height="200" className="rounded" />
+              <p className="text-xs text-muted-foreground mt-1">Artwork by @allison_horst</p>
+            </div>
+          </CardContent>
+        </Card>
+      </VisualizationSidebarSection>
+    </>
+  );
+
   return (
-    <div className="p-4 mx-auto mt-4 max-w-6xl">
-      <h1 className="text-2xl text-left font-bold mb-4">Brushable Scatterplot Matrix</h1>
-      <p className="text-left my-2">
-        The scatterplot matrix (SPLOM) shows how different measures relate to each other.
-        Each cell is a scatterplot comparing two variables, with x representing one variable and y representing another. 
-        This matrix displays <a className="font-medium text-primary underline underline-offset-4" href="data/penguins.csv" target="_blank">data</a> from Palmer Station in Antarctica collected by <a className="font-medium text-primary underline underline-offset-4" href="https://allisonhorst.github.io/palmerpenguins/" target="_blank">Kristen Gorman.</a>
-      </p>
-      <p className="text-left my-2">
-        This chart was inspired by this <a className="font-medium text-primary underline underline-offset-4" href="https://observablehq.com/@d3/brushable-scatterplot-matrix" target="_blank">example</a> by Mike Bostock.
-      </p>
-      <p className="text-left my-2 font-semibold">
-        You can brush over the scatterplot matrix to select a subset of the data points by clicking and dragging.
-      </p>
-      <p className="font-bold mt-4 mb-1">Select dimension:</p>
-      <RadioGroup defaultValue="species" onValueChange={(value) => setDimension(value)}>
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="species" id="species" />
-          <Label htmlFor="species">Species</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="island" id="island" />
-          <Label htmlFor="island">Island</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="sex" id="sex" />
-          <Label htmlFor="sex">Sex</Label>
-        </div>
-      </RadioGroup>
-      {isLoading ? (
-        <div className="text-center">Loading...</div>
-      ) : (
-        <div className="mt-2">
-          <ScatterplotMatrix data={filteredData} columns={numericColumns} dimension={dimension} />
-          <h2 className="text-left text-2xl font-bold mt-4">Meet the Penguins</h2>
-          <p className="text-left my-2">
-            Here are the different species of penguins you will encounter in the dataset:
-          </p>
-          <Image src="/img/penguins-image.jpg" alt="Penguins" width="1000" height="400" className="mt- max-width" />
-          <h3 className="text-left text-2xl font-bold mt-4">What is a Culmen?</h3>
-          <p className="text-left my-2">
-            The culmen is the ridge along the top part of a bird&apos;s bill. It is measured to identify and study birds and monitor their health.
-          </p>
-          <Image src="/img/culmen_depth.png" alt="Culmen Depth" width="600" height="400" className="mt-4 max-width" />
-          <p>Artwork by @allison_horst</p>
-        </div>
-      )}
-    </div>
+    <VisualizationLayout
+      title="Brushable Scatterplot Matrix"
+      description="Explore relationships between penguin measurements with interactive brushing"
+      sidebarContent={sidebarContent}
+      sidebarDefaultOpen={true}
+    >
+      <ScatterplotMatrix data={filteredData} columns={numericColumns} dimension={dimension} />
+    </VisualizationLayout>
   );
 }
