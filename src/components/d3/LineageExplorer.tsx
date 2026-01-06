@@ -280,9 +280,6 @@ const LineageExplorer: React.FC<LineageExplorerProps> = ({ data }) => {
         .attr('font-size', childCount > 15 ? '11px' : '13px')
         .attr('font-weight', 'bold')
         .attr('fill', '#000')
-        .attr('stroke', '#fff')
-        .attr('stroke-width', '3px')
-        .attr('paint-order', 'stroke')
         .text(childInfo.name);
 
       // Show child count if they have children
