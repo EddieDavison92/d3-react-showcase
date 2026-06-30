@@ -18,11 +18,12 @@ export const metadata = {
 };
 
 interface PageProps {
-  params: { slug?: string[] };
+  params: Promise<{ slug?: string[] }>;
 }
 
 export default async function Page({ params }: PageProps) {
-  const slug = params.slug?.length ? params.slug.join('/') : 'index';
+  const { slug: slugParts } = await params;
+  const slug = slugParts?.length ? slugParts.join('/') : 'index';
 
   // Get current document content
   const { data, content } = getDocBySlug(slug);
