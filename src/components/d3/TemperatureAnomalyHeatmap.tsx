@@ -277,7 +277,7 @@ const addBrushing = (
         .call(heatmapBrush);
 };
 
-const setTooltipPosition = (event: MouseEvent, tooltipRef: React.RefObject<HTMLDivElement>) => {
+const setTooltipPosition = (event: MouseEvent, tooltipRef: React.RefObject<HTMLDivElement | null>) => {
     const tooltipDiv = d3.select(tooltipRef.current);
     const pageX = event.pageX;
     const pageY = event.pageY;
