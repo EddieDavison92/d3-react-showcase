@@ -144,7 +144,7 @@ const AnimatedChoroplethMap: React.FC<AnimatedChoroplethMapProps> = ({
     paths.exit().remove();
   }, [geojson, colorScale, filteredData, nameField, proportionField, joinCondition, valueField, setSelectedRegion, formatTooltipText]);
 
-  const setTooltipPosition = (event: MouseEvent, tooltipDiv: d3.Selection<HTMLDivElement, unknown, null, undefined>, containerRef: React.RefObject<HTMLDivElement>) => {
+  const setTooltipPosition = (event: MouseEvent, tooltipDiv: d3.Selection<HTMLDivElement, unknown, null, undefined>, containerRef: React.RefObject<HTMLDivElement | null>) => {
     const containerRect = containerRef.current?.getBoundingClientRect();
     if (!containerRect) return;
 

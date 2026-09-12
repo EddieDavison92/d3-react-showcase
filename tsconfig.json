@@ -11,10 +11,10 @@
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "baseUrl": "./",
     "paths": {
@@ -56,7 +56,8 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "src/**/*.mdx",
-    "src/utils/rehype-config.js"
+    "src/utils/rehype-config.js",
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"
