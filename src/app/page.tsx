@@ -1,54 +1,52 @@
 import Link from "next/link"
 import { AboutNumbers } from "@/components/explorer/AboutNumbers"
+import { HeroMap } from "@/components/explorer/HeroMap"
 import { Button } from "@/components/ui/button"
 import { exploreHref } from "@/lib/explorer/url-state"
 import { ONS_LINKS } from "@/lib/explorer/catalogue"
 
 export default function HomePage() {
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center gap-6 py-6 sm:gap-8 sm:py-10">
-      <div className="space-y-4">
-        <p className="text-sm font-medium uppercase tracking-wider text-teal-800">
-          Life expectancy explorer
+    <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col gap-8 py-4 lg:flex-row lg:items-center lg:gap-12 lg:py-6">
+      <div className="order-2 flex max-w-xl flex-col justify-center gap-5 lg:order-1 lg:w-[42%] lg:shrink-0">
+        <p className="text-[11px] font-medium uppercase tracking-widest text-teal-800 sm:text-xs">
+          ONS local areas · period life expectancy
         </p>
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-4xl">
-          Local differences in how long people live, shown carefully.
+        <h1 className="text-[2.5rem] font-semibold leading-[1.15] tracking-tight sm:text-5xl">
+          How long people live — place by place.
         </h1>
-        <p className="text-base leading-relaxed text-muted-foreground">
-          Period life expectancy summarises mortality rates in a three-year window.
-          It is not a forecast of how long a baby will live, and a place on the map
-          is not a verdict on everyone who lives there. This explorer starts from the
-          ONS local-areas series for the UK, then offers honest companions — healthy
-          life expectancy, avoidable mortality, and nation-specific deprivation
-          context — as separate catalogue cards, never one UK mega-map.
+        <p className="max-w-md text-base leading-relaxed text-muted-foreground">
+          Period life expectancy for UK local areas. Male at birth is the door in;
+          every other cut is one click away.
         </p>
-        <p className="text-base leading-relaxed text-muted-foreground">
-          England’s period life expectancy is published for{" "}
-          <strong className="text-foreground">districts and unitaries</strong>.
-          Healthy life expectancy is published for{" "}
-          <strong className="text-foreground">upper-tier</strong> areas. Those
-          grains do not match in two-tier shire England. Avoidable mortality here
-          is England and Wales only. Deprivation indices are not comparable across
-          nations and are not treated as a cause.
+        <div className="space-y-2">
+          <Button asChild className="min-h-11 bg-teal-800 px-5 hover:bg-teal-900">
+            <Link href={exploreHref()}>Open Explore</Link>
+          </Button>
+          <p className="text-sm text-muted-foreground">
+            <Link href="/catalogue" className="underline-offset-4 hover:underline">
+              Browse catalogue
+            </Link>
+            {" · "}
+            <AboutNumbers
+              triggerVariant="ghost"
+              label="About the numbers"
+              triggerClassName="h-auto min-h-0 px-0 text-sm font-normal text-muted-foreground underline-offset-4 hover:underline hover:text-foreground"
+            />
+          </p>
+        </div>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          Default cut: period life expectancy, lower-tier UK local areas, 2022–24,
+          male, at birth. Not a forecast.{" "}
+          <Link className="underline underline-offset-4" href={ONS_LINKS.leBulletin}>
+            ONS bulletin
+          </Link>
+          .
         </p>
       </div>
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        <Button asChild className="min-h-11">
-          <Link href={exploreHref()}>Open Explore</Link>
-        </Button>
-        <Button asChild variant="outline" className="min-h-11">
-          <Link href="/catalogue">Browse the catalogue</Link>
-        </Button>
-        <AboutNumbers triggerVariant="outline" />
+      <div className="order-1 min-w-0 flex-1 lg:order-2 lg:w-[58%]">
+        <HeroMap />
       </div>
-      <p className="text-sm leading-relaxed text-muted-foreground">
-        Default cut: period life expectancy, lower-tier UK local areas, 2022–24,
-        male, at birth.{" "}
-        <Link className="underline underline-offset-4" href={ONS_LINKS.leBulletin}>
-          ONS bulletin
-        </Link>
-        .
-      </p>
     </div>
   )
 }

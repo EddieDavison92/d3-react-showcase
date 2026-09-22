@@ -6,7 +6,7 @@ import type { FeatureCollection, Feature } from "geojson"
 
 const ChoroplethMap = dynamic(
   () => import("@/components/explorer/ChoroplethMap").then((mod) => mod.ChoroplethMap),
-  { ssr: false, loading: () => <div className="h-full rounded-lg border bg-slate-50" /> }
+  { ssr: false, loading: () => <div className="h-full bg-[#f8fafc]" /> }
 )
 import { ContextChip } from "@/components/explorer/ContextChip"
 import { DeprivationStrip } from "@/components/explorer/DeprivationStrip"
@@ -263,20 +263,22 @@ export function LinkedOverview({
         />
       ) : null}
       <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-3 md:flex-row">
-        <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-2 md:flex-[0.55]">
+        <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-2 md:flex-[0.58]">
         {geoFailed ? (
           <EmptyNote title="Boundaries could not be loaded">
             The geography file for this cut did not load. Try another geography or reload.
           </EmptyNote>
         ) : showMap ? (
           <div className="flex min-h-0 min-w-0 max-w-full flex-col gap-2">
-            <div className="relative h-[42dvh] min-h-[240px] w-full max-w-full lg:h-[min(54dvh,34rem)]">
+            <div className="relative h-[45dvh] min-h-[240px] w-full max-w-full lg:h-[min(62dvh,38rem)]">
               {hasMapFeatures && geojson ? (
                 <ChoroplethMap
                   geojson={geojson}
                   colours={painted.colours}
                   hatch={hatch}
                   selected={state.area}
+                  year={state.year}
+                  view={state.view}
                   onSelect={(code) => onChange({ area: code })}
                   formatHover={(code, name) => {
                     if (state.view === "sex_gap" && file) {
@@ -302,8 +304,11 @@ export function LinkedOverview({
                   }}
                 />
               ) : (
-                <div className="flex h-full min-h-[220px] items-center justify-center rounded-lg border bg-slate-50 p-4 text-sm text-muted-foreground">
-                  {geojson ? "No boundaries in this cut." : "Loading map…"}
+                <div className="relative flex h-full min-h-[220px] items-center justify-center bg-[#f8fafc]">
+                  <div className="absolute inset-[12%] animate-pulse rounded-[40%] border border-slate-300/70" />
+                  <p className="relative text-sm text-muted-foreground">
+                    {geojson ? "No boundaries in this cut." : "Loading map…"}
+                  </p>
                 </div>
               )}
             </div>
@@ -314,6 +319,7 @@ export function LinkedOverview({
                   max={painted.max}
                   ramp={ramp}
                   unit={legendCaption(state.view, unit, { nationName })}
+                  zeroTick={diverging}
                   note={
                     state.view === "ci"
                       ? "Wider CI = less certain. Hatching and lighter fill mark wider 95% intervals."
@@ -340,7 +346,7 @@ export function LinkedOverview({
           />
         )}
         </div>
-        <div className="flex min-h-0 flex-col gap-3 rounded-lg border bg-card p-3 md:flex-[0.45]">
+        <div className="flex min-h-0 flex-col gap-3 rounded-lg bg-slate-50/70 p-3 md:flex-[0.42]">
         <FocusReadout
           name={
             selectedName ??

@@ -157,7 +157,7 @@ export function SeriesPanel({
         g.append("path")
           .attr("d", area(item.points) ?? "")
           .attr("fill", item.colour)
-          .attr("opacity", emphasiseCi ? 0.28 : 0.15)
+          .attr("opacity", emphasiseCi ? 0.28 : 0.16)
       }
 
       g.append("path")
@@ -183,8 +183,8 @@ export function SeriesPanel({
     <div className="flex h-full min-h-0 flex-col gap-2">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Timeline
+          <p className="text-sm font-medium">
+            {series[0]?.name ?? "Series"}
           </p>
           {series.length > 1 ? (
             <p className="text-xs text-muted-foreground">

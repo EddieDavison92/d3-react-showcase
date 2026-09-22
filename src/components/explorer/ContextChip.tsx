@@ -33,7 +33,7 @@ export function ContextChip({
       {bits.map((bit) => (
         <span
           key={bit}
-          className="rounded-full border bg-background/90 px-2.5 py-1 text-[11px] leading-tight text-muted-foreground"
+          className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] leading-tight text-muted-foreground"
         >
           {bit}
         </span>

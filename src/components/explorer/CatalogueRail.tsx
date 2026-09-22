@@ -29,7 +29,7 @@ export function CatalogueRail({
               className={cn(
                 "flex h-[4.75rem] w-full flex-col justify-center gap-1 rounded-lg border px-2.5 py-2 text-left transition-colors",
                 active
-                  ? "border-teal-700 bg-teal-50 shadow-sm dark:border-teal-400 dark:bg-teal-950/40"
+                  ? "border-transparent border-l-2 border-l-teal-800 bg-teal-50/50 dark:border-l-teal-400 dark:bg-teal-950/20"
                   : "border-border bg-card hover:bg-muted/60"
               )}
             >

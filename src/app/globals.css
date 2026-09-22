@@ -85,12 +85,44 @@
   max-width: 100%;
 }
 
+.maplibregl-ctrl-group {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+}
+
 .maplibregl-ctrl-group button {
   width: 2.25rem !important;
   height: 2.25rem !important;
+  background: rgba(248, 250, 252, 0.78) !important;
+}
+
+.maplibregl-ctrl-bottom-right {
+  bottom: 0.4rem;
+  right: 0.4rem;
 }
 
 .maplibregl-ctrl-top-right {
-  top: 0.35rem;
-  right: 0.35rem;
+  display: none;
+}
+
+@keyframes hero-map-enter {
+  from {
+    opacity: 0;
+    filter: saturate(0.55);
+  }
+  to {
+    opacity: 1;
+    filter: saturate(1);
+  }
+}
+
+.hero-map-enter {
+  animation: hero-map-enter 700ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-map-enter {
+    animation: none;
+  }
 }

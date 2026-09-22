@@ -5,7 +5,8 @@ import maplibregl from "maplibre-gl"
 import "maplibre-gl/dist/maplibre-gl.css"
 import type { FeatureCollection } from "geojson"
 import { boundsOfGeojson } from "@/components/explorer/map-helpers"
-import { NO_DATA } from "@/lib/explorer/colours"
+import { mixColour, motionMs, NO_DATA } from "@/lib/explorer/colours"
+import { cn } from "@/lib/utils"
 
 type HoverInfo = { code: string; name: string; x: number; y: number }
 
@@ -15,6 +16,8 @@ const UK_BOUNDS: [[number, number], [number, number]] = [
 ]
 
 const MIN_SIZE = 24
+const INTERNAL_STROKE = "#94a3b8"
+const COAST_STROKE = "#475569"
 
 export function ChoroplethMap({
   geojson,
@@ -23,6 +26,10 @@ export function ChoroplethMap({
   selected,
   onSelect,
   formatHover,
+  interactive = true,
+  year,
+  view,
+  enterMs = 0,
 }: {
   geojson: FeatureCollection
   colours: Record<string, string>
@@ -30,6 +37,10 @@ export function ChoroplethMap({
   selected: string | null
   onSelect: (code: string) => void
   formatHover: (code: string, name: string) => string
+  interactive?: boolean
+  year?: string
+  view?: string
+  enterMs?: number
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
@@ -37,8 +48,12 @@ export function ChoroplethMap({
   const coloursRef = useRef(colours)
   const hatchRef = useRef(hatch)
   const selectedRef = useRef(selected)
+  const cueRef = useRef({ year, view })
+  const paintedRef = useRef<Record<string, string>>({})
+  const rafRef = useRef(0)
   const [hover, setHover] = useState<HoverInfo | null>(null)
   const [size, setSize] = useState({ width: 320, height: 240 })
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
     onSelectRef.current = onSelect
@@ -58,6 +73,7 @@ export function ChoroplethMap({
     let fitting = false
     let cancelled = false
     const featureBounds = boundsOfGeojson(geojson) ?? UK_BOUNDS
+    const padding = interactive ? 28 : 36
 
     const fit = () => {
       if (!map || userMoved || cancelled) return
@@ -65,9 +81,10 @@ export function ChoroplethMap({
       if (el.clientWidth < MIN_SIZE || el.clientHeight < MIN_SIZE) return
       const bounds = boundsOfGeojson(geojson) ?? UK_BOUNDS
       fitting = true
-      map.fitBounds(bounds, { padding: 28, duration: 0, maxZoom: 8 })
+      map.fitBounds(bounds, { padding, duration: 0, maxZoom: 8 })
       map.once("idle", () => {
         fitting = false
+        setReady(true)
       })
     }
 
@@ -79,6 +96,7 @@ export function ChoroplethMap({
     const attach = () => {
       if (!map?.getSource("areas")) return
       paint(map, geojson, coloursRef.current, selectedRef.current, hatchRef.current)
+      paintedRef.current = coloursRef.current
       fit()
     }
 
@@ -98,18 +116,21 @@ export function ChoroplethMap({
           ],
         },
         bounds: featureBounds,
-        fitBoundsOptions: { padding: 28, duration: 0 },
+        fitBoundsOptions: { padding, duration: 0 },
         attributionControl: false,
         dragRotate: false,
         pitchWithRotate: false,
         renderWorldCopies: false,
         trackResize: true,
+        interactive,
       })
-      map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right")
+      if (interactive) {
+        map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right")
+        map.on("dragstart", markUserMoved)
+        map.on("zoomstart", markUserMoved)
+        map.on("boxzoomstart", markUserMoved)
+      }
       mapRef.current = map
-      map.on("dragstart", markUserMoved)
-      map.on("zoomstart", markUserMoved)
-      map.on("boxzoomstart", markUserMoved)
 
       map.on("load", () => {
         if (!map || cancelled) return
@@ -120,6 +141,17 @@ export function ChoroplethMap({
           type: "geojson",
           data: geojson,
           promoteId: "code",
+        })
+        map.addLayer({
+          id: "coast",
+          type: "line",
+          source: "areas",
+          layout: { "line-join": "round" },
+          paint: {
+            "line-color": COAST_STROKE,
+            "line-width": 1.15,
+            "line-opacity": 0.55,
+          },
         })
         map.addLayer({
           id: "fill",
@@ -134,7 +166,7 @@ export function ChoroplethMap({
               "case",
               ["boolean", ["feature-state", "hatch"], false],
               0.58,
-              0.92,
+              0.96,
             ],
           },
         })
@@ -157,17 +189,23 @@ export function ChoroplethMap({
           type: "line",
           source: "areas",
           paint: {
-            "line-color": "#0f172a",
+            "line-color": [
+              "case",
+              ["boolean", ["feature-state", "selected"], false],
+              "#134e4a",
+              INTERNAL_STROKE,
+            ],
             "line-width": [
               "case",
               ["boolean", ["feature-state", "selected"], false],
-              1.8,
-              0.35,
+              1,
+              0.6,
             ],
-            "line-opacity": 0.55,
+            "line-opacity": 0.7,
           },
         })
         attach()
+        if (!interactive) return
         map.on("mousemove", "fill", (event) => {
           map!.getCanvas().style.cursor = "pointer"
           const feature = event.features?.[0]
@@ -215,19 +253,45 @@ export function ChoroplethMap({
     return () => {
       cancelled = true
       cancelAnimationFrame(raf)
+      cancelAnimationFrame(rafRef.current)
       observer.disconnect()
       window.visualViewport?.removeEventListener("resize", onViewport)
       window.removeEventListener("orientationchange", onViewport)
       map?.remove()
       mapRef.current = null
     }
-  }, [geojson])
+  }, [geojson, interactive])
 
   useEffect(() => {
     const map = mapRef.current
     if (!map?.isStyleLoaded()) return
-    paint(map, geojson, colours, selected, hatch)
-  }, [colours, hatch, selected, geojson])
+    cancelAnimationFrame(rafRef.current)
+    const cue = cueRef.current
+    let duration = 0
+    if (view && view !== cue.view) duration = motionMs(240)
+    else if (year && year !== cue.year) duration = motionMs(180)
+    cueRef.current = { year, view }
+    const from = paintedRef.current
+    if (!duration) {
+      paint(map, geojson, colours, selected, hatch)
+      paintedRef.current = colours
+      return
+    }
+    const start = performance.now()
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration)
+      const eased = 1 - (1 - t) * (1 - t)
+      const mid: Record<string, string> = {}
+      const codes = new Set([...Object.keys(from), ...Object.keys(colours)])
+      for (const code of codes) {
+        mid[code] = mixColour(from[code] ?? NO_DATA, colours[code] ?? NO_DATA, eased)
+      }
+      paint(map, geojson, mid, selected, hatch)
+      if (t < 1) rafRef.current = requestAnimationFrame(tick)
+      else paintedRef.current = colours
+    }
+    rafRef.current = requestAnimationFrame(tick)
+  }, [colours, hatch, selected, geojson, year, view])
 
   const tooltipStyle = hover
     ? {
@@ -237,9 +301,20 @@ export function ChoroplethMap({
     : undefined
 
   return (
-    <div className="relative h-full min-h-[240px] w-full max-w-full overflow-hidden rounded-lg border bg-slate-50">
+    <div
+      className={cn(
+        "relative h-full min-h-[240px] w-full max-w-full overflow-hidden bg-[#f8fafc]",
+        interactive ? "rounded-lg" : "rounded-none",
+        enterMs && ready ? "hero-map-enter" : ""
+      )}
+    >
+      {!ready ? (
+        <div className="absolute inset-0 animate-pulse bg-[#f8fafc]">
+          <div className="absolute inset-[12%] rounded-[40%] border border-slate-300/70" />
+        </div>
+      ) : null}
       <div ref={containerRef} className="absolute inset-0 h-full w-full max-w-full" />
-      {hover ? (
+      {interactive && hover ? (
         <div
           className="pointer-events-none absolute z-10 max-w-[min(100%-1rem,18rem)] whitespace-pre-wrap rounded-md border bg-popover px-2 py-1.5 text-xs shadow"
           style={tooltipStyle}

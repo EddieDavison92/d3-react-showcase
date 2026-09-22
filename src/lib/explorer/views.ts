@@ -9,42 +9,12 @@ export const VIEW_OPTIONS: {
   shortLabel: string
   aria: string
 }[] = [
-  {
-    id: "absolute",
-    label: "Absolute",
-    shortLabel: "Absolute",
-    aria: "Absolute life expectancy",
-  },
-  {
-    id: "d2017",
-    label: "Δ 2017–19",
-    shortLabel: "Δ 2017–19",
-    aria: "Change vs 2017–19 (pre-COVID)",
-  },
-  {
-    id: "d2019",
-    label: "Δ 2019–21",
-    shortLabel: "Δ 2019–21",
-    aria: "Change vs 2019–21 (trough)",
-  },
-  {
-    id: "vs_nation",
-    label: "vs nation",
-    shortLabel: "vs nation",
-    aria: "Area minus own nation comparator",
-  },
-  {
-    id: "sex_gap",
-    label: "Sex gap",
-    shortLabel: "Sex gap",
-    aria: "Male minus Female (derived)",
-  },
-  {
-    id: "ci",
-    label: "CI focus",
-    shortLabel: "CI focus",
-    aria: "Emphasise uncertainty on map + series",
-  },
+  { id: "absolute", label: "Absolute", shortLabel: "Absolute", aria: "Absolute life expectancy" },
+  { id: "d2017", label: "Δ 2017–19", shortLabel: "Δ17–19", aria: "Change vs 2017–19 (pre-COVID)" },
+  { id: "d2019", label: "Δ 2019–21", shortLabel: "Δ19–21", aria: "Change vs 2019–21 (trough)" },
+  { id: "vs_nation", label: "vs nation", shortLabel: "vs nation", aria: "Area minus own nation comparator" },
+  { id: "sex_gap", label: "Sex gap", shortLabel: "Sex gap", aria: "Male minus Female (derived)" },
+  { id: "ci", label: "CI focus", shortLabel: "CI", aria: "Emphasise uncertainty on map + series" },
 ]
 
 const VIEW_SET = new Set<string>(VIEW_OPTIONS.map((option) => option.id))

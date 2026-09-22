@@ -1,6 +1,6 @@
 "use client"
 
-import type { KeyboardEvent } from "react"
+import { useLayoutEffect, useRef, useState, type KeyboardEvent } from "react"
 import type { ViewId } from "@/lib/explorer/types"
 import { VIEW_OPTIONS, viewNote } from "@/lib/explorer/views"
 import { cn } from "@/lib/utils"
@@ -17,6 +17,23 @@ export function ViewSwitcher({
   const shown = options
     ? VIEW_OPTIONS.filter((option) => options.includes(option.id))
     : VIEW_OPTIONS
+  const rowRef = useRef<HTMLDivElement>(null)
+  const [pill, setPill] = useState({ left: 0, width: 0 })
+
+  useLayoutEffect(() => {
+    const row = rowRef.current
+    if (!row) return
+    const measure = () => {
+      const selected = row.querySelector('[aria-checked="true"]') as HTMLElement | null
+      if (!selected) return
+      setPill({ left: selected.offsetLeft, width: selected.offsetWidth })
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(row)
+    return () => observer.disconnect()
+  }, [value, shown.length])
+
   if (!shown.length) return null
 
   const move = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -33,12 +50,18 @@ export function ViewSwitcher({
   return (
     <div className="min-w-0 space-y-1">
       <div
-        className="flex flex-nowrap gap-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        ref={rowRef}
+        className="relative flex flex-nowrap overflow-x-auto rounded-[10px] bg-slate-100/80 p-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         role="radiogroup"
         aria-label="Map view"
         onKeyDown={move}
       >
-        {shown.map((option) => {
+        <span
+          aria-hidden
+          className="pointer-events-none absolute top-0.5 bottom-0.5 rounded-md bg-teal-800 motion-safe:transition-[left,width] motion-safe:duration-150"
+          style={{ left: pill.left, width: pill.width }}
+        />
+        {shown.map((option, index) => {
           const selected = value === option.id
           return (
             <button
@@ -50,13 +73,13 @@ export function ViewSwitcher({
               title={option.aria}
               onClick={() => onChange(option.id)}
               className={cn(
-                "h-9 min-h-9 min-w-[6.5rem] shrink-0 grow basis-0 whitespace-nowrap rounded-md border px-1.5 text-center text-[13px] font-medium md:h-8 md:min-h-8",
-                selected
-                  ? "border-teal-700 bg-teal-700 text-white"
-                  : "border-input bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
+                "relative z-[1] h-9 min-h-9 min-w-[4.6rem] shrink-0 grow basis-0 whitespace-nowrap px-1.5 text-center text-[13px] font-medium md:h-8 md:min-h-8 md:min-w-[6.2rem]",
+                index > 0 && !selected ? "border-l border-slate-200" : "border-l border-transparent",
+                selected ? "text-white" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              {option.label}
+              <span className="md:hidden">{option.shortLabel}</span>
+              <span className="hidden md:inline">{option.label}</span>
             </button>
           )
         })}
