@@ -171,7 +171,7 @@ export function LinkedOverview({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3 md:flex-row">
-      <div className="relative flex min-h-0 flex-col gap-2 md:flex-[0.55]">
+      <div className="relative flex min-h-0 flex-1 flex-col gap-2 md:flex-[0.55]">
         <ContextChip state={state} areaName={selectedName} />
         {family === "deprivation" && !deprivation?.england ? (
           <EmptyNote title="Deprivation file missing">
@@ -187,7 +187,7 @@ export function LinkedOverview({
             SIMD and NIMDM are not interactive in v1 and cannot be ranked with IoD.
           </EmptyNote>
         ) : showMap ? (
-          <div className="relative h-[min(52dvh,28rem)] min-h-[280px] w-full lg:h-[min(64dvh,40rem)]">
+          <div className="relative h-[min(52dvh,28rem)] min-h-[280px] w-full lg:h-auto lg:min-h-0 lg:flex-1">
             {hasMapFeatures && geojson ? (
               <ChoroplethMap
                 geojson={geojson}

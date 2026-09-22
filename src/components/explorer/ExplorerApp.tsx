@@ -154,7 +154,7 @@ export function ExplorerApp() {
   )
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
+    <div className="flex min-h-0 flex-1 flex-col gap-3 lg:h-full lg:flex-row">
       <aside className="hidden w-[280px] shrink-0 overflow-y-auto border-r pr-3 lg:block">
         {rail}
       </aside>
@@ -183,7 +183,7 @@ export function ExplorerApp() {
         </Sheet>
         <CompactFilterBar state={state} onChange={commit} />
       </div>
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 lg:min-h-0">
         <WarningBanner warnings={warnings} />
         {ready ? (
           <LinkedOverview
