@@ -24,11 +24,18 @@ export function ChoroplethMap({
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const onSelectRef = useRef(onSelect)
+  const coloursRef = useRef(colours)
+  const selectedRef = useRef(selected)
   const [hover, setHover] = useState<HoverInfo | null>(null)
 
   useEffect(() => {
     onSelectRef.current = onSelect
   }, [onSelect])
+
+  useEffect(() => {
+    coloursRef.current = colours
+    selectedRef.current = selected
+  }, [colours, selected])
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -90,7 +97,7 @@ export function ChoroplethMap({
           "line-opacity": 0.55,
         },
       })
-      paint(map, geojson, colours, selected)
+      paint(map, geojson, coloursRef.current, selectedRef.current)
 
       map.on("mousemove", "fill", (event) => {
         map.getCanvas().style.cursor = "pointer"
