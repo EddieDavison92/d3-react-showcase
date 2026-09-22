@@ -321,8 +321,10 @@ export function ChoroplethMap({
       }
       return
     }
-    const dissolve = () => dissolveCover(overlay, duration)
-    map.once("render", dissolve)
+    // Two frames so the snapshot is painted before the CSS opacity transition starts.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => dissolveCover(overlay, duration))
+    })
   }, [colours, hatch, selected, hexField, year, view])
 
   const tooltipStyle = hover
@@ -377,7 +379,9 @@ function snapshotCover(overlay: HTMLCanvasElement, map: maplibregl.Map) {
 }
 
 function dissolveCover(overlay: HTMLCanvasElement, duration: number) {
-  overlay.getBoundingClientRect()
+  overlay.style.transition = "none"
+  overlay.style.opacity = "1"
+  void overlay.offsetHeight
   overlay.style.transition = `opacity ${duration}ms ease-out`
   overlay.style.opacity = "0"
 }
