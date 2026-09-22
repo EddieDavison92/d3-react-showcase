@@ -110,13 +110,13 @@ export function ViewSwitcher({
         {peek.left ? (
           <span
             aria-hidden
-            className="pointer-events-none absolute inset-y-0 left-0 w-8 rounded-l-[10px] bg-gradient-to-r from-slate-100 from-30% to-transparent md:hidden"
+            className="pointer-events-none absolute inset-y-0 left-0 w-8 rounded-l-[10px] bg-gradient-to-r from-white from-35% to-transparent md:hidden"
           />
         ) : null}
         {peek.right ? (
           <span
             aria-hidden
-            className="pointer-events-none absolute inset-y-0 right-0 w-11 rounded-r-[10px] bg-gradient-to-l from-slate-100 from-35% to-transparent md:hidden"
+            className="pointer-events-none absolute inset-y-0 right-0 w-12 rounded-r-[10px] bg-gradient-to-l from-white from-40% to-transparent md:hidden"
           />
         ) : null}
       </div>
