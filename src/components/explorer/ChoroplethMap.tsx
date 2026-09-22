@@ -121,8 +121,7 @@ export function ChoroplethMap({
       map.remove()
       mapRef.current = null
     }
-    // geojson identity is keyed by the parent; recreate the map when it changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Recreate the map when the parent passes a new geojson identity.
   }, [geojson])
 
   useEffect(() => {
