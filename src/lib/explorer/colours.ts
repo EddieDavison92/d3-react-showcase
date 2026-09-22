@@ -1,4 +1,4 @@
-/** Cool teal sequential for absolute LE / HLE. Diverging only for explicit Δ. */
+/** Teal sequential for Absolute only. Diverging for Δ / gap / relative. Slate for CI width. */
 
 export const TEAL_RAMP = [
   "#f0fdfa",
@@ -24,16 +24,15 @@ export const AVOIDABLE_RAMP = [
   "#9a3412",
 ] as const
 
-export const DEPRIVATION_RAMP = [
-  "#f5f3ff",
-  "#ede9fe",
-  "#ddd6fe",
-  "#c4b5fd",
-  "#a78bfa",
-  "#8b5cf6",
-  "#7c3aed",
-  "#6d28d9",
-  "#5b21b6",
+export const CI_RAMP = [
+  "#f8fafc",
+  "#e2e8f0",
+  "#cbd5e1",
+  "#94a3b8",
+  "#64748b",
+  "#475569",
+  "#334155",
+  "#1e293b",
 ] as const
 
 export const DIVERGING_RAMP = [

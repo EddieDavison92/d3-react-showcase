@@ -10,8 +10,9 @@ export default function CataloguePage() {
       <div className="max-w-2xl space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Catalogue</h1>
         <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
-          Each card remounts Explore with its own geography, periods and coverage
-          badges. Companions are not layers on the life-expectancy map.
+          Metric families remount Explore with their own geography and coverage.
+          Deprivation is a nation-locked strip on the life-expectancy map — not its
+          own choropleth, and not a UK league table.
         </p>
       </div>
       <div className="grid gap-3 sm:gap-4 md:grid-cols-2">

@@ -1,5 +1,6 @@
-import type { AgeId, ExplorerState, GeoId, MetricId, SexId, ViewId } from "./types"
+import type { AgeId, ExplorerState, GeoId, MetricId, SexId } from "./types"
 import { compactPeriod, expandPeriod } from "./format"
+import { parseView } from "./views"
 
 export const DEFAULT_STATE: ExplorerState = {
   metric: "le",
@@ -41,8 +42,8 @@ export function parseSearchParams(params: URLSearchParams): Partial<ExplorerStat
   if (sex && SEXES[sex.toLowerCase()]) next.sex = SEXES[sex.toLowerCase()]
   const age = params.get("age")
   if (age === "birth" || age === "65") next.age = age as AgeId
-  const view = params.get("view")
-  if (view === "abs" || view === "delta") next.view = view as ViewId
+  const view = parseView(params.get("view"))
+  if (view) next.view = view
   const compare = params.get("compare")
   if (compare) next.compare = compare.split(",").filter(Boolean).slice(0, 2)
   return next

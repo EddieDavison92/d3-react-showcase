@@ -2,7 +2,7 @@
 
 import { Label } from "@/components/ui/label"
 import { familyOf, geoLabel, geosFor, hasAge, sexesFor } from "@/lib/explorer/catalogue"
-import type { AgeId, AreaRecord, ExplorerState, GeoId, MetricId, SexId, ViewId } from "@/lib/explorer/types"
+import type { AgeId, AreaRecord, ExplorerState, GeoId, MetricId, SexId } from "@/lib/explorer/types"
 import { cn } from "@/lib/utils"
 
 const selectClass =
@@ -50,17 +50,22 @@ export function CompactFilterBar({
 }) {
   const sexes = sexesFor(state.metric)
   const showAge = hasAge(state.metric)
-  if (sexes.length === 0 && !showAge) return null
+  const hideSex = state.view === "sexgap"
+  if (sexes.length === 0 && !showAge && !hideSex) return null
 
   return (
     <div className="flex max-w-full flex-wrap items-center gap-1.5 overflow-x-clip">
-      {sexes.length > 0 ? (
+      {sexes.length > 0 && !hideSex ? (
         <Segmented
           ariaLabel="Sex"
           value={state.sex}
           options={sexes.map((sex) => ({ value: sex, label: sex }))}
           onChange={(sex: SexId) => onChange({ sex })}
         />
+      ) : hideSex ? (
+        <span className="rounded-md border px-2.5 py-1 text-[11px] text-muted-foreground">
+          Male−Female (derived)
+        </span>
       ) : null}
       {showAge ? (
         <Segmented
@@ -92,7 +97,7 @@ export function FilterPanel({
   const sexes = sexesFor(state.metric)
   const family = familyOf(state.metric)
   const showAge = hasAge(state.metric)
-  const showView = family !== "deprivation"
+  const hideSex = state.view === "sexgap"
 
   return (
     <div className="space-y-4">
@@ -153,7 +158,7 @@ export function FilterPanel({
         </div>
       ) : null}
 
-      {sexes.length > 0 ? (
+      {sexes.length > 0 && !hideSex ? (
         <div className="space-y-1.5">
           <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">
             Sex
@@ -165,6 +170,10 @@ export function FilterPanel({
             onChange={(sex: SexId) => onChange({ sex })}
           />
         </div>
+      ) : hideSex ? (
+        <p className="text-xs leading-snug text-muted-foreground">
+          Sex gap uses both published series — Male minus Female (derived), not persons.
+        </p>
       ) : null}
 
       {showAge ? (
@@ -202,22 +211,6 @@ export function FilterPanel({
         </div>
       ) : null}
 
-      {showView ? (
-        <div className="space-y-1.5">
-          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">
-            Map scale
-          </Label>
-          <Segmented
-            ariaLabel="Map scale"
-            value={state.view}
-            options={[
-              { value: "abs", label: "Absolute" },
-              { value: "delta", label: "Change vs previous" },
-            ]}
-            onChange={(view: ViewId) => onChange({ view })}
-          />
-        </div>
-      ) : null}
     </div>
   )
 }

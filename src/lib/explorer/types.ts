@@ -14,7 +14,7 @@ export type SexId = "Male" | "Female" | "Persons"
 
 export type AgeId = "birth" | "65"
 
-export type ViewId = "abs" | "delta"
+export type ViewId = "abs" | "d1719" | "d1921" | "nation" | "sexgap" | "ci"
 
 export type NationId = "E" | "W" | "S" | "N" | "UK" | "?"
 

@@ -1,24 +1,27 @@
 import { familyOf, geoLabel, metricLabel } from "@/lib/explorer/catalogue"
-import type { ExplorerState } from "@/lib/explorer/types"
+import type { ExplorerState, MetricId } from "@/lib/explorer/types"
 
 export function ContextChip({
   state,
   areaName,
+  mapMetric,
 }: {
   state: ExplorerState
   areaName?: string | null
+  mapMetric?: MetricId
 }) {
+  const paintMetric = mapMetric ?? state.metric
   const bits = [
-    metricLabel(state.metric),
+    metricLabel(paintMetric),
     geoLabel(state.geo),
-    familyOf(state.metric) === "deprivation"
-      ? "IoD 2025 · England"
-      : state.year.replace(" to ", "–"),
+    state.year.replace(" to ", "–"),
   ]
-  if (familyOf(state.metric) !== "deprivation") bits.push(state.sex)
-  if (familyOf(state.metric) === "le") {
+  if (state.view === "sexgap") bits.push("Male−Female (derived)")
+  else bits.push(state.sex)
+  if (familyOf(paintMetric) === "le") {
     bits.push(state.age === "65" ? "at 65" : "at birth")
   }
+  if (familyOf(state.metric) === "deprivation") bits.push("deprivation strip")
   if (areaName) bits.push(areaName)
 
   return (

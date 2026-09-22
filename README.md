@@ -8,12 +8,12 @@ This is not official ONS software. Statistics and boundaries are reused under th
 
 - **Landing** — careful framing of period LE
 - **Catalogue** — metric-family cards with coverage badges
-- **Explore** — catalogue rail, MapLibre choropleth, time series and period scrub
-- URL state: `?metric=&geo=&area=&year=&sex=&age=`
+- **Explore** — catalogue rail, MapLibre choropleth, canvas Explore modes, time series and period scrub
+- URL state: `?metric=&geo=&area=&year=&sex=&age=&view=`
 
-Default cut: period LE → lower-tier UK local areas → 2022–24 → male → at birth.
+Default cut: period LE → lower-tier UK local areas → 2022–24 → male → at birth. Explore modes: Absolute, Δ 2017–19, Δ 2019–21, vs nation, sex gap (Male−Female derived), CI focus.
 
-England counties (E10) are a separate geography from districts. Healthy life expectancy is upper-tier in England (no E07 districts). Avoidable mortality does not invent Scotland or Northern Ireland coverage. Deprivation is context, not a cause, and is never a UK league table.
+England counties (E10) are a separate geography from districts. Healthy life expectancy is upper-tier in England (no E07 districts). Avoidable mortality does not invent Scotland or Northern Ireland coverage. Deprivation is a nation-locked context strip, not a cause, and is never a UK league table.
 
 ## Develop
 

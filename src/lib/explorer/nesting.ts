@@ -79,14 +79,10 @@ export function applyExplorerChange(
 
     if (family === "deprivation") {
       const nation = area?.nation
-      if (nation === "W") {
-        warnings.push(WARNING_COPY.wimdEmpty)
-      } else if (nation === "S" || nation === "N") {
-        warnings.push(WARNING_COPY.scotNiDeprivation)
-        next.area = null
-      } else if (nation && nation !== "E") {
+      if (nation === "W") warnings.push(WARNING_COPY.wimdEmpty)
+      else if (nation === "S" || nation === "N") warnings.push(WARNING_COPY.scotNiDeprivation)
+      else if (nation && nation !== "E" && nation !== "UK") {
         warnings.push(WARNING_COPY.nationDeprivation)
-        next.area = null
       }
     }
 
@@ -116,13 +112,17 @@ export function applyExplorerChange(
     return true
   }).slice(0, 2)
 
-  if (family === "le") warnings.push(WARNING_COPY.periodLe)
+  if (family === "le" || family === "deprivation") warnings.push(WARNING_COPY.periodLe)
   if (family === "hle") {
     warnings.push(WARNING_COPY.hleDevelopment)
     if (next.geo === "utla") warnings.push(WARNING_COPY.localAreasMix)
   }
-  if (family === "le" && next.geo === "counties") warnings.push(WARNING_COPY.localAreasMix)
-  if (family === "le" && next.geo === "country") warnings.push(WARNING_COPY.countryLe)
+  if ((family === "le" || family === "deprivation") && next.geo === "counties") {
+    warnings.push(WARNING_COPY.localAreasMix)
+  }
+  if ((family === "le" || family === "deprivation") && next.geo === "country") {
+    warnings.push(WARNING_COPY.countryLe)
+  }
   if (family === "avoidable") warnings.push(WARNING_COPY.avoidableEw)
   if (family === "deprivation") {
     warnings.push(WARNING_COPY.deprivationNotCause)

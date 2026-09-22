@@ -19,12 +19,14 @@ const MIN_SIZE = 24
 export function ChoroplethMap({
   geojson,
   colours,
+  hatch,
   selected,
   onSelect,
   formatHover,
 }: {
   geojson: FeatureCollection
   colours: Record<string, string>
+  hatch?: Record<string, boolean>
   selected: string | null
   onSelect: (code: string) => void
   formatHover: (code: string, name: string) => string
@@ -33,6 +35,7 @@ export function ChoroplethMap({
   const mapRef = useRef<maplibregl.Map | null>(null)
   const onSelectRef = useRef(onSelect)
   const coloursRef = useRef(colours)
+  const hatchRef = useRef(hatch)
   const selectedRef = useRef(selected)
   const [hover, setHover] = useState<HoverInfo | null>(null)
   const [size, setSize] = useState({ width: 320, height: 240 })
@@ -43,8 +46,9 @@ export function ChoroplethMap({
 
   useEffect(() => {
     coloursRef.current = colours
+    hatchRef.current = hatch
     selectedRef.current = selected
-  }, [colours, selected])
+  }, [colours, hatch, selected])
 
   useEffect(() => {
     const el = containerRef.current
@@ -74,7 +78,7 @@ export function ChoroplethMap({
 
     const attach = () => {
       if (!map?.getSource("areas")) return
-      paint(map, geojson, coloursRef.current, selectedRef.current)
+      paint(map, geojson, coloursRef.current, selectedRef.current, hatchRef.current)
       fit()
     }
 
@@ -109,6 +113,9 @@ export function ChoroplethMap({
 
       map.on("load", () => {
         if (!map || cancelled) return
+        if (!map.hasImage("ci-hatch")) {
+          map.addImage("ci-hatch", hatchPattern())
+        }
         map.addSource("areas", {
           type: "geojson",
           data: geojson,
@@ -124,6 +131,20 @@ export function ChoroplethMap({
               ["coalesce", ["feature-state", "colour"], NO_DATA],
             ],
             "fill-opacity": 0.92,
+          },
+        })
+        map.addLayer({
+          id: "hatch",
+          type: "fill",
+          source: "areas",
+          paint: {
+            "fill-pattern": "ci-hatch",
+            "fill-opacity": [
+              "case",
+              ["boolean", ["feature-state", "hatch"], false],
+              0.45,
+              0,
+            ],
           },
         })
         map.addLayer({
@@ -200,8 +221,8 @@ export function ChoroplethMap({
   useEffect(() => {
     const map = mapRef.current
     if (!map?.isStyleLoaded()) return
-    paint(map, geojson, colours, selected)
-  }, [colours, selected, geojson])
+    paint(map, geojson, colours, selected, hatch)
+  }, [colours, hatch, selected, geojson])
 
   const tooltipStyle = hover
     ? {
@@ -229,7 +250,8 @@ function paint(
   map: maplibregl.Map,
   geojson: FeatureCollection,
   colours: Record<string, string>,
-  selected: string | null
+  selected: string | null,
+  hatch?: Record<string, boolean>
 ) {
   if (!map.getSource("areas")) return
   for (const feature of geojson.features) {
@@ -237,7 +259,28 @@ function paint(
     if (!code) continue
     map.setFeatureState(
       { source: "areas", id: code },
-      { colour: colours[code] ?? NO_DATA, selected: code === selected }
+      {
+        colour: colours[code] ?? NO_DATA,
+        selected: code === selected,
+        hatch: Boolean(hatch?.[code]),
+      }
     )
   }
+}
+
+function hatchPattern(): { width: number; height: number; data: Uint8Array } {
+  const width = 8
+  const height = 8
+  const data = new Uint8Array(width * height * 4)
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const on = (x + y) % 8 <= 1
+      const i = (y * width + x) * 4
+      data[i] = 15
+      data[i + 1] = 23
+      data[i + 2] = 42
+      data[i + 3] = on ? 170 : 0
+    }
+  }
+  return { width, height, data }
 }

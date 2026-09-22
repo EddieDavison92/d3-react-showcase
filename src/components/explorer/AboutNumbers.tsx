@@ -104,10 +104,11 @@ export function AboutNumbers({
             <section className="space-y-2">
               <h3 className="font-medium text-foreground">Deprivation context</h3>
               <p>
-                English IoD 2025 File 10 (lower-tier) is shown for England only.
-                WIMD 2025 is the Wales index; SIMD and NIMDM are not interactive
-                here. These indices are not comparable across nations and are not
-                a cause of life-expectancy differences.
+                English IoD 2025 File 10 (lower-tier) is a context strip on the
+                life-expectancy map — not a second choropleth. WIMD 2025 is the
+                Wales index and is not bundled here; SIMD and NIMDM are not
+                interactive. These indices are not comparable across nations and
+                are not a cause of life-expectancy differences.
               </p>
               <p>
                 <Link className="underline underline-offset-4" href={ONS_LINKS.iod}>

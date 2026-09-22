@@ -52,6 +52,7 @@ export function ExplorerApp() {
     loadLe().then(setLe).catch(() => setLe(null))
     loadHle().then(setHle).catch(() => setHle(null))
     loadLookups().then(setLookups).catch(() => setLookups(null))
+    loadDeprivation().then(setDeprivation).catch(() => setDeprivation(null))
   }, [])
 
   const query = searchParams.toString()
@@ -65,10 +66,7 @@ export function ExplorerApp() {
     if (family === "avoidable" && !avoidable) {
       loadAvoidable().then(setAvoidable).catch(() => setAvoidable(null))
     }
-    if (family === "deprivation" && !deprivation) {
-      loadDeprivation().then(setDeprivation).catch(() => setDeprivation(null))
-    }
-  }, [family, avoidable, deprivation])
+  }, [family, avoidable])
 
   const areaByCode = useMemo(
     () => indexAreas([le, hle, avoidable].filter(Boolean) as PackedFile[]),
@@ -78,7 +76,7 @@ export function ExplorerApp() {
   const periodsFor = useCallback(
     (metric: MetricId) => {
       const kind = familyOf(metric)
-      if (kind === "le") return le?.periods ?? []
+      if (kind === "le" || kind === "deprivation") return le?.periods ?? []
       if (kind === "hle") return hle?.periods ?? []
       if (kind === "avoidable") return avoidable?.periods ?? []
       return ["2025"]
@@ -136,23 +134,17 @@ export function ExplorerApp() {
     [ctx, pathname, persistMismatch, router, state]
   )
 
+  const mapMetric: MetricId = familyOf(state.metric) === "deprivation" ? "le" : state.metric
+  const mapFamily = familyOf(mapMetric)
   const file =
-    family === "le" ? le : family === "hle" ? hle : family === "avoidable" ? avoidable : null
+    mapFamily === "le" ? le : mapFamily === "hle" ? hle : mapFamily === "avoidable" ? avoidable : null
 
   const areas = useMemo(() => {
-    if (family === "deprivation") {
-      const leCodes = new Set(
-        (le?.areas ?? [])
-          .filter((area) => area.grain === "ltla" && area.nation === "E")
-          .map((area) => area.code)
-      )
-      return (deprivation?.england?.areas ?? []).filter((area) => leCodes.has(area.code))
-    }
     if (!file) return []
-    return areasForGeo(file, state.geo, state.metric)
-  }, [deprivation, family, file, le, state.geo, state.metric])
+    return areasForGeo(file, state.geo, mapMetric)
+  }, [file, mapMetric, state.geo])
 
-  const ready = Boolean(lookups && (family === "deprivation" ? deprivation : file))
+  const ready = Boolean(lookups && file)
 
   const rail = (
     <div className="space-y-4">
@@ -206,10 +198,14 @@ export function ExplorerApp() {
         <WarningBanner warnings={warnings} />
         {ready ? (
           <LinkedOverview
-            key={family}
+            key={mapFamily}
             state={state}
+            mapMetric={mapMetric}
             file={file}
+            le={le}
+            hle={hle}
             deprivation={deprivation}
+            lookups={lookups}
             areas={areas}
             onChange={commit}
           />

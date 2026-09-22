@@ -31,7 +31,7 @@ export const CATALOGUE: CatalogueCard[] = [
     family: "deprivation",
     title: "Deprivation context",
     blurb:
-      "Nation-specific indices shown as context, not as an explanation of life expectancy. Not a UK league table.",
+      "Nation-specific indices as a strip on Explore, not a choropleth. England IoD 2025; Wales not bundled. Not a UK league and not a cause.",
     badges: ["England IoD25", "Wales not bundled", "Not causal"],
   },
 ]
@@ -50,20 +50,17 @@ export function geosFor(metric: MetricId): GeoId[] {
     case "avoidable":
       return ["ltla", "counties", "region", "country"]
     case "deprivation":
-      return ["ltla"]
+      return ["ltla", "counties", "region", "country"]
   }
 }
 
 export function sexesFor(metric: MetricId): SexId[] {
-  return familyOf(metric) === "avoidable"
-    ? ["Male", "Female", "Persons"]
-    : familyOf(metric) === "deprivation"
-      ? []
-      : ["Male", "Female"]
+  return familyOf(metric) === "avoidable" ? ["Male", "Female", "Persons"] : ["Male", "Female"]
 }
 
 export function hasAge(metric: MetricId): boolean {
-  return familyOf(metric) === "le"
+  const family = familyOf(metric)
+  return family === "le" || family === "deprivation"
 }
 
 export function geoLabel(geo: GeoId): string {

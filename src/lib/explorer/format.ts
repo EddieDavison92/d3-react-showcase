@@ -15,6 +15,17 @@ export function formatYears(value: number | null | undefined, digits = 1): strin
   return value.toFixed(digits)
 }
 
+export function formatSigned(value: number | null | undefined, digits = 1): string {
+  if (value === null || value === undefined || Number.isNaN(value)) return "–"
+  const text = value.toFixed(digits)
+  return value > 0 ? `+${text}` : text
+}
+
+export function formatCi(point: [number | null, number | null, number | null] | null): string {
+  if (!point || point[1] === null || point[2] === null) return ""
+  return `95% CI ${formatYears(point[1])} to ${formatYears(point[2])}`
+}
+
 export function formatRate(value: number | null | undefined): string {
   if (value === null || value === undefined || Number.isNaN(value)) return "–"
   return value.toFixed(1)

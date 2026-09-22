@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react"
 import * as d3 from "d3"
-import { compactPeriod, formatYears } from "@/lib/explorer/format"
+import { compactPeriod } from "@/lib/explorer/format"
 import type { PackedPoint } from "@/lib/explorer/types"
 
 type Series = {
@@ -52,11 +52,12 @@ export function SeriesPanel({
   periods,
   series,
   year,
-  unit,
   onYear,
   onAddCompare,
   onRemoveCompare,
   canCompare,
+  emphasiseCi,
+  compareUi = true,
 }: {
   periods: string[]
   series: Series[]
@@ -66,6 +67,8 @@ export function SeriesPanel({
   onAddCompare: () => void
   onRemoveCompare: (code: string) => void
   canCompare: boolean
+  emphasiseCi?: boolean
+  compareUi?: boolean
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null)
   const yearIndex = Math.max(0, periods.indexOf(year))
@@ -154,7 +157,7 @@ export function SeriesPanel({
         g.append("path")
           .attr("d", area(item.points) ?? "")
           .attr("fill", item.colour)
-          .attr("opacity", 0.15)
+          .attr("opacity", emphasiseCi ? 0.28 : 0.15)
       }
 
       g.append("path")
@@ -174,9 +177,7 @@ export function SeriesPanel({
           .on("click", () => onYear(periods[i]))
       })
     }
-  }, [extent, periods, series, year, yearIndex, onYear])
-
-  const primary = series[0]
+  }, [emphasiseCi, extent, periods, series, year, yearIndex, onYear])
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-2">
@@ -185,39 +186,30 @@ export function SeriesPanel({
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             Timeline
           </p>
-          <p className="text-sm font-medium">
-            {primary ? primary.name : "Select an area"}
-            {primary && primary.points[yearIndex]?.[0] !== null
-              ? ` · ${formatYears(primary.points[yearIndex][0])} ${unit}`
-              : ""}
-          </p>
-          {primary && primary.points[yearIndex]?.[1] !== null ? (
+          {series.length > 1 ? (
             <p className="text-xs text-muted-foreground">
-              95% CI {formatYears(primary.points[yearIndex][1])} to{" "}
-              {formatYears(primary.points[yearIndex][2])}
+              {series.map((item) => item.name).join(" · ")}
             </p>
-          ) : (
-            <p className="text-xs text-muted-foreground">
-              Click the map or pick an area to see the series.
+          ) : null}
+        </div>
+        {compareUi ? (
+          <div className="flex flex-col items-end gap-1">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Compare
             </p>
-          )}
-        </div>
-        <div className="flex flex-col items-end gap-1">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Compare
-          </p>
-          <button
-            type="button"
-            disabled={!canCompare}
-            onClick={onAddCompare}
-            className="min-h-11 rounded-md border px-3 text-sm disabled:opacity-40"
-          >
-            Add to compare
-          </button>
-        </div>
+            <button
+              type="button"
+              disabled={!canCompare}
+              onClick={onAddCompare}
+              className="min-h-11 rounded-md border px-3 text-sm disabled:opacity-40"
+            >
+              Add to compare
+            </button>
+          </div>
+        ) : null}
       </div>
       <svg ref={svgRef} className="w-full min-w-0" height={200} />
-      {series.length > 1 ? (
+      {compareUi && series.length > 1 ? (
         <div className="flex flex-wrap gap-1">
           {series.slice(1).map((item) => (
             <button
@@ -231,8 +223,12 @@ export function SeriesPanel({
             </button>
           ))}
         </div>
-      ) : (
+      ) : compareUi ? (
         <p className="text-xs text-muted-foreground">Up to two extra areas.</p>
+      ) : (
+        <p className="text-xs text-muted-foreground">
+          Male and female series — derived gap, not a persons estimate.
+        </p>
       )}
     </div>
   )

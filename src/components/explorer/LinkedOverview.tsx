@@ -9,22 +9,28 @@ const ChoroplethMap = dynamic(
   { ssr: false, loading: () => <div className="h-full rounded-lg border bg-slate-50" /> }
 )
 import { ContextChip } from "@/components/explorer/ContextChip"
+import { DeprivationStrip } from "@/components/explorer/DeprivationStrip"
+import { FocusReadout } from "@/components/explorer/FocusReadout"
 import { colourLookup, hoverText } from "@/components/explorer/map-helpers"
 import { MapLegend } from "@/components/explorer/MapLegend"
 import { PeriodScrub, SeriesPanel } from "@/components/explorer/SeriesPanel"
+import { ViewSwitcher } from "@/components/explorer/ViewSwitcher"
 import {
   AVOIDABLE_RAMP,
-  DEPRIVATION_RAMP,
+  CI_RAMP,
   DIVERGING_RAMP,
   TEAL_RAMP,
 } from "@/lib/explorer/colours"
-import { familyOf, metricLabel } from "@/lib/explorer/catalogue"
+import { familyOf } from "@/lib/explorer/catalogue"
 import { dimKey, geoUrl, readPoint, readSeries } from "@/lib/explorer/data"
-import { formatYears } from "@/lib/explorer/format"
+import { comparatorsFor, deriveMap, yearsNotInGoodHealth } from "@/lib/explorer/derive"
+import { isDivergingView, legendCaption } from "@/lib/explorer/views"
 import type {
   AreaRecord,
   DeprivationFile,
   ExplorerState,
+  LookupsFile,
+  MetricId,
   PackedFile,
   PackedPoint,
 } from "@/lib/explorer/types"
@@ -34,18 +40,27 @@ const COMPARE_COLOURS = ["#0f766e", "#7c3aed", "#c2410c"]
 
 export function LinkedOverview({
   state,
+  mapMetric,
   file,
+  le,
+  hle,
   deprivation,
+  lookups,
   areas,
   onChange,
 }: {
   state: ExplorerState
+  mapMetric: MetricId
   file: PackedFile | null
+  le: PackedFile | null
+  hle: PackedFile | null
   deprivation: DeprivationFile | null
+  lookups: LookupsFile | null
   areas: AreaRecord[]
   onChange: (patch: Partial<ExplorerState>) => void
 }) {
   const family = familyOf(state.metric)
+  const mapFamily = familyOf(mapMetric)
   const [geoPayload, setGeoPayload] = useState<{
     geo: string
     data: FeatureCollection
@@ -56,6 +71,7 @@ export function LinkedOverview({
     () => new Map(areas.map((area) => [area.code, area])),
     [areas]
   )
+  const selectedArea = state.area ? areaIndex.get(state.area) : undefined
 
   useEffect(() => {
     if (!showMap) return
@@ -93,60 +109,54 @@ export function LinkedOverview({
   }, [areas, geoPayload, showMap, state.geo])
 
   const periodIndex = file ? file.periods.indexOf(state.year) : -1
-  const dim = file ? dimKey(state.metric, state.age) : "birth"
-  const sex = family === "deprivation" ? "Male" : state.sex
+  const dim = file ? dimKey(mapMetric, state.age) : "birth"
+  const sex = state.sex
+
+  const derived = useMemo(() => {
+    if (!file || periodIndex < 0) return {}
+    return deriveMap({
+      view: state.view,
+      file,
+      areas,
+      metric: mapMetric,
+      sex,
+      age: state.age,
+      periodIndex,
+    })
+  }, [areas, file, mapMetric, periodIndex, sex, state.age, state.view])
 
   const values = useMemo(() => {
     const out: Record<string, number | null> = {}
-    if (family === "deprivation") {
-      const iod = deprivation?.england?.values ?? {}
-      for (const area of areas) {
-        const rec = iod[area.code]
-        out[area.code] = rec ? -rec.rankAverageScore : null
-      }
-      return out
-    }
-    if (!file || periodIndex < 0) return out
-    for (const area of areas) {
-      const point = readPoint(file, area.code, sex, dim, periodIndex)
-      if (state.view === "delta") {
-        const prev = readPoint(file, area.code, sex, dim, periodIndex - 1)
-        out[area.code] =
-          point?.[0] !== null &&
-          point?.[0] !== undefined &&
-          prev?.[0] !== null &&
-          prev?.[0] !== undefined
-            ? (point[0] as number) - (prev[0] as number)
-            : null
-      } else {
-        out[area.code] = point?.[0] ?? null
-      }
-    }
+    for (const [code, cell] of Object.entries(derived)) out[code] = cell.value
     return out
-  }, [areas, deprivation, dim, family, file, periodIndex, sex, state.view])
+  }, [derived])
 
+  const hatch = useMemo(() => {
+    if (state.view !== "ci") return undefined
+    const flags: Record<string, boolean> = {}
+    for (const [code, cell] of Object.entries(derived)) {
+      if (cell.uncertain) flags[code] = true
+    }
+    return flags
+  }, [derived, state.view])
+
+  const diverging = isDivergingView(state.view)
   const ramp =
-    state.view === "delta"
-      ? DIVERGING_RAMP
-      : family === "avoidable"
-        ? AVOIDABLE_RAMP
-        : family === "deprivation"
-          ? DEPRIVATION_RAMP
+    state.view === "ci"
+      ? CI_RAMP
+      : diverging
+        ? DIVERGING_RAMP
+        : mapFamily === "avoidable"
+          ? AVOIDABLE_RAMP
           : TEAL_RAMP
 
   const painted = useMemo(
-    () => colourLookup(values, ramp, state.view === "delta"),
-    [values, ramp, state.view]
+    () => colourLookup(values, ramp, diverging),
+    [values, ramp, diverging]
   )
 
-  const unit =
-    family === "avoidable"
-      ? "per 100,000"
-      : family === "deprivation"
-        ? "rank (1 = most deprived)"
-        : "years"
-
-  const selectedName = state.area ? areaIndex.get(state.area)?.name : null
+  const unit = mapFamily === "avoidable" ? "per 100,000" : "years"
+  const selectedName = selectedArea?.name ?? null
   const comparator = file?.areas.find((area) => area.code === "E92000001")
   const seriesCodes = Array.from(
     new Set(
@@ -158,6 +168,28 @@ export function LinkedOverview({
 
   const series = useMemo(() => {
     if (!file) return []
+    if (state.view === "sexgap") {
+      const code = state.area ?? comparator?.code
+      if (!code) return []
+      const name =
+        areaIndex.get(code)?.name ??
+        file.areas.find((area) => area.code === code)?.name ??
+        code
+      return [
+        {
+          code: `${code}-M`,
+          name: `${name} · Male`,
+          colour: COMPARE_COLOURS[0],
+          points: readSeries(file, code, "Male", dim) ?? emptySeries(file.periods),
+        },
+        {
+          code: `${code}-F`,
+          name: `${name} · Female`,
+          colour: COMPARE_COLOURS[1],
+          points: readSeries(file, code, "Female", dim) ?? emptySeries(file.periods),
+        },
+      ]
+    }
     return seriesCodes.map((code, i) => ({
       code,
       name:
@@ -167,34 +199,64 @@ export function LinkedOverview({
             file.areas.find((area) => area.code === code)?.name ??
             code),
       colour: COMPARE_COLOURS[i] ?? "#334155",
-      points: readSeries(file, code, sex, dim) ?? file.periods.map((): PackedPoint => [null, null, null]),
+      points: readSeries(file, code, sex, dim) ?? emptySeries(file.periods),
     }))
-  }, [areaIndex, comparator?.code, dim, file, seriesCodes, sex, state.area])
+  }, [areaIndex, comparator?.code, dim, file, seriesCodes, sex, state.area, state.view])
+
+  const focusCode = state.area ?? comparator?.code ?? null
+  const focusPoint =
+    focusCode && file ? readPoint(file, focusCode, sex, dim, periodIndex) : null
+  const birthPoint =
+    mapFamily === "le" && focusCode && file
+      ? readPoint(file, focusCode, sex, "birth", periodIndex)
+      : null
+  const age65Point =
+    mapFamily === "le" && focusCode && file
+      ? readPoint(file, focusCode, sex, "65", periodIndex)
+      : null
+  const malePoint =
+    focusCode && file ? readPoint(file, focusCode, "Male", dim, periodIndex) : null
+  const femalePoint =
+    focusCode && file ? readPoint(file, focusCode, "Female", dim, periodIndex) : null
+  const cmp = selectedArea ? comparatorsFor(selectedArea) : null
+  const nationPoint =
+    cmp?.nation && file
+      ? readPoint(file, cmp.nation.code, sex, dim, periodIndex)
+      : null
+  const ukPoint =
+    cmp?.uk && file ? readPoint(file, cmp.uk.code, sex, dim, periodIndex) : null
+  const divergence =
+    (mapFamily === "le" || mapFamily === "hle") && state.age === "birth"
+      ? yearsNotInGoodHealth({
+          le,
+          hle,
+          lookups,
+          code: state.area,
+          sex,
+          year: state.year,
+        })
+      : null
 
   const hasMapFeatures = Boolean(geojson && geojson.features.length > 0)
-  const walesEmpty = family === "deprivation" && state.area?.startsWith("W")
-  const scotNiEmpty =
-    family === "deprivation" &&
-    Boolean(state.area && (state.area.startsWith("S") || state.area.startsWith("N")))
+  const showStrip = mapFamily === "le" || family === "deprivation"
 
   return (
     <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-3 overflow-x-clip md:flex-row">
       <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-2 md:flex-[0.55]">
-        <ContextChip state={state} areaName={selectedName} />
-        {family === "deprivation" && !deprivation?.england ? (
-          <EmptyNote title="Deprivation file missing">
-            England IoD 2025 could not be loaded. We are not inventing ranks.
-          </EmptyNote>
-        ) : walesEmpty ? (
-          <EmptyNote title="Wales — WIMD not bundled">
-            WIMD 2025 exists as a separate Welsh Government index. This build does
-            not ship invented Wales ranks, and it will not draw IoD on Wales.
-          </EmptyNote>
-        ) : scotNiEmpty ? (
-          <EmptyNote title="Scotland and Northern Ireland">
-            SIMD and NIMDM are not interactive in v1 and cannot be ranked with IoD.
-          </EmptyNote>
-        ) : geoFailed ? (
+        <ContextChip
+          state={state}
+          areaName={selectedName}
+          mapMetric={mapMetric}
+        />
+        <ViewSwitcher value={state.view} onChange={(view) => onChange({ view })} />
+        {showStrip ? (
+          <DeprivationStrip
+            area={selectedArea ?? null}
+            deprivation={deprivation}
+            emphasised={family === "deprivation"}
+          />
+        ) : null}
+        {geoFailed ? (
           <EmptyNote title="Boundaries could not be loaded">
             The geography file for this cut did not load. Try another geography or reload.
           </EmptyNote>
@@ -205,19 +267,20 @@ export function LinkedOverview({
                 <ChoroplethMap
                   geojson={geojson}
                   colours={painted.colours}
+                  hatch={hatch}
                   selected={state.area}
                   onSelect={(code) => onChange({ area: code })}
                   formatHover={(code, name) => {
-                    if (family === "deprivation") {
-                      const rec = deprivation?.england?.values[code]
-                      if (!rec) return `${name}\nNo IoD figure`
-                      return `${name}\nRank of average score ${rec.rankAverageScore} of England LAs (1 = most deprived)\nAverage score ${formatYears(rec.averageScore, 1)}`
-                    }
-                    const point = file ? readPoint(file, code, sex, dim, periodIndex) : null
-                    const extra =
-                      state.view === "delta" && values[code] !== null
-                        ? `Change ${formatYears(values[code], 1)} ${unit}`
-                        : undefined
+                    const extra = derived[code]?.hoverExtra
+                    const point = file
+                      ? readPoint(
+                          file,
+                          code,
+                          state.view === "sexgap" ? "Male" : sex,
+                          dim,
+                          periodIndex
+                        )
+                      : null
                     return hoverText(name, point, unit, extra)
                   }}
                 />
@@ -230,16 +293,10 @@ export function LinkedOverview({
             {hasMapFeatures ? (
               <div className="shrink-0">
                 <MapLegend
-                  min={family === "deprivation" ? -painted.max : painted.min}
-                  max={family === "deprivation" ? -painted.min : painted.max}
+                  min={painted.min}
+                  max={painted.max}
                   ramp={ramp}
-                  unit={
-                    state.view === "delta"
-                      ? `Δ ${unit}`
-                      : family === "deprivation"
-                        ? "more deprived →"
-                        : unit
-                  }
+                  unit={legendCaption(state.view, unit)}
                 />
               </div>
             ) : null}
@@ -257,38 +314,94 @@ export function LinkedOverview({
             values={values}
             selected={state.area}
             onSelect={(code) => onChange({ area: code })}
-            unit={unit}
+            unit={legendCaption(state.view, unit)}
           />
         )}
       </div>
-      <div className="flex min-h-0 flex-col rounded-lg border bg-card p-3 md:flex-[0.45]">
-        {family === "deprivation" ? (
-          <DeprivationPanel
-            state={state}
-            deprivation={deprivation}
-            areaName={selectedName}
-          />
-        ) : (
-          <SeriesPanel
-            periods={file?.periods ?? []}
-            series={series}
-            year={state.year}
-            unit={unit}
-            onYear={(year) => onChange({ year })}
-            canCompare={Boolean(state.area) && state.compare.length < 2}
-            onAddCompare={() => {
-              if (!state.area) return
-              if (state.compare.includes(state.area)) return
-              onChange({ compare: [...state.compare, state.area].slice(0, 2) })
-            }}
-            onRemoveCompare={(code) =>
-              onChange({ compare: state.compare.filter((item) => item !== code) })
-            }
-          />
-        )}
+      <div className="flex min-h-0 flex-col gap-3 rounded-lg border bg-card p-3 md:flex-[0.45]">
+        <FocusReadout
+          name={
+            selectedName ??
+            (comparator && !state.area ? "England (comparator)" : "Select an area")
+          }
+          unit={unit}
+          point={focusPoint}
+          view={state.view}
+          derivedValue={focusCode ? derived[focusCode]?.value : null}
+          birthPoint={birthPoint}
+          age65Point={age65Point}
+          showAges={mapFamily === "le"}
+          divergence={divergence}
+          sexGap={
+            state.view === "sexgap"
+              ? {
+                  male: malePoint?.[0] ?? null,
+                  female: femalePoint?.[0] ?? null,
+                  gap:
+                    malePoint?.[0] !== null &&
+                    malePoint?.[0] !== undefined &&
+                    femalePoint?.[0] !== null &&
+                    femalePoint?.[0] !== undefined
+                      ? malePoint[0] - femalePoint[0]
+                      : null,
+                }
+              : null
+          }
+          vsNation={
+            state.view === "nation" && cmp
+              ? {
+                  label: cmp.nation?.name ?? cmp.uk?.name ?? "nation",
+                  delta:
+                    focusPoint?.[0] !== null &&
+                    focusPoint?.[0] !== undefined &&
+                    nationPoint?.[0] !== null &&
+                    nationPoint?.[0] !== undefined
+                      ? focusPoint[0] - nationPoint[0]
+                      : focusPoint?.[0] !== null &&
+                          focusPoint?.[0] !== undefined &&
+                          ukPoint?.[0] !== null &&
+                          ukPoint?.[0] !== undefined
+                        ? focusPoint[0] - ukPoint[0]
+                        : null,
+                  ukDelta:
+                    cmp.nation &&
+                    ukPoint?.[0] !== null &&
+                    ukPoint?.[0] !== undefined &&
+                    focusPoint?.[0] !== null &&
+                    focusPoint?.[0] !== undefined
+                      ? focusPoint[0] - ukPoint[0]
+                      : null,
+                }
+              : null
+          }
+          uncertainChange={Boolean(focusCode && derived[focusCode]?.uncertain && state.view !== "ci")}
+          emphasiseCi={state.view === "ci"}
+        />
+        <SeriesPanel
+          periods={file?.periods ?? []}
+          series={series}
+          year={state.year}
+          unit={unit}
+          onYear={(year) => onChange({ year })}
+          emphasiseCi={state.view === "ci"}
+          compareUi={state.view !== "sexgap"}
+          canCompare={Boolean(state.area) && state.compare.length < 2 && state.view !== "sexgap"}
+          onAddCompare={() => {
+            if (!state.area) return
+            if (state.compare.includes(state.area)) return
+            onChange({ compare: [...state.compare, state.area].slice(0, 2) })
+          }}
+          onRemoveCompare={(code) =>
+            onChange({ compare: state.compare.filter((item) => item !== code) })
+          }
+        />
       </div>
     </div>
   )
+}
+
+function emptySeries(periods: string[]): PackedPoint[] {
+  return periods.map(() => [null, null, null])
 }
 
 function EmptyNote({ title, children }: { title: string; children: React.ReactNode }) {
@@ -336,47 +449,14 @@ function CountryTable({
             >
               <td className="px-3 py-2">{area.name}</td>
               <td className="px-3 py-2">
-                {formatYears(values[area.code])} {unit}
+                {values[area.code] === null || values[area.code] === undefined
+                  ? "–"
+                  : `${values[area.code]?.toFixed(1)} ${unit}`}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-    </div>
-  )
-}
-
-function DeprivationPanel({
-  state,
-  deprivation,
-  areaName,
-}: {
-  state: ExplorerState
-  deprivation: DeprivationFile | null
-  areaName?: string | null
-}) {
-  const rec = state.area ? deprivation?.england?.values[state.area] : undefined
-  return (
-    <div className="space-y-3 text-sm leading-relaxed">
-      <p className="font-medium">{metricLabel(state.metric)}</p>
-      <p className="text-muted-foreground">
-        England-only IoD 2025 File 10 (lower-tier). Rank of average score — 1 is
-        the most deprived local authority district in England. This is context,
-        not a cause, and it is not comparable with WIMD, SIMD or NIMDM.
-      </p>
-      {rec && areaName ? (
-        <div className="rounded-md border bg-muted/40 p-3">
-          <p className="font-medium">{areaName}</p>
-          <p>Rank of average score: {rec.rankAverageScore}</p>
-          <p>Average score: {formatYears(rec.averageScore, 2)}</p>
-          <p>
-            Share of LSOAs in most deprived 10% nationally:{" "}
-            {(rec.propMostDeprived10 * 100).toFixed(1)}%
-          </p>
-        </div>
-      ) : (
-        <p className="text-muted-foreground">Select an English local area on the map.</p>
-      )}
     </div>
   )
 }
