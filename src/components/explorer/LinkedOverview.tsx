@@ -187,47 +187,47 @@ export function LinkedOverview({
             SIMD and NIMDM are not interactive in v1 and cannot be ranked with IoD.
           </EmptyNote>
         ) : showMap ? (
-          <div className="relative h-[min(52dvh,28rem)] min-h-[280px] w-full lg:h-[min(58dvh,36rem)]">
-            {hasMapFeatures && geojson ? (
-              <ChoroplethMap
-                geojson={geojson}
-                colours={painted.colours}
-                selected={state.area}
-                onSelect={(code) => onChange({ area: code })}
-                formatHover={(code, name) => {
-                  if (family === "deprivation") {
-                    const rec = deprivation?.england?.values[code]
-                    if (!rec) return `${name}\nNo IoD figure`
-                    return `${name}\nRank of average score ${rec.rankAverageScore} of England LAs (1 = most deprived)\nAverage score ${formatYears(rec.averageScore, 1)}`
-                  }
-                  const point = file ? readPoint(file, code, sex, dim, periodIndex) : null
-                  const extra =
-                    state.view === "delta" && values[code] !== null
-                      ? `Change ${formatYears(values[code], 1)} ${unit}`
-                      : undefined
-                  return hoverText(name, point, unit, extra)
-                }}
-              />
-            ) : (
-              <div className="flex h-full min-h-[220px] items-center justify-center rounded-lg border bg-slate-50 p-4 text-sm text-muted-foreground">
-                {geojson ? "No boundaries in this cut." : "Loading map…"}
-              </div>
-            )}
-            {hasMapFeatures ? (
-              <div className="pointer-events-none absolute bottom-3 left-2 right-2 max-w-sm sm:left-3 sm:right-3">
-                <MapLegend
-                  min={family === "deprivation" ? -painted.max : painted.min}
-                  max={family === "deprivation" ? -painted.min : painted.max}
-                  ramp={ramp}
-                  unit={
-                    state.view === "delta"
-                      ? `Δ ${unit}`
-                      : family === "deprivation"
-                        ? "more deprived →"
-                        : unit
-                  }
+          <div className="flex min-h-0 flex-col gap-2">
+            <div className="relative h-[min(50dvh,26rem)] min-h-[260px] w-full lg:h-[min(54dvh,34rem)]">
+              {hasMapFeatures && geojson ? (
+                <ChoroplethMap
+                  geojson={geojson}
+                  colours={painted.colours}
+                  selected={state.area}
+                  onSelect={(code) => onChange({ area: code })}
+                  formatHover={(code, name) => {
+                    if (family === "deprivation") {
+                      const rec = deprivation?.england?.values[code]
+                      if (!rec) return `${name}\nNo IoD figure`
+                      return `${name}\nRank of average score ${rec.rankAverageScore} of England LAs (1 = most deprived)\nAverage score ${formatYears(rec.averageScore, 1)}`
+                    }
+                    const point = file ? readPoint(file, code, sex, dim, periodIndex) : null
+                    const extra =
+                      state.view === "delta" && values[code] !== null
+                        ? `Change ${formatYears(values[code], 1)} ${unit}`
+                        : undefined
+                    return hoverText(name, point, unit, extra)
+                  }}
                 />
-              </div>
+              ) : (
+                <div className="flex h-full min-h-[220px] items-center justify-center rounded-lg border bg-slate-50 p-4 text-sm text-muted-foreground">
+                  {geojson ? "No boundaries in this cut." : "Loading map…"}
+                </div>
+              )}
+            </div>
+            {hasMapFeatures ? (
+              <MapLegend
+                min={family === "deprivation" ? -painted.max : painted.min}
+                max={family === "deprivation" ? -painted.min : painted.max}
+                ramp={ramp}
+                unit={
+                  state.view === "delta"
+                    ? `Δ ${unit}`
+                    : family === "deprivation"
+                      ? "more deprived →"
+                      : unit
+                }
+              />
             ) : null}
           </div>
         ) : (
