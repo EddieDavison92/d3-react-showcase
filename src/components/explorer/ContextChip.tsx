@@ -1,14 +1,17 @@
 import { familyOf, geoLabel, metricLabel } from "@/lib/explorer/catalogue"
 import type { ExplorerState, MetricId } from "@/lib/explorer/types"
+import { SEX_GAP_LABEL } from "@/lib/explorer/views"
 
 export function ContextChip({
   state,
   areaName,
   mapMetric,
+  nationName,
 }: {
   state: ExplorerState
   areaName?: string | null
   mapMetric?: MetricId
+  nationName?: string | null
 }) {
   const paintMetric = mapMetric ?? state.metric
   const bits = [
@@ -16,8 +19,9 @@ export function ContextChip({
     geoLabel(state.geo),
     state.year.replace(" to ", "–"),
   ]
-  if (state.view === "sexgap") bits.push("Male−Female (derived)")
+  if (state.view === "sex_gap") bits.push(SEX_GAP_LABEL)
   else bits.push(state.sex)
+  if (state.view === "vs_nation") bits.push(nationName ? `vs ${nationName}` : "vs own nation")
   if (familyOf(paintMetric) === "le") {
     bits.push(state.age === "65" ? "at 65" : "at birth")
   }

@@ -1,5 +1,6 @@
 import { formatCi, formatSigned, formatYears } from "@/lib/explorer/format"
 import type { PackedPoint, ViewId } from "@/lib/explorer/types"
+import { SEX_GAP_LABEL } from "@/lib/explorer/views"
 
 export function FocusReadout({
   name,
@@ -25,7 +26,13 @@ export function FocusReadout({
   age65Point?: PackedPoint | null
   showAges?: boolean
   divergence?: { years: number; grain: string } | null
-  sexGap?: { male: number | null; female: number | null; gap: number | null } | null
+  sexGap?: {
+    male: number | null
+    female: number | null
+    gap: number | null
+    maleCi?: string
+    femaleCi?: string
+  } | null
   vsNation?: { label: string; delta: number | null; ukDelta?: number | null } | null
   uncertainChange?: boolean
   emphasiseCi?: boolean
@@ -45,21 +52,23 @@ export function FocusReadout({
           Click the map or pick an area to see the series and interval.
         </p>
       )}
-      {view !== "abs" &&
-      view !== "sexgap" &&
-      view !== "nation" &&
+      {view !== "absolute" &&
+      view !== "sex_gap" &&
+      view !== "vs_nation" &&
+      view !== "ci" &&
       derivedValue !== null &&
       derivedValue !== undefined ? (
         <p className="text-xs">
-          {viewLabel(view)} {view === "ci" ? formatYears(derivedValue) : formatSigned(derivedValue)}{" "}
-          {unit}
+          {viewLabel(view)} {formatSigned(derivedValue)} {unit}
           {uncertainChange ? " · change uncertain (CIs overlap)" : ""}
         </p>
       ) : null}
       {sexGap ? (
         <p className="text-xs text-muted-foreground">
-          Male {formatYears(sexGap.male)} · Female {formatYears(sexGap.female)} · Male−Female{" "}
-          {formatSigned(sexGap.gap)}. Not a persons figure.
+          Male {formatYears(sexGap.male)}
+          {sexGap.maleCi ? ` (${sexGap.maleCi})` : ""} · Female {formatYears(sexGap.female)}
+          {sexGap.femaleCi ? ` (${sexGap.femaleCi})` : ""} · {SEX_GAP_LABEL}{" "}
+          {formatSigned(sexGap.gap)}
         </p>
       ) : null}
       {vsNation ? (
@@ -131,14 +140,14 @@ function CiBand({
 
 function viewLabel(view: ViewId): string {
   switch (view) {
-    case "d1719":
+    case "d2017":
       return "Δ vs 2017–19"
-    case "d1921":
+    case "d2019":
       return "Δ vs 2019–21"
-    case "nation":
+    case "vs_nation":
       return "vs nation"
-    case "sexgap":
-      return "Male−Female"
+    case "sex_gap":
+      return SEX_GAP_LABEL
     case "ci":
       return "CI width"
     default:

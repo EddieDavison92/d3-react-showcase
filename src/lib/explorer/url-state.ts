@@ -9,7 +9,7 @@ export const DEFAULT_STATE: ExplorerState = {
   year: "2022 to 2024",
   sex: "Male",
   age: "birth",
-  view: "abs",
+  view: "absolute",
   compare: [],
 }
 
@@ -57,7 +57,7 @@ export function toSearchParams(state: ExplorerState): URLSearchParams {
   params.set("year", compactPeriod(state.year))
   if (state.sex) params.set("sex", state.sex.toLowerCase())
   if (state.age) params.set("age", state.age)
-  if (state.view !== "abs") params.set("view", state.view)
+  if (state.view !== "absolute") params.set("view", state.view)
   if (state.compare.length) params.set("compare", state.compare.join(","))
   return params
 }

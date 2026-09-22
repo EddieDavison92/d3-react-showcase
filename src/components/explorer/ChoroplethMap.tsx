@@ -130,7 +130,12 @@ export function ChoroplethMap({
               "to-color",
               ["coalesce", ["feature-state", "colour"], NO_DATA],
             ],
-            "fill-opacity": 0.92,
+            "fill-opacity": [
+              "case",
+              ["boolean", ["feature-state", "hatch"], false],
+              0.58,
+              0.92,
+            ],
           },
         })
         map.addLayer({
@@ -227,7 +232,7 @@ export function ChoroplethMap({
   const tooltipStyle = hover
     ? {
         left: Math.max(8, Math.min(hover.x + 12, size.width - 168)),
-        top: Math.max(8, Math.min(hover.y + 12, size.height - 80)),
+        top: Math.max(8, Math.min(hover.y + 12, size.height - 148)),
       }
     : undefined
 

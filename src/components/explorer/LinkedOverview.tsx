@@ -11,20 +11,20 @@ const ChoroplethMap = dynamic(
 import { ContextChip } from "@/components/explorer/ContextChip"
 import { DeprivationStrip } from "@/components/explorer/DeprivationStrip"
 import { FocusReadout } from "@/components/explorer/FocusReadout"
-import { colourLookup, hoverText } from "@/components/explorer/map-helpers"
+import { colourLookup, hoverText, sexGapHover } from "@/components/explorer/map-helpers"
 import { MapLegend } from "@/components/explorer/MapLegend"
 import { PeriodScrub, SeriesPanel } from "@/components/explorer/SeriesPanel"
 import { ViewSwitcher } from "@/components/explorer/ViewSwitcher"
 import {
   AVOIDABLE_RAMP,
-  CI_RAMP,
   DIVERGING_RAMP,
   TEAL_RAMP,
 } from "@/lib/explorer/colours"
 import { familyOf } from "@/lib/explorer/catalogue"
 import { dimKey, geoUrl, readPoint, readSeries } from "@/lib/explorer/data"
 import { comparatorsFor, deriveMap, yearsNotInGoodHealth } from "@/lib/explorer/derive"
-import { isDivergingView, legendCaption } from "@/lib/explorer/views"
+import { formatCi } from "@/lib/explorer/format"
+import { isDivergingView, legendCaption, viewsFor } from "@/lib/explorer/views"
 import type {
   AreaRecord,
   DeprivationFile,
@@ -142,13 +142,11 @@ export function LinkedOverview({
 
   const diverging = isDivergingView(state.view)
   const ramp =
-    state.view === "ci"
-      ? CI_RAMP
-      : diverging
-        ? DIVERGING_RAMP
-        : mapFamily === "avoidable"
-          ? AVOIDABLE_RAMP
-          : TEAL_RAMP
+    diverging
+      ? DIVERGING_RAMP
+      : mapFamily === "avoidable"
+        ? AVOIDABLE_RAMP
+        : TEAL_RAMP
 
   const painted = useMemo(
     () => colourLookup(values, ramp, diverging),
@@ -168,7 +166,7 @@ export function LinkedOverview({
 
   const series = useMemo(() => {
     if (!file) return []
-    if (state.view === "sexgap") {
+    if (state.view === "sex_gap") {
       const code = state.area ?? comparator?.code
       if (!code) return []
       const name =
@@ -238,24 +236,34 @@ export function LinkedOverview({
       : null
 
   const hasMapFeatures = Boolean(geojson && geojson.features.length > 0)
-  const showStrip = mapFamily === "le" || family === "deprivation"
+  const showStrip = mapFamily === "le" || mapFamily === "hle" || family === "deprivation"
+  const switcherViews = viewsFor(state.metric)
+  const nationName = cmp?.nation?.name ?? null
 
   return (
-    <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-3 overflow-x-clip md:flex-row">
-      <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-2 md:flex-[0.55]">
-        <ContextChip
-          state={state}
-          areaName={selectedName}
-          mapMetric={mapMetric}
+    <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-2 overflow-x-clip">
+      <ContextChip
+        state={state}
+        areaName={selectedName}
+        mapMetric={mapMetric}
+        nationName={nationName}
+      />
+      {switcherViews.length ? (
+        <ViewSwitcher
+          value={state.view}
+          options={switcherViews}
+          onChange={(view) => onChange({ view })}
         />
-        <ViewSwitcher value={state.view} onChange={(view) => onChange({ view })} />
-        {showStrip ? (
-          <DeprivationStrip
-            area={selectedArea ?? null}
-            deprivation={deprivation}
-            emphasised={family === "deprivation"}
-          />
-        ) : null}
+      ) : null}
+      {showStrip ? (
+        <DeprivationStrip
+          area={selectedArea ?? null}
+          deprivation={deprivation}
+          emphasised={family === "deprivation"}
+        />
+      ) : null}
+      <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-3 md:flex-row">
+        <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-2 md:flex-[0.55]">
         {geoFailed ? (
           <EmptyNote title="Boundaries could not be loaded">
             The geography file for this cut did not load. Try another geography or reload.
@@ -271,16 +279,16 @@ export function LinkedOverview({
                   selected={state.area}
                   onSelect={(code) => onChange({ area: code })}
                   formatHover={(code, name) => {
+                    if (state.view === "sex_gap" && file) {
+                      return sexGapHover(
+                        name,
+                        readPoint(file, code, "Male", dim, periodIndex),
+                        readPoint(file, code, "Female", dim, periodIndex),
+                        unit
+                      )
+                    }
                     const extra = derived[code]?.hoverExtra
-                    const point = file
-                      ? readPoint(
-                          file,
-                          code,
-                          state.view === "sexgap" ? "Male" : sex,
-                          dim,
-                          periodIndex
-                        )
-                      : null
+                    const point = file ? readPoint(file, code, sex, dim, periodIndex) : null
                     return hoverText(name, point, unit, extra)
                   }}
                 />
@@ -296,7 +304,12 @@ export function LinkedOverview({
                   min={painted.min}
                   max={painted.max}
                   ramp={ramp}
-                  unit={legendCaption(state.view, unit)}
+                  unit={legendCaption(state.view, unit, { nationName })}
+                  note={
+                    state.view === "ci"
+                      ? "Hatching and lighter fill mark wider 95% intervals. Rankings of small areas are uncertain."
+                      : undefined
+                  }
                 />
               </div>
             ) : null}
@@ -314,11 +327,11 @@ export function LinkedOverview({
             values={values}
             selected={state.area}
             onSelect={(code) => onChange({ area: code })}
-            unit={legendCaption(state.view, unit)}
+            unit={legendCaption(state.view, unit, { nationName })}
           />
         )}
-      </div>
-      <div className="flex min-h-0 flex-col gap-3 rounded-lg border bg-card p-3 md:flex-[0.45]">
+        </div>
+        <div className="flex min-h-0 flex-col gap-3 rounded-lg border bg-card p-3 md:flex-[0.45]">
         <FocusReadout
           name={
             selectedName ??
@@ -333,7 +346,7 @@ export function LinkedOverview({
           showAges={mapFamily === "le"}
           divergence={divergence}
           sexGap={
-            state.view === "sexgap"
+            state.view === "sex_gap"
               ? {
                   male: malePoint?.[0] ?? null,
                   female: femalePoint?.[0] ?? null,
@@ -344,11 +357,13 @@ export function LinkedOverview({
                     femalePoint?.[0] !== undefined
                       ? malePoint[0] - femalePoint[0]
                       : null,
+                  maleCi: formatCi(malePoint),
+                  femaleCi: formatCi(femalePoint),
                 }
               : null
           }
           vsNation={
-            state.view === "nation" && cmp
+            state.view === "vs_nation" && cmp
               ? {
                   label: cmp.nation?.name ?? cmp.uk?.name ?? "nation",
                   delta:
@@ -384,8 +399,8 @@ export function LinkedOverview({
           unit={unit}
           onYear={(year) => onChange({ year })}
           emphasiseCi={state.view === "ci"}
-          compareUi={state.view !== "sexgap"}
-          canCompare={Boolean(state.area) && state.compare.length < 2 && state.view !== "sexgap"}
+          compareUi={state.view !== "sex_gap"}
+          canCompare={Boolean(state.area) && state.compare.length < 2 && state.view !== "sex_gap"}
           onAddCompare={() => {
             if (!state.area) return
             if (state.compare.includes(state.area)) return
@@ -395,6 +410,7 @@ export function LinkedOverview({
             onChange({ compare: state.compare.filter((item) => item !== code) })
           }
         />
+        </div>
       </div>
     </div>
   )

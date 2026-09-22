@@ -227,7 +227,7 @@ export function SeriesPanel({
         <p className="text-xs text-muted-foreground">Up to two extra areas.</p>
       ) : (
         <p className="text-xs text-muted-foreground">
-          Male and female series — derived gap, not a persons estimate.
+          Male and female series — Male − Female (derived), not a persons estimate.
         </p>
       )}
     </div>

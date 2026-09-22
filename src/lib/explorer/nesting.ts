@@ -1,4 +1,5 @@
 import { familyOf, geosFor, hasAge, sexesFor } from "./catalogue"
+import { viewsFor } from "./views"
 import { nearestPeriod } from "./format"
 import type {
   AreaRecord,
@@ -53,6 +54,10 @@ export function applyExplorerChange(
   if (!hasAge(next.metric)) {
     next.age = "birth"
   }
+
+  const views = viewsFor(next.metric)
+  if (views.length === 0) next.view = "absolute"
+  else if (!views.includes(next.view)) next.view = views[0]
 
   const periods = ctx.periodsFor(next.metric)
   if (periods.length && !periods.includes(next.year)) {

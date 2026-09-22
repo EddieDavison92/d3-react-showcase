@@ -7,12 +7,14 @@ export function MapLegend({
   ramp,
   unit,
   reverseLabel,
+  note,
 }: {
   min: number
   max: number
   ramp: readonly string[]
   unit: string
   reverseLabel?: boolean
+  note?: string
 }) {
   const stops = Array.from({ length: 24 }, (_, i) => interpolateRamp(ramp, i / 23))
   return (
@@ -27,6 +29,7 @@ export function MapLegend({
           <span key={i} className="h-full flex-1" style={{ background: colour }} />
         ))}
       </div>
+      {note ? <p className="mt-1 text-muted-foreground">{note}</p> : null}
     </div>
   )
 }

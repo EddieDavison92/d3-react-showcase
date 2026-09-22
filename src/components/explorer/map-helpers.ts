@@ -1,6 +1,7 @@
 import type { FeatureCollection } from "geojson"
 import { interpolateRamp, linearT, NO_DATA } from "@/lib/explorer/colours"
-import { formatRate, formatYears } from "@/lib/explorer/format"
+import { formatRate, formatSigned, formatYears } from "@/lib/explorer/format"
+import { SEX_GAP_LABEL } from "@/lib/explorer/views"
 import type { PackedPoint } from "@/lib/explorer/types"
 
 export function boundsOfGeojson(
@@ -73,4 +74,35 @@ export function hoverText(
       : ""
   const main = unit.includes("100,000") ? formatRate(point[0]) : formatYears(point[0])
   return `${name}\n${main} ${unit}${ci}${extra ? `\n${extra}` : ""}`
+}
+
+function pointLine(label: string, point: PackedPoint | null, unit: string): string {
+  if (!point || point[0] === null) return `${label} –`
+  const value = unit.includes("100,000") ? formatRate(point[0]) : formatYears(point[0])
+  const ci =
+    point[1] !== null && point[2] !== null
+      ? ` (95% CI ${formatYears(point[1])}–${formatYears(point[2])})`
+      : ""
+  return `${label} ${value}${ci}`
+}
+
+export function sexGapHover(
+  name: string,
+  male: PackedPoint | null,
+  female: PackedPoint | null,
+  unit: string
+): string {
+  const gap =
+    male?.[0] !== null &&
+    male?.[0] !== undefined &&
+    female?.[0] !== null &&
+    female?.[0] !== undefined
+      ? formatSigned(male[0] - female[0])
+      : "–"
+  return [
+    name,
+    pointLine("Male", male, unit),
+    pointLine("Female", female, unit),
+    `${SEX_GAP_LABEL} ${gap}`,
+  ].join("\n")
 }

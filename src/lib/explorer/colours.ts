@@ -1,4 +1,4 @@
-/** Teal sequential for Absolute only. Diverging for Δ / gap / relative. Slate for CI width. */
+/** Teal sequential for Absolute only. Diverging warm slate ↔ teal for Δ / gap / relative. */
 
 export const TEAL_RAMP = [
   "#f0fdfa",
@@ -24,27 +24,18 @@ export const AVOIDABLE_RAMP = [
   "#9a3412",
 ] as const
 
-export const CI_RAMP = [
-  "#f8fafc",
-  "#e2e8f0",
-  "#cbd5e1",
-  "#94a3b8",
-  "#64748b",
-  "#475569",
-  "#334155",
-  "#1e293b",
-] as const
-
 export const DIVERGING_RAMP = [
-  "#9a3412",
-  "#c2410c",
-  "#fb923c",
-  "#ffedd5",
+  "#44403c",
+  "#57534e",
+  "#78716c",
+  "#a8a29e",
+  "#d6d3d1",
   "#f8fafc",
-  "#99f6e4",
+  "#ccfbf1",
+  "#5eead4",
   "#14b8a6",
   "#0f766e",
-  "#134e4a",
+  "#115e59",
 ] as const
 
 export const NO_DATA = "#e2e8f0"

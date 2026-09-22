@@ -64,9 +64,9 @@ export function deriveMap(args: {
   const dim = dimKey(metric, age)
   const out: Record<string, DerivedCell> = {}
   const baseline =
-    view === "d1719"
+    view === "d2017"
       ? file.periods.indexOf(PERIOD_PRECOVID)
-      : view === "d1921"
+      : view === "d2019"
         ? file.periods.indexOf(PERIOD_TROUGH)
         : -1
 
@@ -82,11 +82,11 @@ export function deriveMap(args: {
   const hatchCut = quantile(widths, 0.75)
 
   for (const area of areas) {
-    if (view === "d1719" || view === "d1921") {
+    if (view === "d2017" || view === "d2019") {
       const now = readPoint(file, area.code, sex, dim, periodIndex)
       const then = baseline >= 0 ? readPoint(file, area.code, sex, dim, baseline) : null
       const delta = subtract(now, then)
-      const label = view === "d1719" ? "2017–19" : "2019–21"
+      const label = view === "d2017" ? "2017–19" : "2019–21"
       out[area.code] = {
         value: delta.value,
         uncertain: delta.uncertain,
@@ -98,7 +98,7 @@ export function deriveMap(args: {
       continue
     }
 
-    if (view === "nation") {
+    if (view === "vs_nation") {
       const now = readPoint(file, area.code, sex, dim, periodIndex)
       const { nation, uk } = comparatorsFor(area)
       const nationPoint = nation
@@ -120,30 +120,28 @@ export function deriveMap(args: {
       continue
     }
 
-    if (view === "sexgap") {
+    if (view === "sex_gap") {
       const male = readPoint(file, area.code, "Male", dim, periodIndex)
       const female = readPoint(file, area.code, "Female", dim, periodIndex)
       const delta = subtract(male, female)
       out[area.code] = {
         value: delta.value,
-        hoverExtra:
-          delta.value === null
-            ? undefined
-            : `Male−Female (derived) ${signed(delta.value)} · not a persons estimate`,
+        hoverExtra: undefined,
       }
       continue
     }
 
     if (view === "ci") {
       const point = readPoint(file, area.code, sex, dim, periodIndex)
-      if (!point || point[1] === null || point[2] === null) {
+      if (!point || point[0] === null) {
         out[area.code] = { value: null }
+      } else if (point[1] === null || point[2] === null) {
+        out[area.code] = { value: point[0] }
       } else {
         const width = point[2] - point[1]
         out[area.code] = {
-          value: width,
+          value: point[0],
           uncertain: width >= hatchCut && hatchCut > 0,
-          hoverExtra: `95% CI width ${formatYears(width)}`,
         }
       }
       continue

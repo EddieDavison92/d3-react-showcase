@@ -2,6 +2,7 @@
 
 import { Label } from "@/components/ui/label"
 import { familyOf, geoLabel, geosFor, hasAge, sexesFor } from "@/lib/explorer/catalogue"
+import { SEX_GAP_LABEL } from "@/lib/explorer/views"
 import type { AgeId, AreaRecord, ExplorerState, GeoId, MetricId, SexId } from "@/lib/explorer/types"
 import { cn } from "@/lib/utils"
 
@@ -50,7 +51,7 @@ export function CompactFilterBar({
 }) {
   const sexes = sexesFor(state.metric)
   const showAge = hasAge(state.metric)
-  const hideSex = state.view === "sexgap"
+  const hideSex = state.view === "sex_gap"
   if (sexes.length === 0 && !showAge && !hideSex) return null
 
   return (
@@ -64,7 +65,7 @@ export function CompactFilterBar({
         />
       ) : hideSex ? (
         <span className="rounded-md border px-2.5 py-1 text-[11px] text-muted-foreground">
-          Male−Female (derived)
+          {SEX_GAP_LABEL}
         </span>
       ) : null}
       {showAge ? (
@@ -97,7 +98,7 @@ export function FilterPanel({
   const sexes = sexesFor(state.metric)
   const family = familyOf(state.metric)
   const showAge = hasAge(state.metric)
-  const hideSex = state.view === "sexgap"
+  const hideSex = state.view === "sex_gap"
 
   return (
     <div className="space-y-4">
@@ -171,9 +172,24 @@ export function FilterPanel({
           />
         </div>
       ) : hideSex ? (
-        <p className="text-xs leading-snug text-muted-foreground">
-          Sex gap uses both published series — Male minus Female (derived), not persons.
-        </p>
+        <div className="space-y-1.5">
+          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">
+            Sex
+          </Label>
+          <div className="flex flex-wrap gap-1" aria-label="Sex locked to derived gap">
+            {["Male", "Female"].map((label) => (
+              <button
+                key={label}
+                type="button"
+                disabled
+                className="h-9 min-h-9 rounded-md border border-input px-2.5 text-sm opacity-50 sm:h-11 sm:min-h-11 sm:px-3"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs leading-snug text-muted-foreground">{SEX_GAP_LABEL}</p>
+        </div>
       ) : null}
 
       {showAge ? (
