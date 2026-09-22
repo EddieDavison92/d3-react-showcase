@@ -62,7 +62,9 @@ export function FocusReadout({
             ) : null}
           </>
         ) : (
-          <p className="mt-1 text-xs text-muted-foreground">Select an area</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {name === "Select an area" ? "Click the map for a figure." : "No figure in this cut."}
+          </p>
         )}
         {sexGap ? (
           <p className="mt-1 text-[11px] leading-snug text-muted-foreground">

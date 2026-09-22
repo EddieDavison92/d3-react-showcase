@@ -195,7 +195,7 @@ export function LinkedOverview({
     }))
   }, [areaIndex, comparator?.code, dim, file, seriesCodes, sex, state.area, state.view])
 
-  const focusCode = state.area ?? comparator?.code ?? null
+  const focusCode = state.area
   const focusPoint =
     focusCode && file ? readPoint(file, focusCode, sex, dim, periodIndex) : null
   const focusCell = focusCode ? derived[focusCode] : undefined
@@ -220,8 +220,7 @@ export function LinkedOverview({
   const scrubHud = comparator
     ? `${comparator.name} ${formatYears(englandPoint?.[0] ?? null)} ${unit}`
     : null
-  const focusName =
-    selectedName ?? (comparator && !state.area ? "England (comparator)" : "Select an area")
+  const focusName = selectedName ?? "Select an area"
   const sexGap =
     state.view === "sex_gap"
       ? {
