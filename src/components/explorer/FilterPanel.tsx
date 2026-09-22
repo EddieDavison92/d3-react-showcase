@@ -27,7 +27,7 @@ function Segmented<T extends string>({
           type="button"
           onClick={() => onChange(option.value)}
           className={cn(
-            "min-h-11 min-w-11 rounded-md border px-3 text-sm",
+            "h-9 min-h-9 rounded-md border px-2.5 text-sm sm:h-11 sm:min-h-11 sm:px-3",
             value === option.value
               ? "border-teal-800 bg-teal-800 text-white"
               : "border-input bg-background hover:bg-muted"
@@ -53,7 +53,7 @@ export function CompactFilterBar({
   if (sexes.length === 0 && !showAge) return null
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex max-w-full flex-wrap items-center gap-1.5 overflow-x-clip">
       {sexes.length > 0 ? (
         <Segmented
           ariaLabel="Sex"

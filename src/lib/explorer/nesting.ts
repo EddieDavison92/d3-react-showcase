@@ -31,6 +31,14 @@ export function applyExplorerChange(
 
   const geos = geosFor(next.metric)
   if (!geos.includes(next.geo)) {
+    if (
+      metricChanged &&
+      family === "hle" &&
+      current.geo === "ltla" &&
+      !warnings.some((warning) => warning.id === "ltla-utla")
+    ) {
+      warnings.push(WARNING_COPY.ltlaUtla)
+    }
     next.geo = geos[0]
   }
 
@@ -58,7 +66,7 @@ export function applyExplorerChange(
     const parent = ctx.lookups.districtToUtla[next.area]
 
     if (family === "hle" && next.area.startsWith("E07") && parent) {
-      warnings.push(WARNING_COPY.ltlaUtla)
+      warnings.push(hleSnapWarning(parent.name))
       next.area = parent.code
       next.geo = "utla"
     }
@@ -118,9 +126,15 @@ export function applyExplorerChange(
   if (family === "avoidable") warnings.push(WARNING_COPY.avoidableEw)
   if (family === "deprivation") {
     warnings.push(WARNING_COPY.deprivationNotCause)
-    warnings.push(WARNING_COPY.nationDeprivation)
   }
 
   const unique = new Map(warnings.map((w) => [w.id, w]))
   return { state: next, warnings: [...unique.values()] }
+}
+
+function hleSnapWarning(parentName: string): ExplorerWarning {
+  return {
+    ...WARNING_COPY.ltlaUtla,
+    body: `${WARNING_COPY.ltlaUtla.body} Showing ${parentName}.`,
+  }
 }

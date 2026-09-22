@@ -36,6 +36,7 @@ export function PeriodScrub({
         onChange={(event) => onYear(periods[Number(event.target.value)])}
         className="h-11 min-h-11 w-full accent-teal-800"
         aria-label="Period scrub"
+        aria-valuetext={compactPeriod(periods[yearIndex])}
       />
       <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
         {compactPeriod(periods[periods.length - 1])}

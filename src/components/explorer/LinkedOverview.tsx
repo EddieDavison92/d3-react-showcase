@@ -50,6 +50,7 @@ export function LinkedOverview({
     geo: string
     data: FeatureCollection
   } | null>(null)
+  const [geoFailed, setGeoFailed] = useState(false)
   const showMap = state.geo !== "country"
   const areaIndex = useMemo(
     () => new Map(areas.map((area) => [area.code, area])),
@@ -61,12 +62,19 @@ export function LinkedOverview({
     const geo = state.geo
     let cancelled = false
     fetch(geoUrl(geo))
-      .then((res) => res.json())
-      .then((raw: FeatureCollection) => {
-        if (!cancelled) setGeoPayload({ geo, data: raw })
+      .then((res) => {
+        if (!res.ok) throw new Error(`geo ${res.status}`)
+        return res.json() as Promise<FeatureCollection>
+      })
+      .then((raw) => {
+        if (cancelled) return
+        setGeoFailed(false)
+        setGeoPayload({ geo, data: raw })
       })
       .catch(() => {
-        if (!cancelled) setGeoPayload({ geo, data: { type: "FeatureCollection", features: [] } })
+        if (cancelled) return
+        setGeoFailed(true)
+        setGeoPayload(null)
       })
     return () => {
       cancelled = true
@@ -170,8 +178,8 @@ export function LinkedOverview({
     Boolean(state.area && (state.area.startsWith("S") || state.area.startsWith("N")))
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3 md:flex-row">
-      <div className="relative flex min-h-0 flex-1 flex-col gap-2 md:flex-[0.55]">
+    <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-3 overflow-x-clip md:flex-row">
+      <div className="relative flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-2 md:flex-[0.55]">
         <ContextChip state={state} areaName={selectedName} />
         {family === "deprivation" && !deprivation?.england ? (
           <EmptyNote title="Deprivation file missing">
@@ -186,9 +194,13 @@ export function LinkedOverview({
           <EmptyNote title="Scotland and Northern Ireland">
             SIMD and NIMDM are not interactive in v1 and cannot be ranked with IoD.
           </EmptyNote>
+        ) : geoFailed ? (
+          <EmptyNote title="Boundaries could not be loaded">
+            The geography file for this cut did not load. Try another geography or reload.
+          </EmptyNote>
         ) : showMap ? (
-          <div className="flex min-h-0 flex-col gap-2">
-            <div className="relative h-[min(50dvh,26rem)] min-h-[260px] w-full lg:h-[min(54dvh,34rem)]">
+          <div className="flex min-h-0 min-w-0 max-w-full flex-col gap-2">
+            <div className="relative h-[42dvh] min-h-[240px] w-full max-w-full lg:h-[min(54dvh,34rem)]">
               {hasMapFeatures && geojson ? (
                 <ChoroplethMap
                   geojson={geojson}

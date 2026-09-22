@@ -27,7 +27,7 @@ export function AboutNumbers({
         <Button
           variant={triggerVariant}
           size="sm"
-          className={cn("min-h-11 px-2 sm:px-3", triggerClassName)}
+          className={cn("h-9 min-h-9 px-2 sm:h-11 sm:min-h-11 sm:px-3", triggerClassName)}
         >
           <span className="sm:hidden">About</span>
           <span className="hidden sm:inline">About the numbers</span>

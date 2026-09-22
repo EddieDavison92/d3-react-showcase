@@ -27,7 +27,7 @@ export function CatalogueRail({
               type="button"
               onClick={() => onSelect(card.id)}
               className={cn(
-                "min-h-11 w-full rounded-lg border p-3 text-left transition-colors",
+                "min-h-11 w-full rounded-lg border p-2.5 text-left transition-colors sm:p-3",
                 active
                   ? "border-teal-700 bg-teal-50 shadow-sm dark:border-teal-400 dark:bg-teal-950/40"
                   : "border-border bg-card hover:bg-muted/60"
@@ -41,9 +41,6 @@ export function CatalogueRail({
                   </Badge>
                 ) : null}
               </div>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                {card.blurb}
-              </p>
               <div className="mt-2 flex flex-wrap gap-1">
                 {card.badges.map((badge) => (
                   <Badge key={badge} variant="outline" className="text-[10px] font-normal">

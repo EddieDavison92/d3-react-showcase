@@ -30,6 +30,7 @@ import { DEFAULT_STATE, parseSearchParams, toSearchParams } from "@/lib/explorer
 import type {
   DeprivationFile,
   ExplorerState,
+  ExplorerWarning,
   LookupsFile,
   MetricId,
   PackedFile,
@@ -45,6 +46,7 @@ export function ExplorerApp() {
   const [avoidable, setAvoidable] = useState<PackedFile | null>(null)
   const [deprivation, setDeprivation] = useState<DeprivationFile | null>(null)
   const [lookups, setLookups] = useState<LookupsFile | null>(null)
+  const [flashWarnings, setFlashWarnings] = useState<ExplorerWarning[]>([])
 
   useEffect(() => {
     loadLe().then(setLe).catch(() => setLe(null))
@@ -95,7 +97,15 @@ export function ExplorerApp() {
   }, [ctx, parsed])
 
   const state = applied.state
-  const warnings = applied.warnings
+  const warnings = useMemo(() => {
+    const byId = new Map(applied.warnings.map((warning) => [warning.id, warning]))
+    for (const warning of flashWarnings) byId.set(warning.id, warning)
+    return [...byId.values()]
+  }, [applied.warnings, flashWarnings])
+
+  const persistMismatch = useCallback((nextWarnings: ExplorerWarning[]) => {
+    setFlashWarnings(nextWarnings.filter((warning) => warning.tone === "mismatch"))
+  }, [])
 
   useEffect(() => {
     if (!ctx) return
@@ -110,11 +120,20 @@ export function ExplorerApp() {
     (patch: Partial<ExplorerState>) => {
       if (!ctx) return
       const next = applyExplorerChange(state, patch, ctx)
+      const mismatch = next.warnings.filter((warning) => warning.tone === "mismatch")
+      if (
+        mismatch.length ||
+        patch.metric !== undefined ||
+        patch.geo !== undefined ||
+        patch.area !== undefined
+      ) {
+        persistMismatch(next.warnings)
+      }
       router.replace(`${pathname}?${toSearchParams(next.state).toString()}`, {
         scroll: false,
       })
     },
-    [ctx, pathname, router, state]
+    [ctx, pathname, persistMismatch, router, state]
   )
 
   const file =
@@ -154,7 +173,7 @@ export function ExplorerApp() {
   )
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3 lg:h-full lg:flex-row">
+    <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-3 overflow-x-clip lg:h-full lg:flex-row">
       <aside className="hidden w-[280px] shrink-0 overflow-y-auto border-r pr-3 lg:block">
         {rail}
       </aside>
@@ -175,7 +194,7 @@ export function ExplorerApp() {
             <SheetHeader className="text-left">
               <SheetTitle>Catalogue</SheetTitle>
               <SheetDescription>
-                Pick a metric family, then geography, period, sex and age. Companions remount Explore.
+                Switching metric reloads Explore.
               </SheetDescription>
             </SheetHeader>
             <div className="mt-4">{rail}</div>
@@ -183,7 +202,7 @@ export function ExplorerApp() {
         </Sheet>
         <CompactFilterBar state={state} onChange={commit} />
       </div>
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 lg:min-h-0">
+      <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-3 lg:min-h-0">
         <WarningBanner warnings={warnings} />
         {ready ? (
           <LinkedOverview

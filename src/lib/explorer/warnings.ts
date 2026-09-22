@@ -21,9 +21,9 @@ export const WARNING_COPY = {
   },
   avoidableEw: {
     id: "avoidable-ew",
-    tone: "empty",
+    tone: "always",
     title: "England and Wales only",
-    body: "ONS avoidable, preventable and treatable mortality in this explorer covers England and Wales only. Scotland and Northern Ireland publish separate figures — we don’t merge them into one UK map.",
+    body: "Avoidable mortality here is England and Wales only. Scotland and Northern Ireland publish separate figures.",
   },
   periodLe: {
     id: "period-le",

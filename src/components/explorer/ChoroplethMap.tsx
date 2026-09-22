@@ -14,6 +14,8 @@ const UK_BOUNDS: [[number, number], [number, number]] = [
   [1.9, 59.5],
 ]
 
+const MIN_SIZE = 24
+
 export function ChoroplethMap({
   geojson,
   colours,
@@ -50,17 +52,24 @@ export function ChoroplethMap({
     let map: maplibregl.Map | null = null
     let userMoved = false
     let fitting = false
+    let cancelled = false
+    const featureBounds = boundsOfGeojson(geojson) ?? UK_BOUNDS
 
     const fit = () => {
-      if (!map || userMoved) return
+      if (!map || userMoved || cancelled) return
       map.resize()
-      if (el.clientWidth < 8 || el.clientHeight < 8) return
+      if (el.clientWidth < MIN_SIZE || el.clientHeight < MIN_SIZE) return
+      const bounds = boundsOfGeojson(geojson) ?? UK_BOUNDS
       fitting = true
-      map.fitBounds(boundsOfGeojson(geojson) ?? UK_BOUNDS, {
-        padding: 24,
-        duration: 0,
+      map.fitBounds(bounds, { padding: 28, duration: 0, maxZoom: 8 })
+      map.once("idle", () => {
+        fitting = false
       })
-      fitting = false
+    }
+
+    const markUserMoved = (event: { originalEvent?: Event }) => {
+      if (fitting || !event.originalEvent) return
+      userMoved = true
     }
 
     const attach = () => {
@@ -70,7 +79,7 @@ export function ChoroplethMap({
     }
 
     const create = () => {
-      if (map || el.clientWidth < 8 || el.clientHeight < 8) return
+      if (map || cancelled || el.clientWidth < MIN_SIZE || el.clientHeight < MIN_SIZE) return
       map = new maplibregl.Map({
         container: el,
         style: {
@@ -84,23 +93,22 @@ export function ChoroplethMap({
             },
           ],
         },
-        bounds: UK_BOUNDS,
-        fitBoundsOptions: { padding: 24, duration: 0 },
+        bounds: featureBounds,
+        fitBoundsOptions: { padding: 28, duration: 0 },
         attributionControl: false,
         dragRotate: false,
         pitchWithRotate: false,
         renderWorldCopies: false,
+        trackResize: true,
       })
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right")
       mapRef.current = map
-      const markMoved = () => {
-        if (!fitting) userMoved = true
-      }
-      map.on("dragstart", markMoved)
-      map.on("zoomstart", markMoved)
+      map.on("dragstart", markUserMoved)
+      map.on("zoomstart", markUserMoved)
+      map.on("boxzoomstart", markUserMoved)
 
       map.on("load", () => {
-        if (!map) return
+        if (!map || cancelled) return
         map.addSource("areas", {
           type: "geojson",
           data: geojson,
@@ -153,6 +161,12 @@ export function ChoroplethMap({
       })
     }
 
+    const onViewport = () => {
+      create()
+      map?.resize()
+      if (map?.isStyleLoaded()) attach()
+    }
+
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0]
       if (entry) {
@@ -161,15 +175,23 @@ export function ChoroplethMap({
           height: entry.contentRect.height,
         })
       }
-      create()
-      map?.resize()
-      if (map?.isStyleLoaded()) attach()
+      onViewport()
     })
     observer.observe(el)
+    window.visualViewport?.addEventListener("resize", onViewport)
+    window.addEventListener("orientationchange", onViewport)
     create()
+    const raf = requestAnimationFrame(() => {
+      create()
+      if (map?.isStyleLoaded()) fit()
+    })
 
     return () => {
+      cancelled = true
+      cancelAnimationFrame(raf)
       observer.disconnect()
+      window.visualViewport?.removeEventListener("resize", onViewport)
+      window.removeEventListener("orientationchange", onViewport)
       map?.remove()
       mapRef.current = null
     }
@@ -189,8 +211,8 @@ export function ChoroplethMap({
     : undefined
 
   return (
-    <div className="relative h-full min-h-[220px] w-full overflow-hidden rounded-lg border bg-slate-50">
-      <div ref={containerRef} className="h-full w-full" />
+    <div className="relative h-full min-h-[240px] w-full max-w-full overflow-hidden rounded-lg border bg-slate-50">
+      <div ref={containerRef} className="absolute inset-0 h-full w-full max-w-full" />
       {hover ? (
         <div
           className="pointer-events-none absolute z-10 max-w-[min(100%-1rem,18rem)] whitespace-pre-wrap rounded-md border bg-popover px-2 py-1.5 text-xs shadow"

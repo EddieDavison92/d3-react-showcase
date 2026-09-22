@@ -75,9 +75,19 @@
   }
 }
 
+.maplibregl-map,
+.maplibregl-canvas-container {
+  width: 100% !important;
+  max-width: 100%;
+}
+
+.maplibregl-canvas {
+  max-width: 100%;
+}
+
 .maplibregl-ctrl-group button {
-  width: 2.75rem !important;
-  height: 2.75rem !important;
+  width: 2.25rem !important;
+  height: 2.25rem !important;
 }
 
 .maplibregl-ctrl-top-right {
