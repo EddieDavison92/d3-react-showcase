@@ -111,7 +111,7 @@ export function ChoroplethMap({
         ? paintedRef.current
         : coloursRef.current
       paint(map, hexField, shown, shown, selectedRef.current, hatchRef.current)
-      if (map.getLayer("fill")) map.setPaintProperty("fill", "fill-color", blendFill(1))
+      setCover(map, 0, 0)
       if (!Object.keys(paintedRef.current).length) {
         paintedRef.current = { ...coloursRef.current }
       }
@@ -190,8 +190,23 @@ export function ChoroplethMap({
           type: "fill",
           source: "hex",
           paint: {
-            "fill-color": blendFill(1),
+            "fill-color": [
+              "to-color",
+              ["coalesce", ["feature-state", "colour"], NO_DATA],
+            ],
             "fill-opacity": FILL_OPACITY,
+          },
+        })
+        map.addLayer({
+          id: "fill-from",
+          type: "fill",
+          source: "hex",
+          paint: {
+            "fill-color": [
+              "to-color",
+              ["coalesce", ["feature-state", "prev"], NO_DATA],
+            ],
+            "fill-opacity": 0,
           },
         })
         map.addLayer({
@@ -244,9 +259,11 @@ export function ChoroplethMap({
           const code = String(event.features?.[0]?.properties?.code ?? "")
           if (code) onSelectRef.current(code)
         }
-        map.on("mousemove", "fill", onMove)
-        map.on("mouseleave", "fill", onLeave)
-        map.on("click", "fill", onClick)
+        for (const layer of ["fill", "fill-from"]) {
+          map.on("mousemove", layer, onMove)
+          map.on("mouseleave", layer, onLeave)
+          map.on("click", layer, onClick)
+        }
       })
     }
 
@@ -308,24 +325,24 @@ export function ChoroplethMap({
     const from = { ...paintedRef.current }
     if (!duration) {
       paint(map, hexField, colours, colours, selected, hatch)
-      map.setPaintProperty("fill", "fill-color", blendFill(1))
+      setCover(map, 0, 0)
       paintedRef.current = colours
       map.triggerRepaint()
       return
     }
     paint(map, hexField, from, colours, selected, hatch)
     paintedRef.current = colours
-    map.setPaintProperty("fill", "fill-color", blendFill(0))
-    const start = performance.now()
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / duration)
-      const eased = 1 - (1 - t) * (1 - t)
-      if (map.getLayer("fill")) {
-        map.setPaintProperty("fill", "fill-color", blendFill(eased))
+    rafRef.current = requestAnimationFrame(() => {
+      setCover(map, 0.96, 0)
+      const start = performance.now()
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - start) / duration)
+        const eased = 1 - (1 - t) * (1 - t)
+        setCover(map, 0.96 * (1 - eased), 0)
+        if (t < 1) rafRef.current = requestAnimationFrame(tick)
       }
-      if (t < 1) rafRef.current = requestAnimationFrame(tick)
-    }
-    rafRef.current = requestAnimationFrame(tick)
+      rafRef.current = requestAnimationFrame(tick)
+    })
   }, [colours, hatch, selected, hexField, year, view])
 
   const tooltipStyle = hover
@@ -362,17 +379,13 @@ export function ChoroplethMap({
   )
 }
 
-function blendFill(t: number): maplibregl.ExpressionSpecification {
-  const u = Math.max(0, Math.min(1, t))
-  return [
-    "interpolate",
-    ["linear"],
-    ["+", u, ["*", 0, ["zoom"]]],
-    0,
-    ["to-color", ["coalesce", ["feature-state", "prev"], NO_DATA]],
-    1,
-    ["to-color", ["coalesce", ["feature-state", "colour"], NO_DATA]],
-  ]
+function setCover(map: maplibregl.Map, opacity: number, duration: number) {
+  if (!map.getLayer("fill-from")) return
+  map.setPaintProperty("fill-from", "fill-opacity-transition", {
+    duration,
+    delay: 0,
+  })
+  map.setPaintProperty("fill-from", "fill-opacity", opacity)
 }
 
 function strokePaint(view?: string): {
