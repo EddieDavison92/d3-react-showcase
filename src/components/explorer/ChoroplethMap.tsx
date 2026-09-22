@@ -54,6 +54,7 @@ export function ChoroplethMap({
   className?: string
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const overlayRef = useRef<HTMLCanvasElement | null>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const onSelectRef = useRef(onSelect)
   const coloursRef = useRef(colours)
@@ -61,7 +62,6 @@ export function ChoroplethMap({
   const selectedRef = useRef(selected)
   const cueRef = useRef({ year, view })
   const paintedRef = useRef<Record<string, string>>({})
-  const rafRef = useRef(0)
   const [hover, setHover] = useState<HoverInfo | null>(null)
   const [size, setSize] = useState({ width: 320, height: 240 })
   const [ready, setReady] = useState(false)
@@ -109,9 +109,8 @@ export function ChoroplethMap({
       if (!map?.getSource("hex")) return
       if (!Object.keys(paintedRef.current).length) {
         const shown = coloursRef.current
-        paint(map, hexField, shown, shown, selectedRef.current, hatchRef.current)
+        paint(map, hexField, shown, selectedRef.current, hatchRef.current)
         paintedRef.current = { ...shown }
-        setCover(map, 0)
       }
       fit()
     }
@@ -138,6 +137,7 @@ export function ChoroplethMap({
         pitchWithRotate: false,
         renderWorldCopies: false,
         trackResize: true,
+        preserveDrawingBuffer: true,
         interactive,
       })
       if (interactive) {
@@ -196,21 +196,6 @@ export function ChoroplethMap({
           },
         })
         map.addLayer({
-          id: "fill-from",
-          type: "fill",
-          source: "hex",
-          paint: {
-            "fill-color": [
-              "to-color",
-              ["coalesce", ["feature-state", "prev"], NO_DATA],
-            ],
-            "fill-opacity": 0,
-          },
-        })
-        // Keep opacity writes instant so the RAF cover-fade is not fighting MapLibre's 300ms default.
-        map.setPaintProperty("fill", "fill-opacity-transition", { duration: 0, delay: 0 })
-        map.setPaintProperty("fill-from", "fill-opacity-transition", { duration: 0, delay: 0 })
-        map.addLayer({
           id: "hatch",
           type: "fill",
           source: "hex",
@@ -241,7 +226,7 @@ export function ChoroplethMap({
           hoverId = id
           if (id) map.setFeatureState({ source: "hex", id }, { hover: true })
         }
-        const onMove = (event: maplibregl.MapLayerMouseEvent) => {
+        map.on("mousemove", "fill", (event) => {
           map!.getCanvas().style.cursor = "pointer"
           const feature = event.features?.[0]
           const code = String(feature?.properties?.code ?? "")
@@ -250,21 +235,16 @@ export function ChoroplethMap({
           if (!code) return
           setHexHover(id)
           setHover({ code, name, x: event.point.x, y: event.point.y })
-        }
-        const onLeave = () => {
+        })
+        map.on("mouseleave", "fill", () => {
           map!.getCanvas().style.cursor = ""
           setHexHover(null)
           setHover(null)
-        }
-        const onClick = (event: maplibregl.MapLayerMouseEvent) => {
+        })
+        map.on("click", "fill", (event) => {
           const code = String(event.features?.[0]?.properties?.code ?? "")
           if (code) onSelectRef.current(code)
-        }
-        for (const layer of ["fill", "fill-from"]) {
-          map.on("mousemove", layer, onMove)
-          map.on("mouseleave", layer, onLeave)
-          map.on("click", layer, onClick)
-        }
+        })
       })
     }
 
@@ -296,7 +276,6 @@ export function ChoroplethMap({
     return () => {
       cancelled = true
       cancelAnimationFrame(raf)
-      cancelAnimationFrame(rafRef.current)
       observer.disconnect()
       window.visualViewport?.removeEventListener("resize", onViewport)
       window.removeEventListener("orientationchange", onViewport)
@@ -307,7 +286,8 @@ export function ChoroplethMap({
 
   useEffect(() => {
     const map = mapRef.current
-    if (!map?.isStyleLoaded() || !map.getLayer("fill-from")) return
+    const overlay = overlayRef.current
+    if (!map?.isStyleLoaded() || !map.getLayer("fill")) return
     const cue = cueRef.current
     const hasPainted = Object.keys(paintedRef.current).length > 0
     const coloursChanged = hasPainted && !sameColours(paintedRef.current, colours)
@@ -318,49 +298,31 @@ export function ChoroplethMap({
       map.setPaintProperty("line", "line-opacity", stroke["line-opacity"])
     }
     if (!hasPainted) {
-      paint(map, hexField, colours, colours, selected, hatch)
+      paint(map, hexField, colours, selected, hatch)
       paintedRef.current = { ...colours }
-      setCover(map, 0)
       cueRef.current = { year, view }
       return
     }
     if (!coloursChanged) {
-      for (const feature of hexField.features) {
-        const id = String(feature.properties?.id ?? feature.id ?? "")
-        const code = String(feature.properties?.code ?? "")
-        if (!id || !code) continue
-        map.setFeatureState(
-          { source: "hex", id },
-          { selected: code === selected, hatch: Boolean(hatch?.[code]) }
-        )
-      }
+      paint(map, hexField, colours, selected, hatch)
       cueRef.current = { year, view }
       return
     }
-    cancelAnimationFrame(rafRef.current)
     const duration = view && view !== cue.view ? motionMs(240) : motionMs(180)
     cueRef.current = { year, view }
-    const from = { ...paintedRef.current }
+    if (duration && overlay) snapshotCover(overlay, map)
+    paint(map, hexField, colours, selected, hatch)
     paintedRef.current = { ...colours }
-    if (!duration) {
-      paint(map, hexField, colours, colours, selected, hatch)
-      setCover(map, 0)
-      map.triggerRepaint()
+    map.triggerRepaint()
+    if (!duration || !overlay) {
+      if (overlay) {
+        overlay.style.transition = "none"
+        overlay.style.opacity = "0"
+      }
       return
     }
-    // Same turn: old fills on the cover, new fills underneath. MapLibre presents one frame, then we dissolve.
-    paint(map, hexField, from, colours, selected, hatch)
-    setCover(map, 0.96)
-    map.triggerRepaint()
-    const start = performance.now()
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / duration)
-      const eased = 1 - (1 - t) * (1 - t)
-      setCover(map, 0.96 * (1 - eased))
-      if (t < 1) rafRef.current = requestAnimationFrame(tick)
-      else setCover(map, 0)
-    }
-    rafRef.current = requestAnimationFrame(tick)
+    const dissolve = () => dissolveCover(overlay, duration)
+    map.once("render", dissolve)
   }, [colours, hatch, selected, hexField, year, view])
 
   const tooltipStyle = hover
@@ -385,6 +347,12 @@ export function ChoroplethMap({
         </div>
       ) : null}
       <div ref={containerRef} className="absolute inset-0 h-full w-full max-w-full" />
+      <canvas
+        ref={overlayRef}
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-[2] h-full w-full"
+        style={{ opacity: 0 }}
+      />
       {interactive && hover && !quietHover ? (
         <div
           className="pointer-events-none absolute z-10 max-w-[min(100%-1rem,18rem)] whitespace-pre-wrap rounded-md border bg-popover px-2 py-1.5 text-xs shadow"
@@ -397,9 +365,21 @@ export function ChoroplethMap({
   )
 }
 
-function setCover(map: maplibregl.Map, opacity: number) {
-  if (!map.getLayer("fill-from")) return
-  map.setPaintProperty("fill-from", "fill-opacity", opacity)
+function snapshotCover(overlay: HTMLCanvasElement, map: maplibregl.Map) {
+  const src = map.getCanvas()
+  overlay.width = src.width
+  overlay.height = src.height
+  const ctx = overlay.getContext("2d")
+  if (!ctx) return
+  ctx.drawImage(src, 0, 0)
+  overlay.style.transition = "none"
+  overlay.style.opacity = "1"
+}
+
+function dissolveCover(overlay: HTMLCanvasElement, duration: number) {
+  overlay.getBoundingClientRect()
+  overlay.style.transition = `opacity ${duration}ms ease-out`
+  overlay.style.opacity = "0"
 }
 
 function strokePaint(view?: string): {
@@ -426,7 +406,6 @@ function strokePaint(view?: string): {
 function paint(
   map: maplibregl.Map,
   hexField: FeatureCollection,
-  prev: Record<string, string>,
   colours: Record<string, string>,
   selected: string | null,
   hatch?: Record<string, boolean>
@@ -439,7 +418,6 @@ function paint(
     map.setFeatureState(
       { source: "hex", id },
       {
-        prev: prev[code] ?? colours[code] ?? NO_DATA,
         colour: colours[code] ?? NO_DATA,
         selected: code === selected,
         hatch: Boolean(hatch?.[code]),
