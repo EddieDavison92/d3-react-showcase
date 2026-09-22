@@ -261,7 +261,7 @@ export function LinkedOverview({
           />
         )}
       </div>
-      <div className="flex min-h-[240px] flex-col rounded-lg border bg-card p-3 md:min-h-[320px] md:flex-[0.45] lg:min-h-0">
+      <div className="flex min-h-0 flex-col rounded-lg border bg-card p-3 md:flex-[0.45]">
         {family === "deprivation" ? (
           <DeprivationPanel
             state={state}

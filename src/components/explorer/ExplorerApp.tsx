@@ -155,7 +155,7 @@ export function ExplorerApp() {
   const ready = Boolean(lookups && (family === "deprivation" ? deprivation : file))
 
   const rail = (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <CatalogueRail
         metric={state.metric}
         onSelect={(metric) => {

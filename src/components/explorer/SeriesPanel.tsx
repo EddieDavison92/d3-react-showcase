@@ -179,7 +179,7 @@ export function SeriesPanel({
   const primary = series[0]
 
   return (
-    <div className="flex h-full min-h-[220px] flex-col gap-2">
+    <div className="flex h-full min-h-0 flex-col gap-2">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">

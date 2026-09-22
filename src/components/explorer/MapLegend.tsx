@@ -16,7 +16,7 @@ export function MapLegend({
 }) {
   const stops = Array.from({ length: 24 }, (_, i) => interpolateRamp(ramp, i / 23))
   return (
-    <div className="rounded-md border bg-background p-2 text-[11px]">
+    <div className="rounded-md border bg-background/90 p-2 text-[11px] shadow-sm">
       <div className="mb-1 flex justify-between text-muted-foreground">
         <span>{reverseLabel ? formatYears(max, 0) : formatYears(min, 0)}</span>
         <span>{unit}</span>

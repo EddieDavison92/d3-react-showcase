@@ -6,8 +6,7 @@ import type { ExplorerWarning } from "@/lib/explorer/types"
 export function WarningBanner({ warnings }: { warnings: ExplorerWarning[] }) {
   const mismatch = warnings.filter((w) => w.tone === "mismatch")
   const empty = warnings.filter((w) => w.tone === "empty")
-  const always = warnings.filter((w) => w.tone === "always")
-  if (!mismatch.length && !empty.length && !always.length) return null
+  if (!mismatch.length && !empty.length) return null
 
   return (
     <div className="space-y-2">
@@ -29,9 +28,6 @@ export function WarningBanner({ warnings }: { warnings: ExplorerWarning[] }) {
           {warning.body}
         </p>
       ))}
-      {!mismatch.length && always[0] ? (
-        <p className="text-xs leading-relaxed text-muted-foreground">{always[0].body}</p>
-      ) : null}
     </div>
   )
 }
