@@ -345,6 +345,13 @@ export function LinkedOverview({
                   view={state.view}
                   sexGap={sexGap}
                   emphasiseCi={state.view === "ci"}
+                  figureNote={
+                    state.view === "d2017"
+                      ? "Δ vs 2017–19 · hex cell · equal-area"
+                      : state.view === "d2019"
+                        ? "Δ vs 2019–21 · hex cell · equal-area"
+                        : "hex cell · equal-area"
+                  }
                 />
               </div>
             </div>

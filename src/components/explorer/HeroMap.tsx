@@ -80,7 +80,7 @@ export function HeroMap() {
         )}
       </div>
       <p className="mt-2 text-[11px] text-muted-foreground">
-        2022–24 · Male · at birth · Absolute{" "}
+        2022–24 · Male · at birth · Absolute · hexbin{" "}
         <Link href={exploreHref()} className="text-teal-800 underline-offset-2 hover:underline">
           Explore this cut →
         </Link>

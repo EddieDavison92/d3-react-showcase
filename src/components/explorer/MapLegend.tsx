@@ -24,14 +24,14 @@ export function MapLegend({
     <div className="w-full py-1 text-[11px]">
       <div className="mb-1 flex justify-between gap-2 text-muted-foreground">
         <span>
-          {reverseLabel ? "Higher" : "Lower"}{" "}
+          {reverseLabel ? "Higher" : zeroTick ? "Decline" : "Lower"}{" "}
           <span className="tabular-nums">
             {reverseLabel ? formatYears(max, 0) : formatYears(min, 0)}
           </span>
         </span>
         <span className="motion-safe:transition-opacity motion-safe:duration-200">{unit}</span>
         <span>
-          {reverseLabel ? "Lower" : "Higher"}{" "}
+          {reverseLabel ? "Lower" : zeroTick ? "Gain" : "Higher"}{" "}
           <span className="tabular-nums">
             {reverseLabel ? formatYears(min, 0) : formatYears(max, 0)}
           </span>

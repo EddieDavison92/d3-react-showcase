@@ -17,6 +17,7 @@ export function FocusReadout({
   uncertainChange,
   emphasiseCi,
   figure,
+  figureNote,
 }: {
   name: string
   unit: string
@@ -38,6 +39,7 @@ export function FocusReadout({
   uncertainChange?: boolean
   emphasiseCi?: boolean
   figure?: boolean
+  figureNote?: string
 }) {
   if (figure) {
     const diverging = isDivergingView(view)
@@ -75,6 +77,9 @@ export function FocusReadout({
           <p className="mt-1 text-[11px] text-muted-foreground">
             vs {vsNation.label} {formatSigned(vsNation.delta)}
           </p>
+        ) : null}
+        {figureNote ? (
+          <p className="mt-1 text-[11px] text-muted-foreground">{figureNote}</p>
         ) : null}
       </div>
     )

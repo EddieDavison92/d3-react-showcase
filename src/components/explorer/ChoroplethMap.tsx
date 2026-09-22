@@ -148,23 +148,14 @@ export function ChoroplethMap({
           data: geojson,
         })
         map.addLayer({
-          id: "land",
-          type: "fill",
-          source: "coast",
-          paint: {
-            "fill-color": "#e2e8f0",
-            "fill-opacity": 0.16,
-          },
-        })
-        map.addLayer({
           id: "coast",
           type: "line",
           source: "coast",
           layout: { "line-join": "round" },
           paint: {
             "line-color": COAST_STROKE,
-            "line-width": 0.9,
-            "line-opacity": 0.4,
+            "line-width": 0.8,
+            "line-opacity": 0.28,
           },
         })
         map.addSource("hex", {

@@ -36,8 +36,8 @@ export default function HomePage() {
           </p>
         </div>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          Default cut: period life expectancy, lower-tier UK local areas, 2022–24,
-          male, at birth. Not a forecast.{" "}
+          Default: 2022–24 · Male · at birth · Absolute. Not a forecast. Hex
+          field = equal-area read.{" "}
           <Link className="underline underline-offset-4" href={ONS_LINKS.leBulletin}>
             ONS bulletin
           </Link>
