@@ -2,18 +2,23 @@ import type { Feature, FeatureCollection, Geometry, Position } from "geojson"
 import proj4 from "proj4"
 
 /**
- * Equal-area hex field over the active geography.
- * Centres sit on a Lambert azimuthal equal-area grid (UK). A hex is kept when
- * its centre falls inside an area polygon and inherits that area’s code.
- * Cells are drawn inset so they float with hairline gaps — not a cartogram.
+ * One equal-area hex per area, snapped to a Lambert azimuthal lattice
+ * centred on the UK. A cell starts at the polygon’s representative point;
+ * collisions walk to the nearest empty lattice cell. Drawn inset so the
+ * field floats — not a statistical hexbin and not a cartogram of tiles.
  */
 const LAEA =
   "+proj=laea +lat_0=54.2 +lon_0=-2.4 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs"
 const WGS84 = "EPSG:4326"
-const INSET = 0.86
-const TARGET_ROWS = 110
-const INDEX_CELL = 40_000
-const MIN_RADIUS = 5_000
+const INSET = 0.9
+const AXIAL: Pt[] = [
+  [1, 0],
+  [1, -1],
+  [0, -1],
+  [-1, 0],
+  [-1, 1],
+  [0, 1],
+]
 
 type AreaPoly = {
   code: string
@@ -31,51 +36,87 @@ export function buildHexField(geojson: FeatureCollection): FeatureCollection {
   const areas = projectAreas(geojson.features)
   if (!areas.length) return empty()
 
-  let minX = Infinity
-  let minY = Infinity
-  let maxX = -Infinity
-  let maxY = -Infinity
+  const centres: { area: AreaPoly; x: number; y: number }[] = []
   for (const area of areas) {
-    minX = Math.min(minX, area.minX)
-    minY = Math.min(minY, area.minY)
-    maxX = Math.max(maxX, area.maxX)
-    maxY = Math.max(maxY, area.maxY)
+    const point = representativePoint(area)
+    if (point) centres.push({ area, x: point[0], y: point[1] })
   }
+  if (!centres.length) return empty()
 
-  const height = Math.max(1, maxY - minY)
-  const radius = Math.max(MIN_RADIUS, height / (1.5 * TARGET_ROWS))
-  const index = indexAreas(areas)
-  const w = Math.sqrt(3) * radius
-  const h = 1.5 * radius
-  const drawR = radius * INSET
+  const size = latticeSize(centres)
+  const drawR = size * INSET
+  const taken = new Set<string>()
   const features: Feature[] = []
-  const covered = new Set<string>()
-  let row = 0
 
-  for (let cy = minY - radius * 0.2; cy <= maxY + radius * 0.2; cy += h, row += 1) {
-    const odd = row % 2 === 1
-    const x0 = minX - radius * 0.2 + (odd ? w / 2 : 0)
-    let col = 0
-    for (let cx = x0; cx <= maxX + radius * 0.2; cx += w, col += 1) {
-      const hit = areaAt(cx, cy, index)
-      if (!hit) continue
-      covered.add(hit.code)
-      features.push(hexFeature(`h${row}-${col}`, hit.code, hit.name, cx, cy, drawR))
-    }
-  }
-
-  let extra = 0
-  for (const area of areas) {
-    if (covered.has(area.code)) continue
-    const centre = representativePoint(area)
-    if (!centre) continue
-    extra += 1
+  centres.sort((a, b) => b.y - a.y || a.x - b.x)
+  for (const item of centres) {
+    const home = pixelToHex(item.x, item.y, size)
+    const cell = firstEmpty(home[0], home[1], taken)
+    taken.add(`${cell[0]}:${cell[1]}`)
+    const [cx, cy] = hexToPixel(cell[0], cell[1], size)
     features.push(
-      hexFeature(`c${extra}-${area.code}`, area.code, area.name, centre[0], centre[1], drawR)
+      hexFeature(item.area.code, item.area.code, item.area.name, cx, cy, drawR)
     )
   }
 
   return { type: "FeatureCollection", features }
+}
+
+function latticeSize(centres: { x: number; y: number }[]): number {
+  const distances: number[] = []
+  for (let i = 0; i < centres.length; i += 1) {
+    let best = Infinity
+    for (let j = 0; j < centres.length; j += 1) {
+      if (i === j) continue
+      const dx = centres[i].x - centres[j].x
+      const dy = centres[i].y - centres[j].y
+      const d = Math.hypot(dx, dy)
+      if (d < best) best = d
+    }
+    if (Number.isFinite(best)) distances.push(best)
+  }
+  distances.sort((a, b) => a - b)
+  const median = distances[Math.floor(distances.length / 2)] || 12_000
+  return Math.max(7_500, Math.min(22_000, median / Math.sqrt(3)))
+}
+
+function pixelToHex(x: number, y: number, size: number): Pt {
+  const q = ((Math.sqrt(3) / 3) * x - (1 / 3) * y) / size
+  const r = ((2 / 3) * y) / size
+  return cubeRound(q, r)
+}
+
+function hexToPixel(q: number, r: number, size: number): Pt {
+  return [size * (Math.sqrt(3) * q + (Math.sqrt(3) / 2) * r), size * (1.5 * r)]
+}
+
+function cubeRound(q: number, r: number): Pt {
+  const s = -q - r
+  let rq = Math.round(q)
+  let rr = Math.round(r)
+  let rs = Math.round(s)
+  const dq = Math.abs(rq - q)
+  const dr = Math.abs(rr - r)
+  const ds = Math.abs(rs - s)
+  if (dq > dr && dq > ds) rq = -rr - rs
+  else if (dr > ds) rr = -rq - rs
+  return [rq, rr]
+}
+
+function firstEmpty(q0: number, r0: number, taken: Set<string>): Pt {
+  if (!taken.has(`${q0}:${r0}`)) return [q0, r0]
+  for (let ring = 1; ring <= 48; ring += 1) {
+    let q = q0 + AXIAL[4][0] * ring
+    let r = r0 + AXIAL[4][1] * ring
+    for (const [dq, dr] of AXIAL) {
+      for (let step = 0; step < ring; step += 1) {
+        if (!taken.has(`${q}:${r}`)) return [q, r]
+        q += dq
+        r += dr
+      }
+    }
+  }
+  return [q0, r0]
 }
 
 function empty(): FeatureCollection {
@@ -116,14 +157,14 @@ function representativePoint(area: AreaPoly): Pt | null {
       if (pointInArea(x, y, area.polygons)) return [x, y]
     }
   }
-  const n = ring.length - 1
+  const n = Math.max(1, ring.length - 1)
   let sx = 0
   let sy = 0
   for (let i = 0; i < n; i += 1) {
     sx += ring[i][0]
     sy += ring[i][1]
   }
-  return [sx / Math.max(1, n), sy / Math.max(1, n)]
+  return [sx / n, sy / n]
 }
 
 function projectAreas(features: Feature[]): AreaPoly[] {
@@ -153,35 +194,6 @@ function projectAreas(features: Feature[]): AreaPoly[] {
     out.push({ code, name, minX, minY, maxX, maxY, polygons })
   }
   return out
-}
-
-function indexAreas(areas: AreaPoly[]): Map<string, AreaPoly[]> {
-  const index = new Map<string, AreaPoly[]>()
-  for (const area of areas) {
-    const x0 = Math.floor(area.minX / INDEX_CELL)
-    const x1 = Math.floor(area.maxX / INDEX_CELL)
-    const y0 = Math.floor(area.minY / INDEX_CELL)
-    const y1 = Math.floor(area.maxY / INDEX_CELL)
-    for (let ix = x0; ix <= x1; ix += 1) {
-      for (let iy = y0; iy <= y1; iy += 1) {
-        const key = `${ix}:${iy}`
-        const bucket = index.get(key)
-        if (bucket) bucket.push(area)
-        else index.set(key, [area])
-      }
-    }
-  }
-  return index
-}
-
-function areaAt(x: number, y: number, index: Map<string, AreaPoly[]>): AreaPoly | null {
-  const bucket = index.get(`${Math.floor(x / INDEX_CELL)}:${Math.floor(y / INDEX_CELL)}`)
-  if (!bucket) return null
-  for (const area of bucket) {
-    if (x < area.minX || x > area.maxX || y < area.minY || y > area.maxY) continue
-    if (pointInArea(x, y, area.polygons)) return area
-  }
-  return null
 }
 
 function pointInArea(x: number, y: number, polygons: Position[][][]): boolean {

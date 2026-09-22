@@ -173,6 +173,16 @@ export function ChoroplethMap({
           promoteId: "id",
         })
         map.addLayer({
+          id: "hex-shadow",
+          type: "fill",
+          source: "hex",
+          paint: {
+            "fill-color": "#64748b",
+            "fill-opacity": 0.12,
+            "fill-translate": [1.2, 1.5],
+          },
+        })
+        map.addLayer({
           id: "fill",
           type: "fill",
           source: "hex",
@@ -207,34 +217,32 @@ export function ChoroplethMap({
           id: "line",
           type: "line",
           source: "hex",
-          paint: {
-            "line-color": [
-              "case",
-              ["boolean", ["feature-state", "selected"], false],
-              "#134e4a",
-              INTERNAL_STROKE,
-            ],
-            "line-width": [
-              "case",
-              ["boolean", ["feature-state", "selected"], false],
-              1.15,
-              0.55,
-            ],
-            "line-opacity": 0.55,
-          },
+          paint: strokePaint(),
         })
         attach()
         if (!interactive) return
+        let hoverId: string | null = null
+        const setHexHover = (id: string | null) => {
+          if (!map) return
+          if (hoverId) {
+            map.setFeatureState({ source: "hex", id: hoverId }, { hover: false })
+          }
+          hoverId = id
+          if (id) map.setFeatureState({ source: "hex", id }, { hover: true })
+        }
         map.on("mousemove", "fill", (event) => {
           map!.getCanvas().style.cursor = "pointer"
           const feature = event.features?.[0]
           const code = String(feature?.properties?.code ?? "")
           const name = String(feature?.properties?.name ?? "")
+          const id = String(feature?.properties?.id ?? feature?.id ?? "")
           if (!code) return
+          setHexHover(id)
           setHover({ code, name, x: event.point.x, y: event.point.y })
         })
         map.on("mouseleave", "fill", () => {
           map!.getCanvas().style.cursor = ""
+          setHexHover(null)
           setHover(null)
         })
         map.on("click", "fill", (event) => {
@@ -290,6 +298,12 @@ export function ChoroplethMap({
     if (view && view !== cue.view) duration = motionMs(240)
     else if (year && year !== cue.year) duration = motionMs(180)
     cueRef.current = { year, view }
+    if (map.getLayer("line")) {
+      const stroke = strokePaint(view)
+      map.setPaintProperty("line", "line-color", stroke["line-color"])
+      map.setPaintProperty("line", "line-width", stroke["line-width"])
+      map.setPaintProperty("line", "line-opacity", stroke["line-opacity"])
+    }
     const from = paintedRef.current
     if (!duration) {
       paint(map, hexField, colours, selected, hatch)
@@ -344,6 +358,27 @@ export function ChoroplethMap({
       ) : null}
     </div>
   )
+}
+
+function strokePaint(view?: string): {
+  "line-color": maplibregl.ExpressionSpecification
+  "line-width": maplibregl.ExpressionSpecification
+  "line-opacity": number
+} {
+  const lift =
+    view === "d2017" || view === "d2019" || view === "vs_nation" || view === "sex_gap"
+      ? "#334155"
+      : "#134e4a"
+  const active: maplibregl.ExpressionSpecification = [
+    "any",
+    ["boolean", ["feature-state", "hover"], false],
+    ["boolean", ["feature-state", "selected"], false],
+  ]
+  return {
+    "line-color": ["case", active, lift, INTERNAL_STROKE],
+    "line-width": ["case", active, 1, 0.6],
+    "line-opacity": 0.42,
+  }
 }
 
 function paint(
