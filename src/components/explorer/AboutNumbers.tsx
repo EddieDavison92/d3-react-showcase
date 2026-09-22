@@ -17,9 +17,11 @@ import { cn } from "@/lib/utils"
 export function AboutNumbers({
   triggerClassName,
   triggerVariant = "ghost",
+  label,
 }: {
   triggerClassName?: string
   triggerVariant?: "ghost" | "outline"
+  label?: string
 }) {
   return (
     <Sheet>
@@ -29,8 +31,12 @@ export function AboutNumbers({
           size="sm"
           className={cn("h-9 min-h-9 px-2 sm:h-11 sm:min-h-11 sm:px-3", triggerClassName)}
         >
-          <span className="sm:hidden">About</span>
-          <span className="hidden sm:inline">About the numbers</span>
+          {label ?? (
+            <>
+              <span className="sm:hidden">About</span>
+              <span className="hidden sm:inline">About the numbers</span>
+            </>
+          )}
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-lg">
@@ -101,7 +107,7 @@ export function AboutNumbers({
                 </Link>
               </p>
             </section>
-            <section className="space-y-2">
+            <section id="about-deprivation" className="space-y-2">
               <h3 className="font-medium text-foreground">Deprivation context</h3>
               <p>
                 English IoD 2025 File 10 (lower-tier) is a context strip on the

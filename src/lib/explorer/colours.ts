@@ -25,13 +25,13 @@ export const AVOIDABLE_RAMP = [
 ] as const
 
 export const DIVERGING_RAMP = [
-  "#44403c",
-  "#57534e",
-  "#78716c",
-  "#a8a29e",
-  "#d6d3d1",
+  "#334155",
+  "#475569",
+  "#64748b",
+  "#94a3b8",
+  "#e2e8f0",
   "#f8fafc",
-  "#ccfbf1",
+  "#99f6e4",
   "#5eead4",
   "#14b8a6",
   "#0f766e",

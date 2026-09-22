@@ -7,13 +7,44 @@ export const VIEW_OPTIONS: {
   id: ViewId
   label: string
   shortLabel: string
+  aria: string
 }[] = [
-  { id: "absolute", label: "Absolute", shortLabel: "Absolute" },
-  { id: "d2017", label: "Δ 2017–19", shortLabel: "Δ 2017–19" },
-  { id: "d2019", label: "Δ 2019–21", shortLabel: "Δ 2019–21" },
-  { id: "vs_nation", label: "vs nation", shortLabel: "vs nation" },
-  { id: "sex_gap", label: "Sex gap", shortLabel: "Sex gap" },
-  { id: "ci", label: "CI focus", shortLabel: "CI focus" },
+  {
+    id: "absolute",
+    label: "Absolute",
+    shortLabel: "Absolute",
+    aria: "Absolute life expectancy",
+  },
+  {
+    id: "d2017",
+    label: "Δ 2017–19",
+    shortLabel: "Δ 2017–19",
+    aria: "Change vs 2017–19 (pre-COVID)",
+  },
+  {
+    id: "d2019",
+    label: "Δ 2019–21",
+    shortLabel: "Δ 2019–21",
+    aria: "Change vs 2019–21 (trough)",
+  },
+  {
+    id: "vs_nation",
+    label: "vs nation",
+    shortLabel: "vs nation",
+    aria: "Area minus own nation comparator",
+  },
+  {
+    id: "sex_gap",
+    label: "Sex gap",
+    shortLabel: "Sex gap",
+    aria: "Male minus Female (derived)",
+  },
+  {
+    id: "ci",
+    label: "CI focus",
+    shortLabel: "CI focus",
+    aria: "Emphasise uncertainty on map + series",
+  },
 ]
 
 const VIEW_SET = new Set<string>(VIEW_OPTIONS.map((option) => option.id))
@@ -69,7 +100,7 @@ export function viewNote(view: ViewId): string {
     case "sex_gap":
       return `${SEX_GAP_LABEL}. Not an ONS persons estimate — local files have no persons LE.`
     case "ci":
-      return "Same Absolute fill. Hatching and lighter areas mark wider 95% intervals."
+      return "Same Absolute fill. Wider CI = less certain."
   }
 }
 
@@ -78,17 +109,15 @@ export function legendCaption(
   unit: string,
   opts?: { nationName?: string | null }
 ): string {
+  const deltaUnit = unit === "years" ? "Δ years" : `Δ ${unit}`
   switch (view) {
     case "d2017":
-      return `Δ vs 2017–19 (${unit})`
     case "d2019":
-      return `Δ vs 2019–21 (${unit})`
+      return deltaUnit
     case "vs_nation":
-      return opts?.nationName ? `vs ${opts.nationName} (${unit})` : `vs own nation (${unit})`
+      return opts?.nationName ? `vs ${opts.nationName} (${unit})` : `vs nation (${unit})`
     case "sex_gap":
-      return SEX_GAP_LABEL
-    case "ci":
-      return unit
+      return `M − F (${unit})`
     default:
       return unit
   }

@@ -92,7 +92,9 @@ export function deriveMap(args: {
         uncertain: delta.uncertain,
         hoverExtra:
           delta.value === null
-            ? undefined
+            ? now?.[0] !== null && now?.[0] !== undefined
+              ? `No ${label} baseline`
+              : "No figure in this cut"
             : `Δ vs ${label} ${signed(delta.value)}${delta.uncertain ? " · change uncertain (CIs overlap)" : ""}`,
       }
       continue
@@ -101,17 +103,23 @@ export function deriveMap(args: {
     if (view === "vs_nation") {
       const now = readPoint(file, area.code, sex, dim, periodIndex)
       const { nation, uk } = comparatorsFor(area)
-      const nationPoint = nation
-        ? readPoint(file, nation.code, sex, dim, periodIndex)
-        : uk
-          ? readPoint(file, uk.code, sex, dim, periodIndex)
-          : null
-      const nationName = nation?.name ?? (uk ? uk.name : null)
+      if (!nation) {
+        const own = NATION_COMPARATOR[area.nation]
+        if (own && own.code === area.code && now?.[0] !== null && now?.[0] !== undefined) {
+          out[area.code] = { value: 0, hoverExtra: `vs ${own.name} ${signed(0)}` }
+        } else {
+          out[area.code] = { value: null, hoverExtra: "No own-nation comparator" }
+        }
+        continue
+      }
+      const nationPoint = readPoint(file, nation.code, sex, dim, periodIndex)
       const delta = subtract(now, nationPoint)
       let extra: string | undefined
-      if (delta.value !== null && nationName) {
-        extra = `vs ${nationName} ${signed(delta.value)}`
-        if (uk && nation) {
+      if (delta.value === null) {
+        extra = "No own-nation comparator"
+      } else {
+        extra = `vs ${nation.name} ${signed(delta.value)}`
+        if (uk) {
           const ukDelta = subtract(now, readPoint(file, uk.code, sex, dim, periodIndex))
           if (ukDelta.value !== null) extra += ` · vs UK ${signed(ukDelta.value)}`
         }

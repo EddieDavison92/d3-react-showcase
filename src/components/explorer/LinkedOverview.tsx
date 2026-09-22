@@ -287,7 +287,16 @@ export function LinkedOverview({
                         unit
                       )
                     }
-                    const extra = derived[code]?.hoverExtra
+                    const cell = derived[code]
+                    const extra = cell?.hoverExtra
+                    if (
+                      (state.view === "d2017" ||
+                        state.view === "d2019" ||
+                        state.view === "vs_nation") &&
+                      (cell?.value === null || cell?.value === undefined)
+                    ) {
+                      return `${name}\n${extra ?? "No figure in this cut"}`
+                    }
                     const point = file ? readPoint(file, code, sex, dim, periodIndex) : null
                     return hoverText(name, point, unit, extra)
                   }}
@@ -307,7 +316,7 @@ export function LinkedOverview({
                   unit={legendCaption(state.view, unit, { nationName })}
                   note={
                     state.view === "ci"
-                      ? "Hatching and lighter fill mark wider 95% intervals. Rankings of small areas are uncertain."
+                      ? "Wider CI = less certain. Hatching and lighter fill mark wider 95% intervals."
                       : undefined
                   }
                 />
