@@ -22,10 +22,20 @@ export function MapLegend({
   const stops = Array.from({ length: 24 }, (_, i) => interpolateRamp(ramp, i / 23))
   return (
     <div className="w-full py-1 text-[11px]">
-      <div className="mb-1 flex justify-between text-muted-foreground">
-        <span>{reverseLabel ? formatYears(max, 0) : formatYears(min, 0)}</span>
+      <div className="mb-1 flex justify-between gap-2 text-muted-foreground">
+        <span>
+          {reverseLabel ? "Higher" : "Lower"}{" "}
+          <span className="tabular-nums">
+            {reverseLabel ? formatYears(max, 0) : formatYears(min, 0)}
+          </span>
+        </span>
         <span className="motion-safe:transition-opacity motion-safe:duration-200">{unit}</span>
-        <span>{reverseLabel ? formatYears(min, 0) : formatYears(max, 0)}</span>
+        <span>
+          {reverseLabel ? "Lower" : "Higher"}{" "}
+          <span className="tabular-nums">
+            {reverseLabel ? formatYears(min, 0) : formatYears(max, 0)}
+          </span>
+        </span>
       </div>
       <div className="relative flex h-2 overflow-hidden rounded-sm">
         {(reverseLabel ? [...stops].reverse() : stops).map((colour, i) => (

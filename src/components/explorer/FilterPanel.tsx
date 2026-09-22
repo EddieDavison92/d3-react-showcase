@@ -86,12 +86,10 @@ export function CompactFilterBar({
 export function FilterPanel({
   state,
   areas,
-  periods,
   onChange,
 }: {
   state: ExplorerState
   areas: AreaRecord[]
-  periods: string[]
   onChange: (patch: Partial<ExplorerState>) => void
 }) {
   const geos = geosFor(state.metric)
@@ -139,25 +137,6 @@ export function FilterPanel({
             ))}
         </select>
       </div>
-
-      {periods.length > 1 ? (
-        <div className="space-y-1.5">
-          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">
-            Period
-          </Label>
-          <select
-            className={selectClass}
-            value={state.year}
-            onChange={(event) => onChange({ year: event.target.value })}
-          >
-            {periods.map((period) => (
-              <option key={period} value={period}>
-                {period.replace(" to ", "–")}
-              </option>
-            ))}
-          </select>
-        </div>
-      ) : null}
 
       {sexes.length > 0 && !hideSex ? (
         <div className="space-y-1.5">

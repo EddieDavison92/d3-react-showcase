@@ -78,6 +78,21 @@ export function geoLabel(geo: GeoId): string {
   }
 }
 
+export function geoShort(geo: GeoId): string {
+  switch (geo) {
+    case "ltla":
+      return "Lower-tier UK"
+    case "counties":
+      return "Counties"
+    case "utla":
+      return "Upper-tier"
+    case "region":
+      return "Regions"
+    case "country":
+      return "Countries"
+  }
+}
+
 export function metricLabel(metric: MetricId): string {
   switch (metric) {
     case "le":
@@ -92,6 +107,19 @@ export function metricLabel(metric: MetricId): string {
       return "Treatable mortality"
     case "deprivation":
       return "Deprivation context"
+  }
+}
+
+export function metricShort(metric: MetricId): string {
+  switch (familyOf(metric)) {
+    case "le":
+      return "Period LE"
+    case "hle":
+      return "HLE"
+    case "avoidable":
+      return "Avoidable"
+    case "deprivation":
+      return "Deprivation"
   }
 }
 

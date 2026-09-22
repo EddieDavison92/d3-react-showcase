@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import * as d3 from "d3"
 import { compactPeriod } from "@/lib/explorer/format"
 import type { PackedPoint } from "@/lib/explorer/types"
@@ -16,34 +16,60 @@ export function PeriodScrub({
   periods,
   year,
   onYear,
+  hud,
+  onDragging,
 }: {
   periods: string[]
   year: string
   onYear: (year: string) => void
+  hud?: string | null
+  onDragging?: (dragging: boolean) => void
 }) {
+  const [dragging, setDragging] = useState(false)
   if (periods.length <= 1) return null
   const yearIndex = Math.max(0, periods.indexOf(year))
+  const fill = `${(yearIndex / (periods.length - 1)) * 100}%`
+
+  const setDrag = (next: boolean) => {
+    setDragging(next)
+    onDragging?.(next)
+  }
+
   return (
-    <div className="flex items-center gap-2">
-      <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
-        {compactPeriod(periods[0])}
-      </span>
-      <input
-        type="range"
-        min={0}
-        max={periods.length - 1}
-        value={yearIndex}
-        onChange={(event) => onYear(periods[Number(event.target.value)])}
-        className="h-11 min-h-11 w-full accent-teal-800"
-        aria-label="Period scrub"
-        aria-valuetext={compactPeriod(periods[yearIndex])}
-      />
-      <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
-        {compactPeriod(periods[periods.length - 1])}
-      </span>
-      <span className="hidden shrink-0 text-xs font-medium tabular-nums sm:inline">
-        {compactPeriod(year)}
-      </span>
+    <div className="space-y-0.5">
+      {dragging && hud ? (
+        <p className="text-[11px] tabular-nums text-muted-foreground">
+          {compactPeriod(year)} · {hud}
+        </p>
+      ) : null}
+      <div className="flex items-center gap-2">
+        <span className="w-12 shrink-0 text-[11px] tabular-nums text-muted-foreground">
+          {compactPeriod(periods[0])}
+        </span>
+        <input
+          type="range"
+          min={0}
+          max={periods.length - 1}
+          value={yearIndex}
+          onChange={(event) => onYear(periods[Number(event.target.value)])}
+          onPointerDown={(event) => {
+            event.currentTarget.setPointerCapture(event.pointerId)
+            setDrag(true)
+          }}
+          onPointerUp={() => setDrag(false)}
+          onPointerCancel={() => setDrag(false)}
+          className="period-scrub min-h-11 w-full"
+          style={{ ["--fill" as string]: fill }}
+          aria-label="Period scrub"
+          aria-valuetext={compactPeriod(periods[yearIndex])}
+        />
+        <span className="w-12 shrink-0 text-right text-[11px] tabular-nums text-muted-foreground">
+          {compactPeriod(periods[periods.length - 1])}
+        </span>
+      </div>
+      {!dragging ? (
+        <p className="text-center text-[11px] font-medium tabular-nums">{compactPeriod(year)}</p>
+      ) : null}
     </div>
   )
 }
@@ -164,7 +190,7 @@ export function SeriesPanel({
         .attr("d", line(item.points) ?? "")
         .attr("fill", "none")
         .attr("stroke", item.colour)
-        .attr("stroke-width", 2)
+        .attr("stroke-width", 2.5)
 
       item.points.forEach((point, i) => {
         if (point[0] === null) return

@@ -30,6 +30,8 @@ export function ChoroplethMap({
   year,
   view,
   enterMs = 0,
+  quietHover = false,
+  className,
 }: {
   geojson: FeatureCollection
   colours: Record<string, string>
@@ -41,6 +43,8 @@ export function ChoroplethMap({
   year?: string
   view?: string
   enterMs?: number
+  quietHover?: boolean
+  className?: string
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
@@ -305,7 +309,8 @@ export function ChoroplethMap({
       className={cn(
         "relative h-full min-h-[240px] w-full max-w-full overflow-hidden bg-[#f8fafc]",
         interactive ? "rounded-lg" : "rounded-none",
-        enterMs && ready ? "hero-map-enter" : ""
+        enterMs && ready ? "hero-map-enter" : "",
+        className
       )}
     >
       {!ready ? (
@@ -314,7 +319,7 @@ export function ChoroplethMap({
         </div>
       ) : null}
       <div ref={containerRef} className="absolute inset-0 h-full w-full max-w-full" />
-      {interactive && hover ? (
+      {interactive && hover && !quietHover ? (
         <div
           className="pointer-events-none absolute z-10 max-w-[min(100%-1rem,18rem)] whitespace-pre-wrap rounded-md border bg-popover px-2 py-1.5 text-xs shadow"
           style={tooltipStyle}

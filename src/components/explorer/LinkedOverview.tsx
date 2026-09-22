@@ -22,14 +22,13 @@ import {
 } from "@/lib/explorer/colours"
 import { familyOf } from "@/lib/explorer/catalogue"
 import { dimKey, geoUrl, readPoint, readSeries } from "@/lib/explorer/data"
-import { comparatorsFor, deriveMap, yearsNotInGoodHealth } from "@/lib/explorer/derive"
-import { formatCi } from "@/lib/explorer/format"
+import { comparatorsFor, deriveMap } from "@/lib/explorer/derive"
+import { formatCi, formatYears } from "@/lib/explorer/format"
 import { isDivergingView, legendCaption, viewsFor } from "@/lib/explorer/views"
 import type {
   AreaRecord,
   DeprivationFile,
   ExplorerState,
-  LookupsFile,
   MetricId,
   PackedFile,
   PackedPoint,
@@ -42,20 +41,14 @@ export function LinkedOverview({
   state,
   mapMetric,
   file,
-  le,
-  hle,
   deprivation,
-  lookups,
   areas,
   onChange,
 }: {
   state: ExplorerState
   mapMetric: MetricId
   file: PackedFile | null
-  le: PackedFile | null
-  hle: PackedFile | null
   deprivation: DeprivationFile | null
-  lookups: LookupsFile | null
   areas: AreaRecord[]
   onChange: (patch: Partial<ExplorerState>) => void
 }) {
@@ -66,6 +59,7 @@ export function LinkedOverview({
     data: FeatureCollection
   } | null>(null)
   const [geoFailed, setGeoFailed] = useState(false)
+  const [scrubbing, setScrubbing] = useState(false)
   const showMap = state.geo !== "country"
   const areaIndex = useMemo(
     () => new Map(areas.map((area) => [area.code, area])),
@@ -204,14 +198,7 @@ export function LinkedOverview({
   const focusCode = state.area ?? comparator?.code ?? null
   const focusPoint =
     focusCode && file ? readPoint(file, focusCode, sex, dim, periodIndex) : null
-  const birthPoint =
-    mapFamily === "le" && focusCode && file
-      ? readPoint(file, focusCode, sex, "birth", periodIndex)
-      : null
-  const age65Point =
-    mapFamily === "le" && focusCode && file
-      ? readPoint(file, focusCode, sex, "65", periodIndex)
-      : null
+  const focusCell = focusCode ? derived[focusCode] : undefined
   const malePoint =
     focusCode && file ? readPoint(file, focusCode, "Male", dim, periodIndex) : null
   const femalePoint =
@@ -223,28 +210,65 @@ export function LinkedOverview({
       : null
   const ukPoint =
     cmp?.uk && file ? readPoint(file, cmp.uk.code, sex, dim, periodIndex) : null
-  const divergence =
-    (mapFamily === "le" || mapFamily === "hle") && state.age === "birth"
-      ? yearsNotInGoodHealth({
-          le,
-          hle,
-          lookups,
-          code: state.area,
-          sex,
-          year: state.year,
-        })
-      : null
 
   const hasMapFeatures = Boolean(geojson && geojson.features.length > 0)
   const showStrip = mapFamily === "le" || mapFamily === "hle" || family === "deprivation"
   const switcherViews = viewsFor(state.metric)
   const nationName = cmp?.nation?.name ?? null
+  const englandPoint =
+    file && comparator ? readPoint(file, comparator.code, sex, dim, periodIndex) : null
+  const scrubHud = comparator
+    ? `${comparator.name} ${formatYears(englandPoint?.[0] ?? null)} ${unit}`
+    : null
+  const focusName =
+    selectedName ?? (comparator && !state.area ? "England (comparator)" : "Select an area")
+  const sexGap =
+    state.view === "sex_gap"
+      ? {
+          male: malePoint?.[0] ?? null,
+          female: femalePoint?.[0] ?? null,
+          gap:
+            malePoint?.[0] !== null &&
+            malePoint?.[0] !== undefined &&
+            femalePoint?.[0] !== null &&
+            femalePoint?.[0] !== undefined
+              ? malePoint[0] - femalePoint[0]
+              : null,
+          maleCi: formatCi(malePoint),
+          femaleCi: formatCi(femalePoint),
+        }
+      : null
+  const vsNation =
+    state.view === "vs_nation" && cmp
+      ? {
+          label: cmp.nation?.name ?? cmp.uk?.name ?? "nation",
+          delta:
+            focusPoint?.[0] !== null &&
+            focusPoint?.[0] !== undefined &&
+            nationPoint?.[0] !== null &&
+            nationPoint?.[0] !== undefined
+              ? focusPoint[0] - nationPoint[0]
+              : focusPoint?.[0] !== null &&
+                  focusPoint?.[0] !== undefined &&
+                  ukPoint?.[0] !== null &&
+                  ukPoint?.[0] !== undefined
+                ? focusPoint[0] - ukPoint[0]
+                : null,
+          ukDelta:
+            cmp.nation &&
+            ukPoint?.[0] !== null &&
+            ukPoint?.[0] !== undefined &&
+            focusPoint?.[0] !== null &&
+            focusPoint?.[0] !== undefined
+              ? focusPoint[0] - ukPoint[0]
+              : null,
+        }
+      : null
 
   return (
     <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-2 overflow-x-clip">
       <ContextChip
         state={state}
-        areaName={selectedName}
         mapMetric={mapMetric}
         nationName={nationName}
       />
@@ -262,15 +286,14 @@ export function LinkedOverview({
           emphasised={family === "deprivation"}
         />
       ) : null}
-      <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-3 md:flex-row">
-        <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-2 md:flex-[0.58]">
+      <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-2">
         {geoFailed ? (
           <EmptyNote title="Boundaries could not be loaded">
             The geography file for this cut did not load. Try another geography or reload.
           </EmptyNote>
         ) : showMap ? (
-          <div className="flex min-h-0 min-w-0 max-w-full flex-col gap-2">
-            <div className="relative h-[45dvh] min-h-[240px] w-full max-w-full lg:h-[min(62dvh,38rem)]">
+          <div className="flex min-h-0 min-w-0 max-w-full flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-[#f8fafc]">
+            <div className="relative h-[52dvh] min-h-[260px] w-full max-w-full lg:h-[min(68dvh,42rem)]">
               {hasMapFeatures && geojson ? (
                 <ChoroplethMap
                   geojson={geojson}
@@ -279,6 +302,8 @@ export function LinkedOverview({
                   selected={state.area}
                   year={state.year}
                   view={state.view}
+                  quietHover={scrubbing}
+                  className="rounded-none"
                   onSelect={(code) => onChange({ area: code })}
                   formatHover={(code, name) => {
                     if (state.view === "sex_gap" && file) {
@@ -311,9 +336,21 @@ export function LinkedOverview({
                   </p>
                 </div>
               )}
+              <div className="pointer-events-none absolute right-3 top-3 z-10 w-[min(100%-1.5rem,15rem)]">
+                <FocusReadout
+                  figure
+                  name={focusName}
+                  unit={unit}
+                  point={focusPoint}
+                  derivedValue={focusCell?.value}
+                  view={state.view}
+                  sexGap={sexGap}
+                  emphasiseCi={state.view === "ci"}
+                />
+              </div>
             </div>
-            {hasMapFeatures ? (
-              <div className="shrink-0">
+            <div className="space-y-1.5 bg-white/90 px-3 pb-2 pt-1">
+              {hasMapFeatures ? (
                 <MapLegend
                   min={painted.min}
                   max={painted.max}
@@ -326,15 +363,17 @@ export function LinkedOverview({
                       : undefined
                   }
                 />
-              </div>
-            ) : null}
-            {file && file.periods.length > 1 ? (
-              <PeriodScrub
-                periods={file.periods}
-                year={state.year}
-                onYear={(year) => onChange({ year })}
-              />
-            ) : null}
+              ) : null}
+              {file && file.periods.length > 1 ? (
+                <PeriodScrub
+                  periods={file.periods}
+                  year={state.year}
+                  onYear={(year) => onChange({ year })}
+                  hud={scrubHud}
+                  onDragging={setScrubbing}
+                />
+              ) : null}
+            </div>
           </div>
         ) : (
           <CountryTable
@@ -345,68 +384,6 @@ export function LinkedOverview({
             unit={legendCaption(state.view, unit, { nationName })}
           />
         )}
-        </div>
-        <div className="flex min-h-0 flex-col gap-3 rounded-lg bg-slate-50/70 p-3 md:flex-[0.42]">
-        <FocusReadout
-          name={
-            selectedName ??
-            (comparator && !state.area ? "England (comparator)" : "Select an area")
-          }
-          unit={unit}
-          point={focusPoint}
-          view={state.view}
-          derivedValue={focusCode ? derived[focusCode]?.value : null}
-          birthPoint={birthPoint}
-          age65Point={age65Point}
-          showAges={mapFamily === "le"}
-          divergence={divergence}
-          sexGap={
-            state.view === "sex_gap"
-              ? {
-                  male: malePoint?.[0] ?? null,
-                  female: femalePoint?.[0] ?? null,
-                  gap:
-                    malePoint?.[0] !== null &&
-                    malePoint?.[0] !== undefined &&
-                    femalePoint?.[0] !== null &&
-                    femalePoint?.[0] !== undefined
-                      ? malePoint[0] - femalePoint[0]
-                      : null,
-                  maleCi: formatCi(malePoint),
-                  femaleCi: formatCi(femalePoint),
-                }
-              : null
-          }
-          vsNation={
-            state.view === "vs_nation" && cmp
-              ? {
-                  label: cmp.nation?.name ?? cmp.uk?.name ?? "nation",
-                  delta:
-                    focusPoint?.[0] !== null &&
-                    focusPoint?.[0] !== undefined &&
-                    nationPoint?.[0] !== null &&
-                    nationPoint?.[0] !== undefined
-                      ? focusPoint[0] - nationPoint[0]
-                      : focusPoint?.[0] !== null &&
-                          focusPoint?.[0] !== undefined &&
-                          ukPoint?.[0] !== null &&
-                          ukPoint?.[0] !== undefined
-                        ? focusPoint[0] - ukPoint[0]
-                        : null,
-                  ukDelta:
-                    cmp.nation &&
-                    ukPoint?.[0] !== null &&
-                    ukPoint?.[0] !== undefined &&
-                    focusPoint?.[0] !== null &&
-                    focusPoint?.[0] !== undefined
-                      ? focusPoint[0] - ukPoint[0]
-                      : null,
-                }
-              : null
-          }
-          uncertainChange={Boolean(focusCode && derived[focusCode]?.uncertain && state.view !== "ci")}
-          emphasiseCi={state.view === "ci"}
-        />
         <SeriesPanel
           periods={file?.periods ?? []}
           series={series}
@@ -425,7 +402,6 @@ export function LinkedOverview({
             onChange({ compare: state.compare.filter((item) => item !== code) })
           }
         />
-        </div>
       </div>
     </div>
   )

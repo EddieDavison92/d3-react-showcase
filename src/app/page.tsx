@@ -23,7 +23,7 @@ export default function HomePage() {
           <Button asChild className="min-h-11 bg-teal-800 px-5 hover:bg-teal-900">
             <Link href={exploreHref()}>Open Explore</Link>
           </Button>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-teal-800">
             <Link href="/catalogue" className="underline-offset-4 hover:underline">
               Browse catalogue
             </Link>
@@ -31,7 +31,7 @@ export default function HomePage() {
             <AboutNumbers
               triggerVariant="ghost"
               label="About the numbers"
-              triggerClassName="h-auto min-h-0 px-0 text-sm font-normal text-muted-foreground underline-offset-4 hover:underline hover:text-foreground"
+              triggerClassName="h-auto min-h-0 px-0 text-sm font-normal text-teal-800 underline-offset-4 hover:underline hover:text-teal-950"
             />
           </p>
         </div>

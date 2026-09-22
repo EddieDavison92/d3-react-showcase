@@ -1,6 +1,6 @@
 import { formatCi, formatSigned, formatYears } from "@/lib/explorer/format"
 import type { PackedPoint, ViewId } from "@/lib/explorer/types"
-import { SEX_GAP_LABEL } from "@/lib/explorer/views"
+import { isDivergingView, SEX_GAP_LABEL } from "@/lib/explorer/views"
 
 export function FocusReadout({
   name,
@@ -16,6 +16,7 @@ export function FocusReadout({
   vsNation,
   uncertainChange,
   emphasiseCi,
+  figure,
 }: {
   name: string
   unit: string
@@ -36,7 +37,47 @@ export function FocusReadout({
   vsNation?: { label: string; delta: number | null; ukDelta?: number | null } | null
   uncertainChange?: boolean
   emphasiseCi?: boolean
+  figure?: boolean
 }) {
+  if (figure) {
+    const diverging = isDivergingView(view)
+    const value =
+      derivedValue !== undefined ? derivedValue : (point?.[0] ?? null)
+    const hasCi =
+      !diverging && point && point[1] !== null && point[2] !== null
+    return (
+      <div className="rounded-lg border border-slate-200/80 bg-white/90 px-3 py-2 shadow-sm backdrop-blur-sm dark:bg-slate-950/80">
+        <p className="text-[11px] text-muted-foreground">Selected</p>
+        <p className="text-sm font-semibold leading-tight">{name}</p>
+        {value !== null && value !== undefined ? (
+          <>
+            <p className="mt-0.5 text-3xl font-semibold tabular-nums tracking-tight text-teal-900 dark:text-teal-200">
+              {diverging ? formatSigned(value) : formatYears(value)}
+              <span className="ml-1 text-sm font-normal text-muted-foreground">{unit}</span>
+            </p>
+            {hasCi ? (
+              <p className="text-[11px] tabular-nums text-muted-foreground">
+                CI {formatYears(point[1])}–{formatYears(point[2])}
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="mt-1 text-xs text-muted-foreground">Select an area</p>
+        )}
+        {sexGap ? (
+          <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
+            Male {formatYears(sexGap.male)} · Female {formatYears(sexGap.female)}
+          </p>
+        ) : null}
+        {vsNation ? (
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            vs {vsNation.label} {formatSigned(vsNation.delta)}
+          </p>
+        ) : null}
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-2">
       <div>

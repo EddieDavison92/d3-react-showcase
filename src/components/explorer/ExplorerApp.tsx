@@ -158,7 +158,6 @@ export function ExplorerApp() {
       <FilterPanel
         state={state}
         areas={areas}
-        periods={periodsFor(state.metric)}
         onChange={commit}
       />
     </div>
@@ -166,7 +165,7 @@ export function ExplorerApp() {
 
   return (
     <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-3 overflow-x-clip lg:h-full lg:flex-row">
-      <aside className="hidden w-[280px] shrink-0 overflow-y-auto border-r pr-3 lg:block">
+      <aside className="hidden w-[220px] shrink-0 overflow-y-auto border-r pr-3 lg:block">
         {rail}
       </aside>
       <div className="flex flex-col gap-2 lg:hidden">
@@ -202,10 +201,7 @@ export function ExplorerApp() {
             state={state}
             mapMetric={mapMetric}
             file={file}
-            le={le}
-            hle={hle}
             deprivation={deprivation}
-            lookups={lookups}
             areas={areas}
             onChange={commit}
           />
