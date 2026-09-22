@@ -48,17 +48,19 @@ export function ChoroplethMap({
     const el = containerRef.current
     if (!el) return
     let map: maplibregl.Map | null = null
-    let fitted = false
+    let userMoved = false
+    let fitting = false
 
     const fit = () => {
-      if (!map || fitted) return
+      if (!map || userMoved) return
       map.resize()
       if (el.clientWidth < 8 || el.clientHeight < 8) return
+      fitting = true
       map.fitBounds(boundsOfGeojson(geojson) ?? UK_BOUNDS, {
-        padding: 20,
+        padding: 24,
         duration: 0,
       })
-      fitted = true
+      fitting = false
     }
 
     const attach = () => {
@@ -83,7 +85,7 @@ export function ChoroplethMap({
           ],
         },
         bounds: UK_BOUNDS,
-        fitBoundsOptions: { padding: 20, duration: 0 },
+        fitBoundsOptions: { padding: 24, duration: 0 },
         attributionControl: false,
         dragRotate: false,
         pitchWithRotate: false,
@@ -91,6 +93,11 @@ export function ChoroplethMap({
       })
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right")
       mapRef.current = map
+      const markMoved = () => {
+        if (!fitting) userMoved = true
+      }
+      map.on("dragstart", markMoved)
+      map.on("zoomstart", markMoved)
 
       map.on("load", () => {
         if (!map) return

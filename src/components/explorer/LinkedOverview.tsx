@@ -187,7 +187,7 @@ export function LinkedOverview({
             SIMD and NIMDM are not interactive in v1 and cannot be ranked with IoD.
           </EmptyNote>
         ) : showMap ? (
-          <div className="relative h-[min(52dvh,28rem)] min-h-[280px] w-full lg:h-auto lg:min-h-0 lg:flex-1">
+          <div className="relative h-[min(52dvh,28rem)] min-h-[280px] w-full lg:h-[min(58dvh,36rem)]">
             {hasMapFeatures && geojson ? (
               <ChoroplethMap
                 geojson={geojson}
