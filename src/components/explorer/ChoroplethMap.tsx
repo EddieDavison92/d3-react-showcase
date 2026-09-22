@@ -5,7 +5,7 @@ import maplibregl from "maplibre-gl"
 import "maplibre-gl/dist/maplibre-gl.css"
 import type { FeatureCollection } from "geojson"
 import { boundsOfGeojson } from "@/components/explorer/map-helpers"
-import { mixColour, motionMs, NO_DATA } from "@/lib/explorer/colours"
+import { motionMs, NO_DATA } from "@/lib/explorer/colours"
 import { buildHexField } from "@/lib/explorer/hex-field"
 import { cn } from "@/lib/utils"
 
@@ -19,6 +19,12 @@ const UK_BOUNDS: [[number, number], [number, number]] = [
 const MIN_SIZE = 24
 const INTERNAL_STROKE = "#94a3b8"
 const COAST_STROKE = "#475569"
+const FILL_OPACITY: maplibregl.ExpressionSpecification = [
+  "case",
+  ["boolean", ["feature-state", "hatch"], false],
+  0.58,
+  0.96,
+]
 
 export function ChoroplethMap({
   geojson,
@@ -101,8 +107,12 @@ export function ChoroplethMap({
 
     const attach = () => {
       if (!map?.getSource("hex")) return
-      paint(map, hexField, coloursRef.current, selectedRef.current, hatchRef.current)
-      paintedRef.current = coloursRef.current
+      if (!Object.keys(paintedRef.current).length) {
+        const shown = coloursRef.current
+        paint(map, hexField, shown, shown, selectedRef.current, hatchRef.current)
+        paintedRef.current = { ...shown }
+        setCover(map, 0)
+      }
       fit()
     }
 
@@ -182,14 +192,24 @@ export function ChoroplethMap({
               "to-color",
               ["coalesce", ["feature-state", "colour"], NO_DATA],
             ],
-            "fill-opacity": [
-              "case",
-              ["boolean", ["feature-state", "hatch"], false],
-              0.58,
-              0.96,
-            ],
+            "fill-opacity": FILL_OPACITY,
           },
         })
+        map.addLayer({
+          id: "fill-from",
+          type: "fill",
+          source: "hex",
+          paint: {
+            "fill-color": [
+              "to-color",
+              ["coalesce", ["feature-state", "prev"], NO_DATA],
+            ],
+            "fill-opacity": 0,
+          },
+        })
+        // Keep opacity writes instant so the RAF cover-fade is not fighting MapLibre's 300ms default.
+        map.setPaintProperty("fill", "fill-opacity-transition", { duration: 0, delay: 0 })
+        map.setPaintProperty("fill-from", "fill-opacity-transition", { duration: 0, delay: 0 })
         map.addLayer({
           id: "hatch",
           type: "fill",
@@ -221,7 +241,7 @@ export function ChoroplethMap({
           hoverId = id
           if (id) map.setFeatureState({ source: "hex", id }, { hover: true })
         }
-        map.on("mousemove", "fill", (event) => {
+        const onMove = (event: maplibregl.MapLayerMouseEvent) => {
           map!.getCanvas().style.cursor = "pointer"
           const feature = event.features?.[0]
           const code = String(feature?.properties?.code ?? "")
@@ -230,16 +250,21 @@ export function ChoroplethMap({
           if (!code) return
           setHexHover(id)
           setHover({ code, name, x: event.point.x, y: event.point.y })
-        })
-        map.on("mouseleave", "fill", () => {
+        }
+        const onLeave = () => {
           map!.getCanvas().style.cursor = ""
           setHexHover(null)
           setHover(null)
-        })
-        map.on("click", "fill", (event) => {
+        }
+        const onClick = (event: maplibregl.MapLayerMouseEvent) => {
           const code = String(event.features?.[0]?.properties?.code ?? "")
           if (code) onSelectRef.current(code)
-        })
+        }
+        for (const layer of ["fill", "fill-from"]) {
+          map.on("mousemove", layer, onMove)
+          map.on("mouseleave", layer, onLeave)
+          map.on("click", layer, onClick)
+        }
       })
     }
 
@@ -282,37 +307,58 @@ export function ChoroplethMap({
 
   useEffect(() => {
     const map = mapRef.current
-    if (!map?.isStyleLoaded()) return
-    cancelAnimationFrame(rafRef.current)
+    if (!map?.isStyleLoaded() || !map.getLayer("fill-from")) return
     const cue = cueRef.current
-    let duration = 0
-    if (view && view !== cue.view) duration = motionMs(240)
-    else if (year && year !== cue.year) duration = motionMs(180)
-    cueRef.current = { year, view }
+    const hasPainted = Object.keys(paintedRef.current).length > 0
+    const coloursChanged = hasPainted && !sameColours(paintedRef.current, colours)
     if (map.getLayer("line")) {
       const stroke = strokePaint(view)
       map.setPaintProperty("line", "line-color", stroke["line-color"])
       map.setPaintProperty("line", "line-width", stroke["line-width"])
       map.setPaintProperty("line", "line-opacity", stroke["line-opacity"])
     }
-    const from = paintedRef.current
-    if (!duration) {
-      paint(map, hexField, colours, selected, hatch)
-      paintedRef.current = colours
+    if (!hasPainted) {
+      paint(map, hexField, colours, colours, selected, hatch)
+      paintedRef.current = { ...colours }
+      setCover(map, 0)
+      cueRef.current = { year, view }
       return
     }
+    if (!coloursChanged) {
+      for (const feature of hexField.features) {
+        const id = String(feature.properties?.id ?? feature.id ?? "")
+        const code = String(feature.properties?.code ?? "")
+        if (!id || !code) continue
+        map.setFeatureState(
+          { source: "hex", id },
+          { selected: code === selected, hatch: Boolean(hatch?.[code]) }
+        )
+      }
+      cueRef.current = { year, view }
+      return
+    }
+    cancelAnimationFrame(rafRef.current)
+    const duration = view && view !== cue.view ? motionMs(240) : motionMs(180)
+    cueRef.current = { year, view }
+    const from = { ...paintedRef.current }
+    paintedRef.current = { ...colours }
+    if (!duration) {
+      paint(map, hexField, colours, colours, selected, hatch)
+      setCover(map, 0)
+      map.triggerRepaint()
+      return
+    }
+    // Same turn: old fills on the cover, new fills underneath. MapLibre presents one frame, then we dissolve.
+    paint(map, hexField, from, colours, selected, hatch)
+    setCover(map, 0.96)
+    map.triggerRepaint()
     const start = performance.now()
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / duration)
       const eased = 1 - (1 - t) * (1 - t)
-      const mid: Record<string, string> = {}
-      const codes = new Set([...Object.keys(from), ...Object.keys(colours)])
-      for (const code of codes) {
-        mid[code] = mixColour(from[code] ?? NO_DATA, colours[code] ?? NO_DATA, eased)
-      }
-      paint(map, hexField, mid, selected, hatch)
+      setCover(map, 0.96 * (1 - eased))
       if (t < 1) rafRef.current = requestAnimationFrame(tick)
-      else paintedRef.current = colours
+      else setCover(map, 0)
     }
     rafRef.current = requestAnimationFrame(tick)
   }, [colours, hatch, selected, hexField, year, view])
@@ -351,6 +397,11 @@ export function ChoroplethMap({
   )
 }
 
+function setCover(map: maplibregl.Map, opacity: number) {
+  if (!map.getLayer("fill-from")) return
+  map.setPaintProperty("fill-from", "fill-opacity", opacity)
+}
+
 function strokePaint(view?: string): {
   "line-color": maplibregl.ExpressionSpecification
   "line-width": maplibregl.ExpressionSpecification
@@ -375,6 +426,7 @@ function strokePaint(view?: string): {
 function paint(
   map: maplibregl.Map,
   hexField: FeatureCollection,
+  prev: Record<string, string>,
   colours: Record<string, string>,
   selected: string | null,
   hatch?: Record<string, boolean>
@@ -387,12 +439,22 @@ function paint(
     map.setFeatureState(
       { source: "hex", id },
       {
+        prev: prev[code] ?? colours[code] ?? NO_DATA,
         colour: colours[code] ?? NO_DATA,
         selected: code === selected,
         hatch: Boolean(hatch?.[code]),
       }
     )
   }
+}
+
+function sameColours(a: Record<string, string>, b: Record<string, string>): boolean {
+  const keys = Object.keys(b)
+  if (Object.keys(a).length !== keys.length) return false
+  for (const key of keys) {
+    if (a[key] !== b[key]) return false
+  }
+  return true
 }
 
 function hatchPattern(): { width: number; height: number; data: Uint8Array } {

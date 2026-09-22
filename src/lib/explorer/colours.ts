@@ -57,7 +57,11 @@ export function mixColour(a: string, b: string, t: number): string {
   const r = Math.round(pa[0] + (pb[0] - pa[0]) * t)
   const g = Math.round(pa[1] + (pb[1] - pa[1]) * t)
   const bl = Math.round(pa[2] + (pb[2] - pa[2]) * t)
-  return `rgb(${r}, ${g}, ${bl})`
+  return `#${toHex(r)}${toHex(g)}${toHex(bl)}`
+}
+
+function toHex(n: number): string {
+  return n.toString(16).padStart(2, "0")
 }
 
 function parseColour(hex: string): [number, number, number] {
