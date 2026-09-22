@@ -115,9 +115,11 @@
 [data-next-badge],
 [data-next-badge-root],
 [data-nextjs-dev-tools-button],
+[data-nextjs-toast],
 [data-vercel-toolbar],
 [data-vercel-toolbar-container],
-#vercel-live-feedback {
+#vercel-live-feedback,
+vercel-live-feedback {
   display: none !important;
 }
 

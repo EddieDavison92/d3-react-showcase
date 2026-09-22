@@ -111,7 +111,7 @@ export function ChoroplethMap({
         const shown = coloursRef.current
         paint(map, hexField, shown, shown, selectedRef.current, hatchRef.current)
         paintedRef.current = { ...shown }
-        setCover(map, 0, 0)
+        setCover(map, 0)
       }
       fit()
     }
@@ -207,6 +207,9 @@ export function ChoroplethMap({
             "fill-opacity": 0,
           },
         })
+        // Keep opacity writes instant so the RAF cover-fade is not fighting MapLibre's 300ms default.
+        map.setPaintProperty("fill", "fill-opacity-transition", { duration: 0, delay: 0 })
+        map.setPaintProperty("fill-from", "fill-opacity-transition", { duration: 0, delay: 0 })
         map.addLayer({
           id: "hatch",
           type: "fill",
@@ -304,43 +307,60 @@ export function ChoroplethMap({
 
   useEffect(() => {
     const map = mapRef.current
-    if (!map?.isStyleLoaded()) return
-    cancelAnimationFrame(rafRef.current)
+    if (!map?.isStyleLoaded() || !map.getLayer("fill-from")) return
     const cue = cueRef.current
     const hasPainted = Object.keys(paintedRef.current).length > 0
     const coloursChanged = hasPainted && !sameColours(paintedRef.current, colours)
-    let duration = 0
-    if (coloursChanged) {
-      duration = view && view !== cue.view ? motionMs(240) : motionMs(180)
-    }
-    cueRef.current = { year, view }
     if (map.getLayer("line")) {
       const stroke = strokePaint(view)
       map.setPaintProperty("line", "line-color", stroke["line-color"])
       map.setPaintProperty("line", "line-width", stroke["line-width"])
       map.setPaintProperty("line", "line-opacity", stroke["line-opacity"])
     }
+    if (!hasPainted) {
+      paint(map, hexField, colours, colours, selected, hatch)
+      paintedRef.current = { ...colours }
+      setCover(map, 0)
+      cueRef.current = { year, view }
+      return
+    }
+    if (!coloursChanged) {
+      for (const feature of hexField.features) {
+        const id = String(feature.properties?.id ?? feature.id ?? "")
+        const code = String(feature.properties?.code ?? "")
+        if (!id || !code) continue
+        map.setFeatureState(
+          { source: "hex", id },
+          { selected: code === selected, hatch: Boolean(hatch?.[code]) }
+        )
+      }
+      cueRef.current = { year, view }
+      return
+    }
+    cancelAnimationFrame(rafRef.current)
+    const duration = view && view !== cue.view ? motionMs(240) : motionMs(180)
+    cueRef.current = { year, view }
     const from = { ...paintedRef.current }
+    paintedRef.current = { ...colours }
     if (!duration) {
       paint(map, hexField, colours, colours, selected, hatch)
-      setCover(map, 0, 0)
-      paintedRef.current = colours
+      setCover(map, 0)
       map.triggerRepaint()
       return
     }
+    // Same turn: old fills on the cover, new fills underneath. MapLibre presents one frame, then we dissolve.
     paint(map, hexField, from, colours, selected, hatch)
-    paintedRef.current = colours
-    rafRef.current = requestAnimationFrame(() => {
-      setCover(map, 0.96, 0)
-      const start = performance.now()
-      const tick = (now: number) => {
-        const t = Math.min(1, (now - start) / duration)
-        const eased = 1 - (1 - t) * (1 - t)
-        setCover(map, 0.96 * (1 - eased), 0)
-        if (t < 1) rafRef.current = requestAnimationFrame(tick)
-      }
-      rafRef.current = requestAnimationFrame(tick)
-    })
+    setCover(map, 0.96)
+    map.triggerRepaint()
+    const start = performance.now()
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration)
+      const eased = 1 - (1 - t) * (1 - t)
+      setCover(map, 0.96 * (1 - eased))
+      if (t < 1) rafRef.current = requestAnimationFrame(tick)
+      else setCover(map, 0)
+    }
+    rafRef.current = requestAnimationFrame(tick)
   }, [colours, hatch, selected, hexField, year, view])
 
   const tooltipStyle = hover
@@ -377,12 +397,8 @@ export function ChoroplethMap({
   )
 }
 
-function setCover(map: maplibregl.Map, opacity: number, duration: number) {
+function setCover(map: maplibregl.Map, opacity: number) {
   if (!map.getLayer("fill-from")) return
-  map.setPaintProperty("fill-from", "fill-opacity-transition", {
-    duration,
-    delay: 0,
-  })
   map.setPaintProperty("fill-from", "fill-opacity", opacity)
 }
 

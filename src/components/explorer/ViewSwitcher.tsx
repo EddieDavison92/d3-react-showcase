@@ -116,7 +116,7 @@ export function ViewSwitcher({
         {peek.right ? (
           <span
             aria-hidden
-            className="pointer-events-none absolute inset-y-0 right-0 w-12 rounded-r-[10px] bg-gradient-to-l from-white from-40% to-transparent md:hidden"
+            className="pointer-events-none absolute inset-y-0 right-0 w-14 rounded-r-[10px] bg-gradient-to-l from-background from-30% to-transparent md:hidden"
           />
         ) : null}
       </div>
