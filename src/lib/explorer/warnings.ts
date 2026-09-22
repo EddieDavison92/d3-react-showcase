@@ -23,7 +23,7 @@ export const WARNING_COPY = {
     id: "avoidable-ew",
     tone: "always",
     title: "England and Wales only",
-    body: "Avoidable mortality here is England and Wales only. Scotland and Northern Ireland publish separate figures.",
+    body: "England and Wales only. Scotland and Northern Ireland publish separate figures.",
   },
   periodLe: {
     id: "period-le",
