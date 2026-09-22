@@ -19,12 +19,11 @@ const UK_BOUNDS: [[number, number], [number, number]] = [
 const MIN_SIZE = 24
 const INTERNAL_STROKE = "#94a3b8"
 const COAST_STROKE = "#475569"
-const FILL_SOLID = 0.96
 const FILL_OPACITY: maplibregl.ExpressionSpecification = [
   "case",
   ["boolean", ["feature-state", "hatch"], false],
   0.58,
-  FILL_SOLID,
+  0.96,
 ]
 
 export function ChoroplethMap({
@@ -63,7 +62,6 @@ export function ChoroplethMap({
   const cueRef = useRef({ year, view })
   const paintedRef = useRef<Record<string, string>>({})
   const rafRef = useRef(0)
-  const fadeRef = useRef(0)
   const [hover, setHover] = useState<HoverInfo | null>(null)
   const [size, setSize] = useState({ width: 320, height: 240 })
   const [ready, setReady] = useState(false)
@@ -113,7 +111,7 @@ export function ChoroplethMap({
         ? paintedRef.current
         : coloursRef.current
       paint(map, hexField, shown, shown, selectedRef.current, hatchRef.current)
-      setFillFade(map, 0, FILL_OPACITY, 0)
+      if (map.getLayer("fill")) map.setPaintProperty("fill", "fill-color", blendFill(1))
       if (!Object.keys(paintedRef.current).length) {
         paintedRef.current = { ...coloursRef.current }
       }
@@ -188,26 +186,11 @@ export function ChoroplethMap({
           },
         })
         map.addLayer({
-          id: "fill-from",
-          type: "fill",
-          source: "hex",
-          paint: {
-            "fill-color": [
-              "to-color",
-              ["coalesce", ["feature-state", "prev"], NO_DATA],
-            ],
-            "fill-opacity": 0,
-          },
-        })
-        map.addLayer({
           id: "fill",
           type: "fill",
           source: "hex",
           paint: {
-            "fill-color": [
-              "to-color",
-              ["coalesce", ["feature-state", "colour"], NO_DATA],
-            ],
+            "fill-color": blendFill(1),
             "fill-opacity": FILL_OPACITY,
           },
         })
@@ -261,11 +244,9 @@ export function ChoroplethMap({
           const code = String(event.features?.[0]?.properties?.code ?? "")
           if (code) onSelectRef.current(code)
         }
-        for (const layer of ["fill", "fill-from"]) {
-          map.on("mousemove", layer, onMove)
-          map.on("mouseleave", layer, onLeave)
-          map.on("click", layer, onClick)
-        }
+        map.on("mousemove", "fill", onMove)
+        map.on("mouseleave", "fill", onLeave)
+        map.on("click", "fill", onClick)
       })
     }
 
@@ -298,7 +279,6 @@ export function ChoroplethMap({
       cancelled = true
       cancelAnimationFrame(raf)
       cancelAnimationFrame(rafRef.current)
-      window.clearTimeout(fadeRef.current)
       observer.disconnect()
       window.visualViewport?.removeEventListener("resize", onViewport)
       window.removeEventListener("orientationchange", onViewport)
@@ -311,7 +291,6 @@ export function ChoroplethMap({
     const map = mapRef.current
     if (!map?.isStyleLoaded()) return
     cancelAnimationFrame(rafRef.current)
-    window.clearTimeout(fadeRef.current)
     const cue = cueRef.current
     const hasPainted = Object.keys(paintedRef.current).length > 0
     const coloursChanged = hasPainted && !sameColours(paintedRef.current, colours)
@@ -329,20 +308,24 @@ export function ChoroplethMap({
     const from = { ...paintedRef.current }
     if (!duration) {
       paint(map, hexField, colours, colours, selected, hatch)
-      setFillFade(map, 0, FILL_OPACITY, 0)
+      map.setPaintProperty("fill", "fill-color", blendFill(1))
       paintedRef.current = colours
       map.triggerRepaint()
       return
     }
     paint(map, hexField, from, colours, selected, hatch)
-    setFillFade(map, FILL_SOLID, 0, 0)
     paintedRef.current = colours
-    rafRef.current = requestAnimationFrame(() => {
-      setFillFade(map, 0, FILL_SOLID, duration)
-      fadeRef.current = window.setTimeout(() => {
-        setFillFade(map, 0, FILL_OPACITY, 0)
-      }, duration)
-    })
+    map.setPaintProperty("fill", "fill-color", blendFill(0))
+    const start = performance.now()
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration)
+      const eased = 1 - (1 - t) * (1 - t)
+      if (map.getLayer("fill")) {
+        map.setPaintProperty("fill", "fill-color", blendFill(eased))
+      }
+      if (t < 1) rafRef.current = requestAnimationFrame(tick)
+    }
+    rafRef.current = requestAnimationFrame(tick)
   }, [colours, hatch, selected, hexField, year, view])
 
   const tooltipStyle = hover
@@ -379,6 +362,19 @@ export function ChoroplethMap({
   )
 }
 
+function blendFill(t: number): maplibregl.ExpressionSpecification {
+  const u = Math.max(0, Math.min(1, t))
+  return [
+    "interpolate",
+    ["linear"],
+    ["+", u, ["*", 0, ["zoom"]]],
+    0,
+    ["to-color", ["coalesce", ["feature-state", "prev"], NO_DATA]],
+    1,
+    ["to-color", ["coalesce", ["feature-state", "colour"], NO_DATA]],
+  ]
+}
+
 function strokePaint(view?: string): {
   "line-color": maplibregl.ExpressionSpecification
   "line-width": maplibregl.ExpressionSpecification
@@ -397,28 +393,6 @@ function strokePaint(view?: string): {
     "line-color": ["case", active, lift, INTERNAL_STROKE],
     "line-width": ["case", active, 1, 0.6],
     "line-opacity": 0.42,
-  }
-}
-
-function setFillFade(
-  map: maplibregl.Map,
-  fromOpacity: number,
-  toOpacity: number | maplibregl.ExpressionSpecification,
-  duration: number
-) {
-  if (map.getLayer("fill-from")) {
-    map.setPaintProperty("fill-from", "fill-opacity-transition", {
-      duration,
-      delay: 0,
-    })
-    map.setPaintProperty("fill-from", "fill-opacity", fromOpacity)
-  }
-  if (map.getLayer("fill")) {
-    map.setPaintProperty("fill", "fill-opacity-transition", {
-      duration,
-      delay: 0,
-    })
-    map.setPaintProperty("fill", "fill-opacity", toOpacity)
   }
 }
 
