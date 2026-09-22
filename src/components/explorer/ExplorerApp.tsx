@@ -137,7 +137,13 @@ export function ExplorerApp() {
 
   const rail = (
     <div className="space-y-6">
-      <CatalogueRail metric={state.metric} onSelect={(metric) => commit({ metric })} />
+      <CatalogueRail
+        metric={state.metric}
+        onSelect={(metric) => {
+          commit({ metric })
+          setCutsOpen(false)
+        }}
+      />
       <FilterPanel
         state={state}
         areas={areas}

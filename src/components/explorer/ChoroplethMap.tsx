@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import maplibregl from "maplibre-gl"
 import "maplibre-gl/dist/maplibre-gl.css"
 import type { FeatureCollection } from "geojson"
+import { boundsOfGeojson } from "@/components/explorer/map-helpers"
 import { NO_DATA } from "@/lib/explorer/colours"
 
 type HoverInfo = { code: string; name: string; x: number; y: number }
@@ -53,19 +54,29 @@ export function ChoroplethMap({
           },
         ],
       },
-      bounds: [
-        [-8.6, 49.8],
-        [1.9, 59.5],
-      ],
-      fitBoundsOptions: { padding: 16 },
       attributionControl: false,
       dragRotate: false,
       pitchWithRotate: false,
+      renderWorldCopies: false,
     })
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right")
     mapRef.current = map
-    const observer = new ResizeObserver((entries) => {
+
+    let fitted = false
+    const fitIfSized = () => {
       map.resize()
+      const canvas = map.getCanvas()
+      if (canvas.width < 8 || canvas.height < 8) return
+      if (fitted) return
+      const bounds = boundsOfGeojson(geojson) ?? [
+        [-8.6, 49.8],
+        [1.9, 59.5],
+      ]
+      map.fitBounds(bounds, { padding: 20, duration: 0 })
+      fitted = true
+    }
+
+    const observer = new ResizeObserver((entries) => {
       const entry = entries[0]
       if (entry) {
         setSize({
@@ -73,11 +84,12 @@ export function ChoroplethMap({
           height: entry.contentRect.height,
         })
       }
+      if (map.isStyleLoaded()) fitIfSized()
+      else map.resize()
     })
     observer.observe(containerRef.current)
 
     map.on("load", () => {
-      map.resize()
       map.addSource("areas", {
         type: "geojson",
         data: geojson,
@@ -111,6 +123,7 @@ export function ChoroplethMap({
         },
       })
       paint(map, geojson, coloursRef.current, selectedRef.current)
+      fitIfSized()
 
       map.on("mousemove", "fill", (event) => {
         map.getCanvas().style.cursor = "pointer"
@@ -153,7 +166,7 @@ export function ChoroplethMap({
 
   return (
     <div className="relative h-full min-h-[220px] w-full overflow-hidden rounded-lg border bg-slate-50">
-      <div ref={containerRef} className="h-full w-full" />
+      <div ref={containerRef} className="absolute inset-0" />
       {hover ? (
         <div
           className="pointer-events-none absolute z-10 max-w-[min(100%-1rem,18rem)] whitespace-pre-wrap rounded-md border bg-popover px-2 py-1.5 text-xs shadow"

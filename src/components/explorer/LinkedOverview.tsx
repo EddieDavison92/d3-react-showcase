@@ -139,20 +139,31 @@ export function LinkedOverview({
         : "years"
 
   const selectedName = state.area ? areaIndex.get(state.area)?.name : null
+  const comparator = file?.areas.find((area) => area.code === "E92000001")
   const seriesCodes = Array.from(
-    new Set([state.area, ...state.compare].filter(Boolean))
+    new Set(
+      [state.area, ...state.compare, !state.area && comparator ? comparator.code : null].filter(
+        Boolean
+      )
+    )
   ) as string[]
 
   const series = useMemo(() => {
     if (!file) return []
     return seriesCodes.map((code, i) => ({
       code,
-      name: areaIndex.get(code)?.name ?? code,
+      name:
+        code === comparator?.code && !state.area
+          ? "England (comparator)"
+          : (areaIndex.get(code)?.name ??
+            file.areas.find((area) => area.code === code)?.name ??
+            code),
       colour: COMPARE_COLOURS[i] ?? "#334155",
       points: readSeries(file, code, sex, dim) ?? file.periods.map((): PackedPoint => [null, null, null]),
     }))
-  }, [areaIndex, dim, file, seriesCodes, sex])
+  }, [areaIndex, comparator?.code, dim, file, seriesCodes, sex, state.area])
 
+  const hasMapFeatures = Boolean(geojson && geojson.features.length > 0)
   const walesEmpty = family === "deprivation" && state.area?.startsWith("W")
   const scotNiEmpty =
     family === "deprivation" &&
@@ -176,8 +187,8 @@ export function LinkedOverview({
             SIMD and NIMDM are not interactive in v1 and cannot be ranked with IoD.
           </EmptyNote>
         ) : showMap ? (
-          <div className="relative h-[min(42dvh,400px)] min-h-[240px] md:h-[min(56dvh,560px)] md:min-h-[320px] lg:h-auto lg:min-h-0 lg:flex-1">
-            {geojson ? (
+          <div className="relative h-[min(52dvh,28rem)] min-h-[280px] w-full lg:h-[min(64dvh,40rem)]">
+            {hasMapFeatures && geojson ? (
               <ChoroplethMap
                 geojson={geojson}
                 colours={painted.colours}
@@ -198,11 +209,11 @@ export function LinkedOverview({
                 }}
               />
             ) : (
-              <div className="flex h-full min-h-[220px] items-center justify-center rounded-lg border bg-slate-50 text-sm text-muted-foreground">
-                Loading map…
+              <div className="flex h-full min-h-[220px] items-center justify-center rounded-lg border bg-slate-50 p-4 text-sm text-muted-foreground">
+                {geojson ? "No boundaries in this cut." : "Loading map…"}
               </div>
             )}
-            {geojson ? (
+            {hasMapFeatures ? (
               <div className="pointer-events-none absolute bottom-3 left-2 right-2 max-w-sm sm:left-3 sm:right-3">
                 <MapLegend
                   min={family === "deprivation" ? -painted.max : painted.min}

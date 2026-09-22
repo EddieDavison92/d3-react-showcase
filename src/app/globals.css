@@ -65,16 +65,13 @@
   * {
     @apply border-border;
   }
+  html {
+    @apply h-full overflow-x-clip;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply min-h-dvh overflow-x-clip bg-background text-foreground;
     font-synthesis-weight: none;
     text-rendering: optimizeLegibility;
-  }
-}
-
-@layer utilities {
-  .text-foreground {
-    color: var(--foreground);
   }
 }
 

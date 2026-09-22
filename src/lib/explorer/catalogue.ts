@@ -32,7 +32,7 @@ export const CATALOGUE: CatalogueCard[] = [
     title: "Deprivation context",
     blurb:
       "Nation-specific indices shown as context, not as an explanation of life expectancy. Not a UK league table.",
-    badges: ["England IoD25", "Wales WIMD25", "Not causal"],
+    badges: ["England IoD25", "Wales not bundled", "Not causal"],
   },
 ]
 

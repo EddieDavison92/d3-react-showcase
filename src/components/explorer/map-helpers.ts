@@ -1,6 +1,39 @@
+import type { FeatureCollection } from "geojson"
 import { interpolateRamp, linearT, NO_DATA } from "@/lib/explorer/colours"
 import { formatRate, formatYears } from "@/lib/explorer/format"
 import type { PackedPoint } from "@/lib/explorer/types"
+
+export function boundsOfGeojson(
+  geojson: FeatureCollection
+): [[number, number], [number, number]] | null {
+  let minX = 180
+  let minY = 90
+  let maxX = -180
+  let maxY = -90
+
+  const walk = (coords: unknown) => {
+    if (!Array.isArray(coords)) return
+    if (typeof coords[0] === "number" && typeof coords[1] === "number") {
+      minX = Math.min(minX, coords[0])
+      maxX = Math.max(maxX, coords[0])
+      minY = Math.min(minY, coords[1])
+      maxY = Math.max(maxY, coords[1])
+      return
+    }
+    for (const item of coords) walk(item)
+  }
+
+  for (const feature of geojson.features) {
+    if (feature.geometry && "coordinates" in feature.geometry) {
+      walk(feature.geometry.coordinates)
+    }
+  }
+  if (minX === 180) return null
+  return [
+    [minX, minY],
+    [maxX, maxY],
+  ]
+}
 
 export function colourLookup(
   values: Record<string, number | null>,

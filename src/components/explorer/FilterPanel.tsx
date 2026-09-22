@@ -32,6 +32,7 @@ function Segmented<T extends string>({
               ? "border-teal-800 bg-teal-800 text-white"
               : "border-input bg-background hover:bg-muted"
           )}
+          aria-pressed={value === option.value}
         >
           {option.label}
         </button>
