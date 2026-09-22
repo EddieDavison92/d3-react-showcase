@@ -1,0 +1,185 @@
+"use client"
+
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { CatalogueRail } from "@/components/explorer/CatalogueRail"
+import { FilterPanel } from "@/components/explorer/FilterPanel"
+import { LinkedOverview } from "@/components/explorer/LinkedOverview"
+import { WarningBanner } from "@/components/explorer/WarningBanner"
+import { Button } from "@/components/ui/button"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import { familyOf } from "@/lib/explorer/catalogue"
+import {
+  areasForGeo,
+  indexAreas,
+  loadAvoidable,
+  loadDeprivation,
+  loadHle,
+  loadLe,
+  loadLookups,
+} from "@/lib/explorer/data"
+import { applyExplorerChange } from "@/lib/explorer/nesting"
+import { DEFAULT_STATE, parseSearchParams, toSearchParams } from "@/lib/explorer/url-state"
+import type {
+  DeprivationFile,
+  ExplorerState,
+  LookupsFile,
+  MetricId,
+  PackedFile,
+} from "@/lib/explorer/types"
+
+export function ExplorerApp() {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const [le, setLe] = useState<PackedFile | null>(null)
+  const [hle, setHle] = useState<PackedFile | null>(null)
+  const [avoidable, setAvoidable] = useState<PackedFile | null>(null)
+  const [deprivation, setDeprivation] = useState<DeprivationFile | null>(null)
+  const [lookups, setLookups] = useState<LookupsFile | null>(null)
+
+  useEffect(() => {
+    loadLe().then(setLe).catch(() => setLe(null))
+    loadHle().then(setHle).catch(() => setHle(null))
+    loadLookups().then(setLookups).catch(() => setLookups(null))
+  }, [])
+
+  const query = searchParams.toString()
+  const parsed = useMemo(
+    () => parseSearchParams(new URLSearchParams(query)),
+    [query]
+  )
+  const family = familyOf(parsed.metric ?? DEFAULT_STATE.metric)
+
+  useEffect(() => {
+    if (family === "avoidable" && !avoidable) {
+      loadAvoidable().then(setAvoidable).catch(() => setAvoidable(null))
+    }
+    if (family === "deprivation" && !deprivation) {
+      loadDeprivation().then(setDeprivation).catch(() => setDeprivation(null))
+    }
+  }, [family, avoidable, deprivation])
+
+  const areaByCode = useMemo(
+    () => indexAreas([le, hle, avoidable].filter(Boolean) as PackedFile[]),
+    [le, hle, avoidable]
+  )
+
+  const periodsFor = useCallback(
+    (metric: MetricId) => {
+      const kind = familyOf(metric)
+      if (kind === "le") return le?.periods ?? []
+      if (kind === "hle") return hle?.periods ?? []
+      if (kind === "avoidable") return avoidable?.periods ?? []
+      return ["2025"]
+    },
+    [le, hle, avoidable]
+  )
+
+  const ctx = useMemo(() => {
+    if (!lookups) return null
+    return { lookups, periodsFor, areaByCode }
+  }, [lookups, periodsFor, areaByCode])
+
+  const applied = useMemo(() => {
+    if (!ctx) return { state: { ...DEFAULT_STATE, ...parsed }, warnings: [] }
+    return applyExplorerChange(DEFAULT_STATE, parsed, ctx)
+  }, [ctx, parsed])
+
+  const state = applied.state
+  const warnings = applied.warnings
+
+  useEffect(() => {
+    if (!ctx) return
+    const canonical = toSearchParams(state).toString()
+    const current = toSearchParams({ ...DEFAULT_STATE, ...parsed }).toString()
+    if (canonical !== current) {
+      router.replace(`${pathname}?${canonical}`, { scroll: false })
+    }
+  }, [ctx, state, parsed, pathname, router])
+
+  const commit = useCallback(
+    (patch: Partial<ExplorerState>) => {
+      if (!ctx) return
+      const next = applyExplorerChange(state, patch, ctx)
+      router.replace(`${pathname}?${toSearchParams(next.state).toString()}`, {
+        scroll: false,
+      })
+    },
+    [ctx, pathname, router, state]
+  )
+
+  const file =
+    family === "le" ? le : family === "hle" ? hle : family === "avoidable" ? avoidable : null
+
+  const areas = useMemo(() => {
+    if (family === "deprivation") {
+      const leCodes = new Set(
+        (le?.areas ?? [])
+          .filter((area) => area.grain === "ltla" && area.nation === "E")
+          .map((area) => area.code)
+      )
+      return (deprivation?.england?.areas ?? []).filter((area) => leCodes.has(area.code))
+    }
+    if (!file) return []
+    return areasForGeo(file, state.geo, state.metric)
+  }, [deprivation, family, file, le, state.geo, state.metric])
+
+  const ready = Boolean(lookups && (family === "deprivation" ? deprivation : file))
+
+  const rail = (
+    <div className="space-y-6">
+      <CatalogueRail metric={state.metric} onSelect={(metric) => commit({ metric })} />
+      <FilterPanel
+        state={state}
+        areas={areas}
+        periods={periodsFor(state.metric)}
+        onChange={commit}
+      />
+    </div>
+  )
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
+      <aside className="hidden w-[280px] shrink-0 overflow-y-auto border-r pr-3 lg:block">
+        {rail}
+      </aside>
+      <div className="lg:hidden">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="sm">
+              Browse cuts
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[min(100%,22rem)] overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle>Catalogue</SheetTitle>
+            </SheetHeader>
+            <div className="mt-4">{rail}</div>
+          </SheetContent>
+        </Sheet>
+      </div>
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
+        <WarningBanner warnings={warnings} />
+        {ready ? (
+          <LinkedOverview
+            key={family}
+            state={state}
+            file={file}
+            deprivation={deprivation}
+            areas={areas}
+            onChange={commit}
+          />
+        ) : (
+          <p className="text-sm text-muted-foreground">Loading ONS figures…</p>
+        )}
+      </div>
+    </div>
+  )
+}

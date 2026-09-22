@@ -1,0 +1,12 @@
+import { Suspense } from "react"
+import { ExplorerApp } from "@/components/explorer/ExplorerApp"
+
+export default function ExplorePage() {
+  return (
+    <div className="flex min-h-[calc(100vh-8.5rem)] min-w-0 flex-1 flex-col">
+      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading explorer…</p>}>
+        <ExplorerApp />
+      </Suspense>
+    </div>
+  )
+}

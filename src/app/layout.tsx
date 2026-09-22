@@ -6,14 +6,16 @@ import { SiteFooter } from "@/components/site-footer"
 import { siteConfig } from "@/config/site"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Analytics } from "@vercel/analytics/react"
+import { TooltipProvider } from "@/components/ui/tooltip"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: siteConfig.name,
+  title: {
+    default: siteConfig.name,
+    template: `%s · ${siteConfig.name}`,
+  },
   description: siteConfig.description,
 }
-
-const font = fontSans;
 
 interface RootLayoutProps {
   children: React.ReactNode
@@ -21,23 +23,24 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head />
-        <body className={cn("min-h-screen antialiased flex flex-col", fontSans.className)}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem
-            disableTransitionOnChange
-          >
-          <SiteHeader />
-          <div className="flex-1 flex mx-auto overflow-y-auto">
+    <html lang="en-GB" suppressHydrationWarning>
+      <body className={cn("flex min-h-screen flex-col antialiased", fontSans.className)}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <TooltipProvider>
+            <SiteHeader />
+            <main className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col px-4 py-4">
               {children}
-          </div>
-          <SiteFooter />
-          </ThemeProvider>
-          <Analytics/>
-        </body>
+            </main>
+            <SiteFooter />
+          </TooltipProvider>
+        </ThemeProvider>
+        <Analytics />
+      </body>
     </html>
   )
 }
