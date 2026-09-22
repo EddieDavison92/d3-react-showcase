@@ -101,8 +101,13 @@ export function ChoroplethMap({
 
     const attach = () => {
       if (!map?.getSource("hex")) return
-      paint(map, hexField, coloursRef.current, selectedRef.current, hatchRef.current)
-      paintedRef.current = coloursRef.current
+      const shown = Object.keys(paintedRef.current).length
+        ? paintedRef.current
+        : coloursRef.current
+      paint(map, hexField, shown, selectedRef.current, hatchRef.current)
+      if (!Object.keys(paintedRef.current).length) {
+        paintedRef.current = { ...coloursRef.current }
+      }
       fit()
     }
 
@@ -285,9 +290,12 @@ export function ChoroplethMap({
     if (!map?.isStyleLoaded()) return
     cancelAnimationFrame(rafRef.current)
     const cue = cueRef.current
+    const hasPainted = Object.keys(paintedRef.current).length > 0
+    const coloursChanged = hasPainted && !sameColours(paintedRef.current, colours)
     let duration = 0
-    if (view && view !== cue.view) duration = motionMs(240)
-    else if (year && year !== cue.year) duration = motionMs(180)
+    if (coloursChanged) {
+      duration = view && view !== cue.view ? motionMs(240) : motionMs(180)
+    }
     cueRef.current = { year, view }
     if (map.getLayer("line")) {
       const stroke = strokePaint(view)
@@ -295,10 +303,11 @@ export function ChoroplethMap({
       map.setPaintProperty("line", "line-width", stroke["line-width"])
       map.setPaintProperty("line", "line-opacity", stroke["line-opacity"])
     }
-    const from = paintedRef.current
+    const from = { ...paintedRef.current }
     if (!duration) {
       paint(map, hexField, colours, selected, hatch)
       paintedRef.current = colours
+      map.triggerRepaint()
       return
     }
     const start = performance.now()
@@ -311,10 +320,12 @@ export function ChoroplethMap({
         mid[code] = mixColour(from[code] ?? NO_DATA, colours[code] ?? NO_DATA, eased)
       }
       paint(map, hexField, mid, selected, hatch)
+      paintedRef.current = mid
+      map.triggerRepaint()
       if (t < 1) rafRef.current = requestAnimationFrame(tick)
       else paintedRef.current = colours
     }
-    rafRef.current = requestAnimationFrame(tick)
+    tick(start)
   }, [colours, hatch, selected, hexField, year, view])
 
   const tooltipStyle = hover
@@ -393,6 +404,15 @@ function paint(
       }
     )
   }
+}
+
+function sameColours(a: Record<string, string>, b: Record<string, string>): boolean {
+  const keys = Object.keys(b)
+  if (Object.keys(a).length !== keys.length) return false
+  for (const key of keys) {
+    if (a[key] !== b[key]) return false
+  }
+  return true
 }
 
 function hatchPattern(): { width: number; height: number; data: Uint8Array } {

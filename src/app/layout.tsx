@@ -15,6 +15,9 @@ export const metadata: Metadata = {
     template: `%s · ${siteConfig.name}`,
   },
   description: siteConfig.description,
+  other: {
+    "vercel-toolbar": "disable",
+  },
 }
 
 interface RootLayoutProps {

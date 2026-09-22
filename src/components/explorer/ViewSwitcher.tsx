@@ -19,19 +19,41 @@ export function ViewSwitcher({
     : VIEW_OPTIONS
   const rowRef = useRef<HTMLDivElement>(null)
   const [pill, setPill] = useState({ left: 0, width: 0 })
+  const [peek, setPeek] = useState({ left: false, right: false })
 
   useLayoutEffect(() => {
     const row = rowRef.current
     if (!row) return
     const measure = () => {
       const selected = row.querySelector('[aria-checked="true"]') as HTMLElement | null
-      if (!selected) return
-      setPill({ left: selected.offsetLeft, width: selected.offsetWidth })
+      if (selected) setPill({ left: selected.offsetLeft, width: selected.offsetWidth })
+      const max = row.scrollWidth - row.clientWidth
+      setPeek({
+        left: row.scrollLeft > 4,
+        right: max > 4 && row.scrollLeft < max - 4,
+      })
     }
+    const reveal = () => {
+      const selected = row.querySelector('[aria-checked="true"]') as HTMLElement | null
+      if (!selected) return
+      const edge = 12
+      const start = selected.offsetLeft
+      const end = start + selected.offsetWidth
+      if (start < row.scrollLeft + edge) {
+        row.scrollTo({ left: Math.max(0, start - edge) })
+      } else if (end > row.scrollLeft + row.clientWidth - 28) {
+        row.scrollTo({ left: end - row.clientWidth + 28 })
+      }
+    }
+    reveal()
     measure()
     const observer = new ResizeObserver(measure)
     observer.observe(row)
-    return () => observer.disconnect()
+    row.addEventListener("scroll", measure, { passive: true })
+    return () => {
+      observer.disconnect()
+      row.removeEventListener("scroll", measure)
+    }
   }, [value, shown.length])
 
   if (!shown.length) return null
@@ -49,40 +71,54 @@ export function ViewSwitcher({
 
   return (
     <div className="min-w-0 space-y-1">
-      <div
-        ref={rowRef}
-        className="relative flex flex-nowrap overflow-x-auto rounded-[10px] bg-slate-100/80 p-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        role="radiogroup"
-        aria-label="Map view"
-        onKeyDown={move}
-      >
-        <span
-          aria-hidden
-          className="pointer-events-none absolute top-0.5 bottom-0.5 rounded-md bg-teal-800 motion-safe:transition-[left,width] motion-safe:duration-150"
-          style={{ left: pill.left, width: pill.width }}
-        />
-        {shown.map((option, index) => {
-          const selected = value === option.id
-          return (
-            <button
-              key={option.id}
-              type="button"
-              role="radio"
-              aria-checked={selected}
-              aria-label={option.aria}
-              title={option.aria}
-              onClick={() => onChange(option.id)}
-              className={cn(
-                "relative z-[1] h-9 min-h-9 min-w-[4.6rem] shrink-0 grow basis-0 whitespace-nowrap px-1.5 text-center text-[13px] font-medium md:h-8 md:min-h-8 md:min-w-[6.2rem]",
-                index > 0 && !selected ? "border-l border-slate-200" : "border-l border-transparent",
-                selected ? "text-white" : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <span className="md:hidden">{option.shortLabel}</span>
-              <span className="hidden md:inline">{option.label}</span>
-            </button>
-          )
-        })}
+      <div className="relative min-w-0">
+        <div
+          ref={rowRef}
+          className="relative flex flex-nowrap overflow-x-auto rounded-[10px] bg-slate-100/80 p-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          role="radiogroup"
+          aria-label="Map view"
+          onKeyDown={move}
+        >
+          <span
+            aria-hidden
+            className="pointer-events-none absolute top-0.5 bottom-0.5 rounded-md bg-teal-800 motion-safe:transition-[left,width] motion-safe:duration-200"
+            style={{ left: pill.left, width: pill.width }}
+          />
+          {shown.map((option, index) => {
+            const selected = value === option.id
+            return (
+              <button
+                key={option.id}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                aria-label={option.aria}
+                title={option.aria}
+                onClick={() => onChange(option.id)}
+                className={cn(
+                  "relative z-[1] h-9 min-h-9 min-w-[3.85rem] shrink-0 whitespace-nowrap px-1.5 text-center text-[13px] font-medium md:h-8 md:min-h-8 md:min-w-[6.2rem] md:grow md:basis-0",
+                  index > 0 && !selected ? "border-l border-slate-200" : "border-l border-transparent",
+                  selected ? "text-white" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <span className="md:hidden">{option.shortLabel}</span>
+                <span className="hidden md:inline">{option.label}</span>
+              </button>
+            )
+          })}
+        </div>
+        {peek.left ? (
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 left-0 w-7 rounded-l-[10px] bg-gradient-to-r from-slate-100 to-transparent md:hidden"
+          />
+        ) : null}
+        {peek.right ? (
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-[10px] bg-gradient-to-l from-slate-100 to-transparent md:hidden"
+          />
+        ) : null}
       </div>
       <p className="text-[11px] leading-snug text-muted-foreground">{viewNote(value)}</p>
     </div>
