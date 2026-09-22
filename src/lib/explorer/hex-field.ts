@@ -77,7 +77,7 @@ function latticeSize(centres: { x: number; y: number }[]): number {
   }
   distances.sort((a, b) => a - b)
   const median = distances[Math.floor(distances.length / 2)] || 12_000
-  return Math.max(7_500, Math.min(22_000, median / Math.sqrt(3)))
+  return Math.max(10_000, Math.min(24_000, median / Math.sqrt(3)))
 }
 
 function pixelToHex(x: number, y: number, size: number): Pt {

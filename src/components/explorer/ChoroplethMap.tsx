@@ -153,7 +153,7 @@ export function ChoroplethMap({
           source: "coast",
           paint: {
             "fill-color": "#e2e8f0",
-            "fill-opacity": 0.45,
+            "fill-opacity": 0.16,
           },
         })
         map.addLayer({
@@ -163,8 +163,8 @@ export function ChoroplethMap({
           layout: { "line-join": "round" },
           paint: {
             "line-color": COAST_STROKE,
-            "line-width": 1.05,
-            "line-opacity": 0.55,
+            "line-width": 0.9,
+            "line-opacity": 0.4,
           },
         })
         map.addSource("hex", {
