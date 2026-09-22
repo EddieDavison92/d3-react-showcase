@@ -107,13 +107,11 @@ export function ChoroplethMap({
 
     const attach = () => {
       if (!map?.getSource("hex")) return
-      const shown = Object.keys(paintedRef.current).length
-        ? paintedRef.current
-        : coloursRef.current
-      paint(map, hexField, shown, shown, selectedRef.current, hatchRef.current)
-      setCover(map, 0, 0)
       if (!Object.keys(paintedRef.current).length) {
-        paintedRef.current = { ...coloursRef.current }
+        const shown = coloursRef.current
+        paint(map, hexField, shown, shown, selectedRef.current, hatchRef.current)
+        paintedRef.current = { ...shown }
+        setCover(map, 0, 0)
       }
       fit()
     }
