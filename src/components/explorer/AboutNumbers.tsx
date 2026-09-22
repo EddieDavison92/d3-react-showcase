@@ -12,16 +12,28 @@ import {
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { ONS_LINKS } from "@/lib/explorer/catalogue"
+import { cn } from "@/lib/utils"
 
-export function AboutNumbers({ triggerClassName }: { triggerClassName?: string }) {
+export function AboutNumbers({
+  triggerClassName,
+  triggerVariant = "ghost",
+}: {
+  triggerClassName?: string
+  triggerVariant?: "ghost" | "outline"
+}) {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="sm" className={triggerClassName}>
-          About the numbers
+        <Button
+          variant={triggerVariant}
+          size="sm"
+          className={cn("min-h-11 px-2 sm:px-3", triggerClassName)}
+        >
+          <span className="sm:hidden">About</span>
+          <span className="hidden sm:inline">About the numbers</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-full sm:max-w-lg">
+      <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-lg">
         <SheetHeader>
           <SheetTitle>About the numbers</SheetTitle>
           <SheetDescription>

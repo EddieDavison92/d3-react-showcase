@@ -77,3 +77,13 @@
     color: var(--foreground);
   }
 }
+
+.maplibregl-ctrl-group button {
+  width: 2.75rem !important;
+  height: 2.75rem !important;
+}
+
+.maplibregl-ctrl-top-right {
+  top: 0.35rem;
+  right: 0.35rem;
+}

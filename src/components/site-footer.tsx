@@ -3,15 +3,14 @@ import { ONS_LINKS } from "@/lib/explorer/catalogue"
 
 export function SiteFooter() {
   return (
-    <footer className="border-t py-3">
-      <div className="mx-auto flex max-w-[1600px] flex-col gap-1 px-4 text-xs leading-relaxed text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+    <footer className="shrink-0 border-t py-2 sm:py-3">
+      <div className="mx-auto flex max-w-[1600px] flex-col gap-1 px-3 text-xs leading-relaxed text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-4">
         <p>
-          Source: Office for National Statistics, licensed under the{" "}
+          Source: ONS,{" "}
           <Link className="underline underline-offset-4" href={ONS_LINKS.ogl}>
-            Open Government Licence v3.0
+            OGL v3.0
           </Link>
-          . Boundaries: ONS Open Geography (contains OS data © Crown copyright
-          and database right).
+          . Boundaries: ONS Open Geography (OS © Crown copyright).
         </p>
         <p>Not official ONS software. Period LE is not a forecast.</p>
       </div>

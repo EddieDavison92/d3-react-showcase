@@ -27,6 +27,7 @@ export function ChoroplethMap({
   const coloursRef = useRef(colours)
   const selectedRef = useRef(selected)
   const [hover, setHover] = useState<HoverInfo | null>(null)
+  const [size, setSize] = useState({ width: 320, height: 240 })
 
   useEffect(() => {
     onSelectRef.current = onSelect
@@ -63,8 +64,20 @@ export function ChoroplethMap({
     })
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right")
     mapRef.current = map
+    const observer = new ResizeObserver((entries) => {
+      map.resize()
+      const entry = entries[0]
+      if (entry) {
+        setSize({
+          width: entry.contentRect.width,
+          height: entry.contentRect.height,
+        })
+      }
+    })
+    observer.observe(containerRef.current)
 
     map.on("load", () => {
+      map.resize()
       map.addSource("areas", {
         type: "geojson",
         data: geojson,
@@ -118,6 +131,7 @@ export function ChoroplethMap({
     })
 
     return () => {
+      observer.disconnect()
       map.remove()
       mapRef.current = null
     }
@@ -130,13 +144,20 @@ export function ChoroplethMap({
     paint(map, geojson, colours, selected)
   }, [colours, selected, geojson])
 
+  const tooltipStyle = hover
+    ? {
+        left: Math.max(8, Math.min(hover.x + 12, size.width - 168)),
+        top: Math.max(8, Math.min(hover.y + 12, size.height - 80)),
+      }
+    : undefined
+
   return (
-    <div className="relative h-full min-h-[280px] w-full overflow-hidden rounded-lg border bg-slate-50">
+    <div className="relative h-full min-h-[220px] w-full overflow-hidden rounded-lg border bg-slate-50">
       <div ref={containerRef} className="h-full w-full" />
       {hover ? (
         <div
-          className="pointer-events-none absolute z-10 max-w-xs whitespace-pre-wrap rounded-md border bg-popover px-2 py-1.5 text-xs shadow"
-          style={{ left: hover.x + 12, top: hover.y + 12 }}
+          className="pointer-events-none absolute z-10 max-w-[min(100%-1rem,18rem)] whitespace-pre-wrap rounded-md border bg-popover px-2 py-1.5 text-xs shadow"
+          style={tooltipStyle}
         >
           {formatHover(hover.code, hover.name)}
         </div>

@@ -27,7 +27,7 @@ export function CatalogueRail({
               type="button"
               onClick={() => onSelect(card.id)}
               className={cn(
-                "w-full rounded-lg border p-3 text-left transition-colors",
+                "min-h-11 w-full rounded-lg border p-3 text-left transition-colors",
                 active
                   ? "border-teal-700 bg-teal-50 shadow-sm dark:border-teal-400 dark:bg-teal-950/40"
                   : "border-border bg-card hover:bg-muted/60"

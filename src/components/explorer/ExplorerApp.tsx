@@ -3,18 +3,19 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { CatalogueRail } from "@/components/explorer/CatalogueRail"
-import { FilterPanel } from "@/components/explorer/FilterPanel"
+import { CompactFilterBar, FilterPanel } from "@/components/explorer/FilterPanel"
 import { LinkedOverview } from "@/components/explorer/LinkedOverview"
 import { WarningBanner } from "@/components/explorer/WarningBanner"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { familyOf } from "@/lib/explorer/catalogue"
+import { familyOf, metricLabel } from "@/lib/explorer/catalogue"
 import {
   areasForGeo,
   indexAreas,
@@ -38,6 +39,7 @@ export function ExplorerApp() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const [cutsOpen, setCutsOpen] = useState(false)
   const [le, setLe] = useState<PackedFile | null>(null)
   const [hle, setHle] = useState<PackedFile | null>(null)
   const [avoidable, setAvoidable] = useState<PackedFile | null>(null)
@@ -150,20 +152,30 @@ export function ExplorerApp() {
       <aside className="hidden w-[280px] shrink-0 overflow-y-auto border-r pr-3 lg:block">
         {rail}
       </aside>
-      <div className="lg:hidden">
-        <Sheet>
+      <div className="flex flex-col gap-2 lg:hidden">
+        <Sheet open={cutsOpen} onOpenChange={setCutsOpen}>
           <SheetTrigger asChild>
-            <Button variant="outline" size="sm">
-              Browse cuts
+            <Button variant="outline" className="min-h-11 w-full justify-between text-left">
+              <span>Browse cuts</span>
+              <span className="truncate text-xs font-normal text-muted-foreground">
+                {metricLabel(state.metric)}
+              </span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-[min(100%,22rem)] overflow-y-auto">
-            <SheetHeader>
+          <SheetContent
+            side="bottom"
+            className="flex max-h-[88dvh] w-full flex-col overflow-y-auto rounded-t-xl p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+          >
+            <SheetHeader className="text-left">
               <SheetTitle>Catalogue</SheetTitle>
+              <SheetDescription>
+                Pick a metric family, then geography, period, sex and age. Companions remount Explore.
+              </SheetDescription>
             </SheetHeader>
             <div className="mt-4">{rail}</div>
           </SheetContent>
         </Sheet>
+        <CompactFilterBar state={state} onChange={commit} />
       </div>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
         <WarningBanner warnings={warnings} />

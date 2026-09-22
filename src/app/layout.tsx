@@ -24,7 +24,12 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en-GB" suppressHydrationWarning>
-      <body className={cn("flex min-h-screen flex-col antialiased", fontSans.className)}>
+      <body
+        className={cn(
+          "flex min-h-dvh flex-col overflow-x-clip touch-manipulation antialiased",
+          fontSans.className
+        )}
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
@@ -33,7 +38,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         >
           <TooltipProvider>
             <SiteHeader />
-            <main className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col px-4 py-4">
+            <main className="mx-auto flex min-h-0 w-full min-w-0 max-w-[1600px] flex-1 flex-col overflow-x-clip px-3 py-3 sm:px-4 sm:py-4">
               {children}
             </main>
             <SiteFooter />

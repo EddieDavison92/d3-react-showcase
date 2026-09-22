@@ -11,7 +11,7 @@ const ChoroplethMap = dynamic(
 import { ContextChip } from "@/components/explorer/ContextChip"
 import { colourLookup, hoverText } from "@/components/explorer/map-helpers"
 import { MapLegend } from "@/components/explorer/MapLegend"
-import { SeriesPanel } from "@/components/explorer/SeriesPanel"
+import { PeriodScrub, SeriesPanel } from "@/components/explorer/SeriesPanel"
 import {
   AVOIDABLE_RAMP,
   DEPRIVATION_RAMP,
@@ -19,7 +19,7 @@ import {
   TEAL_RAMP,
 } from "@/lib/explorer/colours"
 import { familyOf, metricLabel } from "@/lib/explorer/catalogue"
-import { areasForGeo, dimKey, geoUrl, readPoint, readSeries } from "@/lib/explorer/data"
+import { dimKey, geoUrl, readPoint, readSeries } from "@/lib/explorer/data"
 import { formatYears } from "@/lib/explorer/format"
 import type {
   AreaRecord,
@@ -46,7 +46,10 @@ export function LinkedOverview({
   onChange: (patch: Partial<ExplorerState>) => void
 }) {
   const family = familyOf(state.metric)
-  const [geojson, setGeojson] = useState<FeatureCollection | null>(null)
+  const [geoPayload, setGeoPayload] = useState<{
+    geo: string
+    data: FeatureCollection
+  } | null>(null)
   const showMap = state.geo !== "country"
   const areaIndex = useMemo(
     () => new Map(areas.map((area) => [area.code, area])),
@@ -55,24 +58,31 @@ export function LinkedOverview({
 
   useEffect(() => {
     if (!showMap) return
-    const allowed = new Set(areas.map((a) => a.code))
+    const geo = state.geo
     let cancelled = false
-    fetch(geoUrl(state.geo))
+    fetch(geoUrl(geo))
       .then((res) => res.json())
       .then((raw: FeatureCollection) => {
-        if (cancelled) return
-        const features = raw.features.filter((feature) =>
-          allowed.has(String(feature.properties?.code ?? ""))
-        ) as Feature[]
-        setGeojson({ type: "FeatureCollection", features })
+        if (!cancelled) setGeoPayload({ geo, data: raw })
       })
       .catch(() => {
-        if (!cancelled) setGeojson({ type: "FeatureCollection", features: [] })
+        if (!cancelled) setGeoPayload({ geo, data: { type: "FeatureCollection", features: [] } })
       })
     return () => {
       cancelled = true
     }
-  }, [state.geo, showMap, areas])
+  }, [state.geo, showMap])
+
+  const geojson = useMemo(() => {
+    if (!showMap || !geoPayload || geoPayload.geo !== state.geo) return null
+    const allowed = new Set(areas.map((area) => area.code))
+    return {
+      type: "FeatureCollection" as const,
+      features: geoPayload.data.features.filter((feature) =>
+        allowed.has(String(feature.properties?.code ?? ""))
+      ) as Feature[],
+    }
+  }, [areas, geoPayload, showMap, state.geo])
 
   const periodIndex = file ? file.periods.indexOf(state.year) : -1
   const dim = file ? dimKey(state.metric, state.age) : "birth"
@@ -149,8 +159,8 @@ export function LinkedOverview({
     Boolean(state.area && (state.area.startsWith("S") || state.area.startsWith("N")))
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
-      <div className="relative flex min-h-[320px] flex-[0.55] flex-col gap-2">
+    <div className="flex min-h-0 flex-1 flex-col gap-3 md:flex-row">
+      <div className="relative flex min-h-0 flex-col gap-2 md:flex-[0.55]">
         <ContextChip state={state} areaName={selectedName} />
         {family === "deprivation" && !deprivation?.england ? (
           <EmptyNote title="Deprivation file missing">
@@ -165,41 +175,49 @@ export function LinkedOverview({
           <EmptyNote title="Scotland and Northern Ireland">
             SIMD and NIMDM are not interactive in v1 and cannot be ranked with IoD.
           </EmptyNote>
-        ) : showMap && geojson ? (
-          <div className="relative min-h-0 flex-1">
-            <ChoroplethMap
-              geojson={geojson}
-              colours={painted.colours}
-              selected={state.area}
-              onSelect={(code) => onChange({ area: code })}
-              formatHover={(code, name) => {
-                if (family === "deprivation") {
-                  const rec = deprivation?.england?.values[code]
-                  if (!rec) return `${name}\nNo IoD figure`
-                  return `${name}\nRank of average score ${rec.rankAverageScore} of England LAs (1 = most deprived)\nAverage score ${formatYears(rec.averageScore, 1)}`
-                }
-                const point = file ? readPoint(file, code, sex, dim, periodIndex) : null
-                const extra =
-                  state.view === "delta" && values[code] !== null
-                    ? `Change ${formatYears(values[code], 1)} ${unit}`
-                    : undefined
-                return hoverText(name, point, unit, extra)
-              }}
-            />
-            <div className="pointer-events-none absolute bottom-3 left-3 right-3 max-w-sm">
-              <MapLegend
-                min={family === "deprivation" ? -painted.max : painted.min}
-                max={family === "deprivation" ? -painted.min : painted.max}
-                ramp={ramp}
-                unit={
-                  state.view === "delta"
-                    ? `Δ ${unit}`
-                    : family === "deprivation"
-                      ? "more deprived →"
-                      : unit
-                }
+        ) : showMap ? (
+          <div className="relative h-[min(42dvh,400px)] min-h-[240px] md:h-[min(56dvh,560px)] md:min-h-[320px] lg:h-auto lg:min-h-0 lg:flex-1">
+            {geojson ? (
+              <ChoroplethMap
+                geojson={geojson}
+                colours={painted.colours}
+                selected={state.area}
+                onSelect={(code) => onChange({ area: code })}
+                formatHover={(code, name) => {
+                  if (family === "deprivation") {
+                    const rec = deprivation?.england?.values[code]
+                    if (!rec) return `${name}\nNo IoD figure`
+                    return `${name}\nRank of average score ${rec.rankAverageScore} of England LAs (1 = most deprived)\nAverage score ${formatYears(rec.averageScore, 1)}`
+                  }
+                  const point = file ? readPoint(file, code, sex, dim, periodIndex) : null
+                  const extra =
+                    state.view === "delta" && values[code] !== null
+                      ? `Change ${formatYears(values[code], 1)} ${unit}`
+                      : undefined
+                  return hoverText(name, point, unit, extra)
+                }}
               />
-            </div>
+            ) : (
+              <div className="flex h-full min-h-[220px] items-center justify-center rounded-lg border bg-slate-50 text-sm text-muted-foreground">
+                Loading map…
+              </div>
+            )}
+            {geojson ? (
+              <div className="pointer-events-none absolute bottom-3 left-2 right-2 max-w-sm sm:left-3 sm:right-3">
+                <MapLegend
+                  min={family === "deprivation" ? -painted.max : painted.min}
+                  max={family === "deprivation" ? -painted.min : painted.max}
+                  ramp={ramp}
+                  unit={
+                    state.view === "delta"
+                      ? `Δ ${unit}`
+                      : family === "deprivation"
+                        ? "more deprived →"
+                        : unit
+                  }
+                />
+              </div>
+            ) : null}
           </div>
         ) : (
           <CountryTable
@@ -210,8 +228,15 @@ export function LinkedOverview({
             unit={unit}
           />
         )}
+        {showMap && file && file.periods.length > 1 ? (
+          <PeriodScrub
+            periods={file.periods}
+            year={state.year}
+            onYear={(year) => onChange({ year })}
+          />
+        ) : null}
       </div>
-      <div className="flex min-h-[260px] flex-[0.45] flex-col rounded-lg border bg-card p-3">
+      <div className="flex min-h-[240px] flex-col rounded-lg border bg-card p-3 md:min-h-[320px] md:flex-[0.45] lg:min-h-0">
         {family === "deprivation" ? (
           <DeprivationPanel
             state={state}
@@ -243,7 +268,7 @@ export function LinkedOverview({
 
 function EmptyNote({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-1 items-center rounded-lg border border-dashed bg-muted/30 p-6">
+    <div className="flex min-h-[180px] flex-1 items-center rounded-lg border border-dashed bg-muted/30 p-4 sm:p-6">
       <div>
         <p className="font-medium">{title}</p>
         <p className="mt-1 text-sm text-muted-foreground">{children}</p>

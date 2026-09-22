@@ -6,26 +6,28 @@ import type { AgeId, AreaRecord, ExplorerState, GeoId, MetricId, SexId, ViewId }
 import { cn } from "@/lib/utils"
 
 const selectClass =
-  "flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+  "flex min-h-11 w-full rounded-md border border-input bg-background px-3 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:text-sm"
 
 function Segmented<T extends string>({
   value,
   options,
   onChange,
+  ariaLabel,
 }: {
   value: T
   options: { value: T; label: string }[]
   onChange: (value: T) => void
+  ariaLabel?: string
 }) {
   return (
-    <div className="flex flex-wrap gap-1">
+    <div className="flex flex-wrap gap-1" role="group" aria-label={ariaLabel}>
       {options.map((option) => (
         <button
           key={option.value}
           type="button"
           onClick={() => onChange(option.value)}
           className={cn(
-            "rounded-md border px-2.5 py-1 text-xs",
+            "min-h-11 min-w-11 rounded-md border px-3 text-sm",
             value === option.value
               ? "border-teal-800 bg-teal-800 text-white"
               : "border-input bg-background hover:bg-muted"
@@ -34,6 +36,42 @@ function Segmented<T extends string>({
           {option.label}
         </button>
       ))}
+    </div>
+  )
+}
+
+export function CompactFilterBar({
+  state,
+  onChange,
+}: {
+  state: ExplorerState
+  onChange: (patch: Partial<ExplorerState>) => void
+}) {
+  const sexes = sexesFor(state.metric)
+  const showAge = hasAge(state.metric)
+  if (sexes.length === 0 && !showAge) return null
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {sexes.length > 0 ? (
+        <Segmented
+          ariaLabel="Sex"
+          value={state.sex}
+          options={sexes.map((sex) => ({ value: sex, label: sex }))}
+          onChange={(sex: SexId) => onChange({ sex })}
+        />
+      ) : null}
+      {showAge ? (
+        <Segmented
+          ariaLabel="Age"
+          value={state.age}
+          options={[
+            { value: "birth", label: "At birth" },
+            { value: "65", label: "At 65" },
+          ]}
+          onChange={(age: AgeId) => onChange({ age })}
+        />
+      ) : null}
     </div>
   )
 }
@@ -120,6 +158,7 @@ export function FilterPanel({
             Sex
           </Label>
           <Segmented
+            ariaLabel="Sex"
             value={state.sex}
             options={sexes.map((sex) => ({ value: sex, label: sex }))}
             onChange={(sex: SexId) => onChange({ sex })}
@@ -133,6 +172,7 @@ export function FilterPanel({
             Age
           </Label>
           <Segmented
+            ariaLabel="Age"
             value={state.age}
             options={[
               { value: "birth", label: "At birth" },
@@ -149,6 +189,7 @@ export function FilterPanel({
             Totals
           </Label>
           <Segmented
+            ariaLabel="Avoidable totals"
             value={state.metric}
             options={[
               { value: "avoidable", label: "Avoidable" },
@@ -166,6 +207,7 @@ export function FilterPanel({
             Map scale
           </Label>
           <Segmented
+            ariaLabel="Map scale"
             value={state.view}
             options={[
               { value: "abs", label: "Absolute" },

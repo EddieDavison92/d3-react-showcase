@@ -22,8 +22,15 @@ export function ContextChip({
   if (areaName) bits.push(areaName)
 
   return (
-    <p className="rounded-full border bg-background/90 px-3 py-1 text-xs text-muted-foreground shadow-sm">
-      {bits.join(" · ")}
-    </p>
+    <div className="flex flex-wrap gap-1">
+      {bits.map((bit) => (
+        <span
+          key={bit}
+          className="rounded-full border bg-background/90 px-2.5 py-1 text-[11px] leading-tight text-muted-foreground"
+        >
+          {bit}
+        </span>
+      ))}
+    </div>
   )
 }

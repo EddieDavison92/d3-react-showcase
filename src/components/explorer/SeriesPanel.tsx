@@ -12,6 +12,41 @@ type Series = {
   points: PackedPoint[]
 }
 
+export function PeriodScrub({
+  periods,
+  year,
+  onYear,
+}: {
+  periods: string[]
+  year: string
+  onYear: (year: string) => void
+}) {
+  if (periods.length <= 1) return null
+  const yearIndex = Math.max(0, periods.indexOf(year))
+  return (
+    <div className="flex items-center gap-2">
+      <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
+        {compactPeriod(periods[0])}
+      </span>
+      <input
+        type="range"
+        min={0}
+        max={periods.length - 1}
+        value={yearIndex}
+        onChange={(event) => onYear(periods[Number(event.target.value)])}
+        className="h-11 min-h-11 w-full accent-teal-800"
+        aria-label="Period scrub"
+      />
+      <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
+        {compactPeriod(periods[periods.length - 1])}
+      </span>
+      <span className="hidden shrink-0 text-xs font-medium tabular-nums sm:inline">
+        {compactPeriod(year)}
+      </span>
+    </div>
+  )
+}
+
 export function SeriesPanel({
   periods,
   series,
@@ -56,7 +91,7 @@ export function SeriesPanel({
     const root = d3.select(svg)
     root.selectAll("*").remove()
     const width = svg.clientWidth || 480
-    const height = 220
+    const height = 200
     const margin = { top: 12, right: 12, bottom: 28, left: 36 }
     const innerW = width - margin.left - margin.right
     const innerH = height - margin.top - margin.bottom
@@ -143,9 +178,12 @@ export function SeriesPanel({
   const primary = series[0]
 
   return (
-    <div className="flex h-full min-h-[240px] flex-col gap-2">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
+    <div className="flex h-full min-h-[220px] flex-col gap-2">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Timeline
+          </p>
           <p className="text-sm font-medium">
             {primary ? primary.name : "Select an area"}
             {primary && primary.points[yearIndex]?.[0] !== null
@@ -163,27 +201,21 @@ export function SeriesPanel({
             </p>
           )}
         </div>
-        <button
-          type="button"
-          disabled={!canCompare}
-          onClick={onAddCompare}
-          className="rounded-md border px-2 py-1 text-xs disabled:opacity-40"
-        >
-          Add to compare
-        </button>
+        <div className="flex flex-col items-end gap-1">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Compare
+          </p>
+          <button
+            type="button"
+            disabled={!canCompare}
+            onClick={onAddCompare}
+            className="min-h-11 rounded-md border px-3 text-sm disabled:opacity-40"
+          >
+            Add to compare
+          </button>
+        </div>
       </div>
-      <svg ref={svgRef} className="w-full" height={220} />
-      {periods.length > 1 ? (
-        <input
-          type="range"
-          min={0}
-          max={periods.length - 1}
-          value={yearIndex}
-          onChange={(event) => onYear(periods[Number(event.target.value)])}
-          className="w-full accent-teal-800"
-          aria-label="Period scrub"
-        />
-      ) : null}
+      <svg ref={svgRef} className="w-full min-w-0" height={200} />
       {series.length > 1 ? (
         <div className="flex flex-wrap gap-1">
           {series.slice(1).map((item) => (
@@ -191,14 +223,16 @@ export function SeriesPanel({
               key={item.code}
               type="button"
               onClick={() => onRemoveCompare(item.code)}
-              className="rounded-full border px-2 py-0.5 text-[11px]"
+              className="min-h-11 rounded-full border px-3 text-xs"
               style={{ borderColor: item.colour, color: item.colour }}
             >
               {item.name} ×
             </button>
           ))}
         </div>
-      ) : null}
+      ) : (
+        <p className="text-xs text-muted-foreground">Up to two extra areas.</p>
+      )}
     </div>
   )
 }
