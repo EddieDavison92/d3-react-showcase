@@ -197,7 +197,6 @@ export function ChoroplethMap({
               ["coalesce", ["feature-state", "prev"], NO_DATA],
             ],
             "fill-opacity": 0,
-            "fill-opacity-transition": { duration: 0, delay: 0 },
           },
         })
         map.addLayer({
@@ -210,7 +209,6 @@ export function ChoroplethMap({
               ["coalesce", ["feature-state", "colour"], NO_DATA],
             ],
             "fill-opacity": FILL_OPACITY,
-            "fill-opacity-transition": { duration: 0, delay: 0 },
           },
         })
         map.addLayer({
