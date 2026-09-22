@@ -69,10 +69,8 @@ export function ChoroplethMap({
         source: "areas",
         paint: {
           "fill-color": [
-            "case",
-            ["!=", ["feature-state", "colour"], null],
-            ["to-color", ["feature-state", "colour"]],
-            NO_DATA,
+            "to-color",
+            ["coalesce", ["feature-state", "colour"], NO_DATA],
           ],
           "fill-opacity": 0.92,
         },
