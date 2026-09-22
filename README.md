@@ -33,4 +33,4 @@ Processed JSON lives in `public/data/`. Simplified ONS Open Geography BUC bounda
 python3 scripts/build-explorer-data.py
 ```
 
-(Requires the original extracts next to the script’s configured uploads path.)
+Requires the original extracts in `uploads/` (or `$EXPLORER_UPLOADS`). Optional IoD markdown fallback: `$EXPLORER_IOD_MARKDOWN` (default `uploads/iod.md`). Processed JSON is committed under `public/data/`, so a normal checkout does not need a rebuild.

@@ -18,6 +18,9 @@ function loadJson<T>(url: string): Promise<T> {
     return res.json() as Promise<T>
   })
   cache.set(url, pending)
+  pending.catch(() => {
+    cache.delete(url)
+  })
   return pending
 }
 

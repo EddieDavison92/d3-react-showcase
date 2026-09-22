@@ -19,7 +19,10 @@ from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-UPLOADS = Path("/home/ubuntu/.cursor/projects/workspace/uploads")
+UPLOADS = Path(os.environ.get("EXPLORER_UPLOADS", ROOT / "uploads"))
+IOD_MARKDOWN = Path(
+    os.environ.get("EXPLORER_IOD_MARKDOWN", ROOT / "uploads" / "iod.md")
+)
 OUT_DATA = ROOT / "public" / "data"
 OUT_GEO = ROOT / "public" / "geo"
 NS = {"m": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
@@ -127,10 +130,6 @@ IOD_URL = (
     "https://assets.publishing.service.gov.uk/media/"
     "6917412ebc34c86ce4e6e7fc/File_10_-_IoD2025_Local_Authority_District_Summaries__lower-tier__v2.xlsx"
 )
-WIMD_URLS = [
-    "https://www.gov.wales/sites/default/files/statistics-and-research/2025-11/welsh-index-multiple-deprivation-2025-local-authority-analysis.ods",
-    "https://www.gov.wales/sites/default/files/statistics-and-research/2025-11/welsh-index-multiple-deprivation-2025-local-authority-analysis.xlsx",
-]
 
 
 def nation_of(code: str) -> str:
@@ -503,9 +502,8 @@ def build_iod() -> dict | None:
     data = fetch(IOD_URL)
     if not data:
         # Parse the already-fetched markdown table as a last resort.
-        md = Path("/home/ubuntu/.cursor/projects/workspace/agent-tools/b772204c-b5fb-401c-bb23-8d4c51fb1b42.txt")
-        if md.exists():
-            return parse_iod_markdown(md)
+        if IOD_MARKDOWN.exists():
+            return parse_iod_markdown(IOD_MARKDOWN)
         return None
     rows = xlsx_sheet_rows(data, "IMD")
     header = [str(h or "").strip() for h in rows[0]]
@@ -576,7 +574,7 @@ def parse_iod_markdown(path: Path) -> dict | None:
             if not line.startswith("| E"):
                 continue
             parts = [p.strip() for p in line.strip().strip("|").split("|")]
-            if len(parts) < 6:
+            if len(parts) < 7:
                 continue
             code, name = parts[0], parts[1]
             try:
@@ -615,16 +613,7 @@ def parse_iod_markdown(path: Path) -> dict | None:
 
 
 def try_wimd() -> dict | None:
-    """Best-effort WIMD 2025 LA profiles. Honest empty if blocked."""
-    # StatsWales CSV-ish open download is unstable; try a few known paths.
-    candidates = [
-        "https://statswales.gov.wales/Download/File?FileId=0f30cc8bc8e97449e96a477b0400262d1",
-    ] + WIMD_URLS
-    for url in candidates:
-        data = fetch(url, timeout=40)
-        if data and len(data) > 500:
-            print(f"  WIMD downloaded {len(data)} from {url}")
-            # Too many formats; if it's not an obvious table, skip rather than invent ranks.
+    """WIMD 2025 local-authority profiles are not bundled."""
     return None
 
 
