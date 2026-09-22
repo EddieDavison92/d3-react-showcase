@@ -179,7 +179,7 @@ export function LinkedOverview({
 
   return (
     <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-3 overflow-x-clip md:flex-row">
-      <div className="relative flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-2 md:flex-[0.55]">
+      <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-2 md:flex-[0.55]">
         <ContextChip state={state} areaName={selectedName} />
         {family === "deprivation" && !deprivation?.england ? (
           <EmptyNote title="Deprivation file missing">
@@ -228,17 +228,26 @@ export function LinkedOverview({
               )}
             </div>
             {hasMapFeatures ? (
-              <MapLegend
-                min={family === "deprivation" ? -painted.max : painted.min}
-                max={family === "deprivation" ? -painted.min : painted.max}
-                ramp={ramp}
-                unit={
-                  state.view === "delta"
-                    ? `Δ ${unit}`
-                    : family === "deprivation"
-                      ? "more deprived →"
-                      : unit
-                }
+              <div className="shrink-0">
+                <MapLegend
+                  min={family === "deprivation" ? -painted.max : painted.min}
+                  max={family === "deprivation" ? -painted.min : painted.max}
+                  ramp={ramp}
+                  unit={
+                    state.view === "delta"
+                      ? `Δ ${unit}`
+                      : family === "deprivation"
+                        ? "more deprived →"
+                        : unit
+                  }
+                />
+              </div>
+            ) : null}
+            {file && file.periods.length > 1 ? (
+              <PeriodScrub
+                periods={file.periods}
+                year={state.year}
+                onYear={(year) => onChange({ year })}
               />
             ) : null}
           </div>
@@ -251,13 +260,6 @@ export function LinkedOverview({
             unit={unit}
           />
         )}
-        {showMap && file && file.periods.length > 1 ? (
-          <PeriodScrub
-            periods={file.periods}
-            year={state.year}
-            onYear={(year) => onChange({ year })}
-          />
-        ) : null}
       </div>
       <div className="flex min-h-[240px] flex-col rounded-lg border bg-card p-3 md:min-h-[320px] md:flex-[0.45] lg:min-h-0">
         {family === "deprivation" ? (
