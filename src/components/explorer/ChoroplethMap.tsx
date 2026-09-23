@@ -27,6 +27,7 @@ const UK_BOUNDS: [[number, number], [number, number]] = [
 const MIN_SIZE = 24
 const INTERNAL_STROKE = "#94a3b8"
 const COAST_STROKE = "#475569"
+const SELECTED_STROKE = "#0f172a"
 const SCRUB_MS = 200
 const FLIP_MS = 260
 const NO_DATA_RGB: Rgb = [226, 232, 240]
@@ -204,6 +205,18 @@ export function ChoroplethMap({
             "fill-translate": [1.2, 1.5],
           },
         })
+        // Selected cell: a paper halo under the fills separates it from the coast,
+        // and an ink ring above the fills says "you are here" at any zoom.
+        map.addLayer({
+          id: "selected-halo",
+          type: "line",
+          source: "hex",
+          layout: { "line-join": "round" },
+          paint: {
+            "line-color": "#ffffff",
+            "line-width": ["case", ["boolean", ["feature-state", "selected"], false], 7, 0],
+          },
+        })
         map.addLayer({
           id: "fill",
           type: "fill",
@@ -240,6 +253,16 @@ export function ChoroplethMap({
           type: "line",
           source: "hex",
           paint: strokePaint(),
+        })
+        map.addLayer({
+          id: "selected-ring",
+          type: "line",
+          source: "hex",
+          layout: { "line-join": "round" },
+          paint: {
+            "line-color": SELECTED_STROKE,
+            "line-width": ["case", ["boolean", ["feature-state", "selected"], false], 2.5, 0],
+          },
         })
         attach()
         if (!interactive) return
