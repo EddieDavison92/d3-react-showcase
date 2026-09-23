@@ -23,7 +23,7 @@ export function formatSigned(value: number | null | undefined, digits = 1): stri
 
 export function formatCi(point: [number | null, number | null, number | null] | null): string {
   if (!point || point[1] === null || point[2] === null) return ""
-  return `95% CI ${formatYears(point[1])} to ${formatYears(point[2])}`
+  return `95% CI ${formatYears(point[1])}–${formatYears(point[2])}`
 }
 
 export function formatRate(value: number | null | undefined): string {

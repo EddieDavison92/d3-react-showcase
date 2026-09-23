@@ -22,9 +22,9 @@ import {
 } from "@/lib/explorer/colours"
 import { familyOf } from "@/lib/explorer/catalogue"
 import { dimKey, geoUrl, readPoint, readSeries } from "@/lib/explorer/data"
-import { comparatorsFor, deriveMap } from "@/lib/explorer/derive"
+import { comparatorsFor, deriveMap, NATION_COMPARATOR } from "@/lib/explorer/derive"
 import { formatCi, formatYears } from "@/lib/explorer/format"
-import { isDivergingView, legendCaption, viewsFor } from "@/lib/explorer/views"
+import { isDivergingView, legendCaption, legendEnds, viewsFor } from "@/lib/explorer/views"
 import type {
   AreaRecord,
   DeprivationFile,
@@ -43,6 +43,7 @@ export function LinkedOverview({
   file,
   deprivation,
   areas,
+  divergence,
   onChange,
 }: {
   state: ExplorerState
@@ -50,6 +51,7 @@ export function LinkedOverview({
   file: PackedFile | null
   deprivation: DeprivationFile | null
   areas: AreaRecord[]
+  divergence?: { years: number; grain: string } | null
   onChange: (patch: Partial<ExplorerState>) => void
 }) {
   const family = familyOf(state.metric)
@@ -149,10 +151,10 @@ export function LinkedOverview({
 
   const unit = mapFamily === "avoidable" ? "per 100,000" : "years"
   const selectedName = selectedArea?.name ?? null
-  const comparator = file?.areas.find((area) => area.code === "E92000001")
+  const ukComparator = file?.areas.find((area) => area.code === NATION_COMPARATOR.UK.code)
   const seriesCodes = Array.from(
     new Set(
-      [state.area, ...state.compare, !state.area && comparator ? comparator.code : null].filter(
+      [state.area, ...state.compare, !state.area && ukComparator ? ukComparator.code : null].filter(
         Boolean
       )
     )
@@ -161,7 +163,7 @@ export function LinkedOverview({
   const series = useMemo(() => {
     if (!file) return []
     if (state.view === "sex_gap") {
-      const code = state.area ?? comparator?.code
+      const code = state.area ?? ukComparator?.code
       if (!code) return []
       const name =
         areaIndex.get(code)?.name ??
@@ -185,15 +187,13 @@ export function LinkedOverview({
     return seriesCodes.map((code, i) => ({
       code,
       name:
-        code === comparator?.code && !state.area
-          ? "England (comparator)"
-          : (areaIndex.get(code)?.name ??
-            file.areas.find((area) => area.code === code)?.name ??
-            code),
+        areaIndex.get(code)?.name ??
+        file.areas.find((area) => area.code === code)?.name ??
+        code,
       colour: COMPARE_COLOURS[i] ?? "#334155",
       points: readSeries(file, code, sex, dim) ?? emptySeries(file.periods),
     }))
-  }, [areaIndex, comparator?.code, dim, file, seriesCodes, sex, state.area, state.view])
+  }, [areaIndex, dim, file, seriesCodes, sex, state.area, state.view, ukComparator?.code])
 
   const focusCode = state.area
   const focusPoint =
@@ -215,12 +215,34 @@ export function LinkedOverview({
   const showStrip = mapFamily === "le" || mapFamily === "hle" || family === "deprivation"
   const switcherViews = viewsFor(state.metric)
   const nationName = cmp?.nation?.name ?? null
-  const englandPoint =
-    file && comparator ? readPoint(file, comparator.code, sex, dim, periodIndex) : null
-  const scrubHud = comparator
-    ? `${comparator.name} ${formatYears(englandPoint?.[0] ?? null)} ${unit}`
+  const hudArea = selectedArea ?? ukComparator
+  const hudPoint =
+    hudArea && file ? readPoint(file, hudArea.code, sex, dim, periodIndex) : null
+  const scrubHud = hudArea
+    ? `${hudArea.name} ${formatYears(hudPoint?.[0] ?? null)} ${unit}`
     : null
-  const focusName = selectedName ?? "Select an area"
+  const dualStory =
+    state.view === "d2017" ||
+    state.view === "d2019" ||
+    state.view === "vs_nation" ||
+    state.view === "sex_gap"
+  const seriesSubject =
+    selectedName ?? (!state.area && ukComparator ? ukComparator.name : null)
+  const seriesHeading = dualStory
+    ? seriesSubject
+      ? `${seriesSubject} — levels over time`
+      : "Levels over time"
+    : undefined
+  const ends = legendEnds(state.view)
+  const birthPoint =
+    focusCode && file ? readPoint(file, focusCode, sex, "birth", periodIndex) : null
+  const age65Point =
+    focusCode && file && mapFamily === "le"
+      ? readPoint(file, focusCode, sex, "65", periodIndex)
+      : null
+  const showAges = Boolean(
+    mapFamily === "le" && birthPoint?.[0] != null && age65Point?.[0] != null
+  )
   const sexGap =
     state.view === "sex_gap"
       ? {
@@ -335,25 +357,35 @@ export function LinkedOverview({
                   </p>
                 </div>
               )}
-              <div className="pointer-events-none absolute right-3 top-3 z-10 w-[min(100%-1.5rem,15rem)]">
-                <FocusReadout
-                  figure
-                  name={focusName}
-                  unit={unit}
-                  point={focusPoint}
-                  derivedValue={focusCell?.value}
-                  view={state.view}
-                  sexGap={sexGap}
-                  emphasiseCi={state.view === "ci"}
-                  figureNote={
-                    state.view === "d2017"
-                      ? "Δ vs 2017–19 · hex cell · equal-area"
-                      : state.view === "d2019"
-                        ? "Δ vs 2019–21 · hex cell · equal-area"
-                        : "hex cell · equal-area"
-                  }
-                />
-              </div>
+              {state.area ? (
+                <div className="pointer-events-none absolute right-3 top-3 z-10 w-[min(100%-1.5rem,15rem)]">
+                  <FocusReadout
+                    figure
+                    name={selectedName ?? state.area}
+                    unit={unit}
+                    point={focusPoint}
+                    derivedValue={focusCell?.value}
+                    view={state.view}
+                    birthPoint={birthPoint}
+                    age65Point={age65Point}
+                    showAges={showAges}
+                    divergence={divergence}
+                    sexGap={sexGap}
+                    vsNation={vsNation}
+                    uncertainChange={
+                      (state.view === "d2017" || state.view === "d2019") &&
+                      Boolean(focusCell?.uncertain)
+                    }
+                    emphasiseCi={state.view === "ci"}
+                  />
+                </div>
+              ) : (
+                <div className="pointer-events-none absolute right-3 top-3 z-10 hidden w-[min(100%-1.5rem,12rem)] md:block">
+                  <p className="rounded-md border border-slate-200/80 bg-white/90 px-2.5 py-1.5 text-sm shadow-sm backdrop-blur-sm dark:bg-slate-950/80">
+                    Select an area
+                  </p>
+                </div>
+              )}
             </div>
             <div className="space-y-1.5 bg-white/90 px-3 pb-2 pt-1">
               {hasMapFeatures ? (
@@ -361,8 +393,13 @@ export function LinkedOverview({
                   min={painted.min}
                   max={painted.max}
                   ramp={ramp}
-                  unit={legendCaption(state.view, unit, { nationName })}
+                  unit={legendCaption(state.view, unit)}
                   zeroTick={diverging}
+                  leftLabel={ends.left}
+                  rightLabel={ends.right}
+                  leftLabelShort={ends.leftShort}
+                  rightLabelShort={ends.rightShort}
+                  ariaLabel={ends.aria}
                   note={
                     state.view === "ci"
                       ? "Wider CI = less certain. Hatching and lighter fill mark wider 95% intervals."
@@ -387,7 +424,7 @@ export function LinkedOverview({
             values={values}
             selected={state.area}
             onSelect={(code) => onChange({ area: code })}
-            unit={legendCaption(state.view, unit, { nationName })}
+            unit={legendCaption(state.view, unit)}
           />
         )}
         <SeriesPanel
@@ -395,6 +432,7 @@ export function LinkedOverview({
           series={series}
           year={state.year}
           unit={unit}
+          heading={seriesHeading}
           onYear={(year) => onChange({ year })}
           emphasiseCi={state.view === "ci"}
           compareUi={state.view !== "sex_gap"}

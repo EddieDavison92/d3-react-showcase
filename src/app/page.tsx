@@ -13,16 +13,19 @@ export default function HomePage() {
           ONS local areas · period life expectancy
         </p>
         <h1 className="text-[2.5rem] font-semibold leading-[1.15] tracking-tight sm:text-5xl">
-          How long people live — place by place.
+          Period life expectancy for UK local areas
         </h1>
         <p className="max-w-md text-base leading-relaxed text-muted-foreground">
-          Period life expectancy for UK local areas. Male at birth is the door in;
-          every other cut is one click away.
+          A summary of death rates in 2022–24 — not a forecast of how long anyone
+          will live. Showing males at birth; females and change are in Explore.
         </p>
         <div className="space-y-2">
           <Button asChild className="min-h-11 bg-teal-800 px-5 hover:bg-teal-900">
             <Link href={exploreHref()}>Open Explore</Link>
           </Button>
+          <p className="text-sm text-muted-foreground">
+            Default: 2022–24 · Male · at birth · Absolute. Not a forecast.
+          </p>
           <p className="text-sm text-teal-800">
             <Link href="/catalogue" className="underline-offset-4 hover:underline">
               Browse catalogue
@@ -33,16 +36,12 @@ export default function HomePage() {
               label="About the numbers"
               triggerClassName="h-auto min-h-0 px-0 text-sm font-normal text-teal-800 underline-offset-4 hover:underline hover:text-teal-950"
             />
+            {" · "}
+            <Link className="underline underline-offset-4" href={ONS_LINKS.leBulletin}>
+              ONS bulletin
+            </Link>
           </p>
         </div>
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          Default: 2022–24 · Male · at birth · Absolute. Not a forecast. Hex
-          field = equal-area read.{" "}
-          <Link className="underline underline-offset-4" href={ONS_LINKS.leBulletin}>
-            ONS bulletin
-          </Link>
-          .
-        </p>
       </div>
       <div className="order-1 min-w-0 flex-1 lg:order-2 lg:w-[58%]">
         <HeroMap />

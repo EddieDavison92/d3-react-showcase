@@ -4,12 +4,22 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import type { ExplorerWarning } from "@/lib/explorer/types"
 
 export function WarningBanner({ warnings }: { warnings: ExplorerWarning[] }) {
-  const mismatch = warnings.filter((w) => w.tone === "mismatch")
-  const empty = warnings.filter((w) => w.tone === "empty")
-  if (!mismatch.length && !empty.length) return null
+  const always = warnings.filter((warning) => warning.tone === "always")
+  const mismatch = warnings.filter((warning) => warning.tone === "mismatch")
+  const empty = warnings.filter((warning) => warning.tone === "empty")
+  if (!always.length && !mismatch.length && !empty.length) return null
 
   return (
     <div className="space-y-2">
+      {always.map((warning) => (
+        <p
+          key={warning.id}
+          role="note"
+          className="text-xs leading-snug text-muted-foreground"
+        >
+          {warning.body}
+        </p>
+      ))}
       {mismatch.map((warning) => (
         <Alert
           key={warning.id}
@@ -24,7 +34,6 @@ export function WarningBanner({ warnings }: { warnings: ExplorerWarning[] }) {
           key={warning.id}
           className="rounded-md border bg-muted/40 px-2.5 py-1.5 text-xs leading-relaxed text-muted-foreground"
         >
-          <span className="font-medium text-foreground">{warning.title}. </span>
           {warning.body}
         </p>
       ))}

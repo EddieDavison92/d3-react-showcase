@@ -79,10 +79,13 @@ export function HeroMap() {
           </div>
         )}
       </div>
-      <p className="mt-2 text-[11px] text-muted-foreground">
-        2022–24 · Male · at birth · Absolute · hexbin{" "}
+      <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
+        2022–24 · Male · at birth · Absolute. Darker teal = longer male period life
+        expectancy.
+        <br />
+        Equal-area cells — not council outlines.{" "}
         <Link href={exploreHref()} className="text-teal-800 underline-offset-2 hover:underline">
-          Explore this cut →
+          Explore →
         </Link>
       </p>
     </div>

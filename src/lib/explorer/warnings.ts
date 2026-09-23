@@ -23,19 +23,19 @@ export const WARNING_COPY = {
     id: "avoidable-ew",
     tone: "always",
     title: "England and Wales only",
-    body: "England and Wales only. Scotland and Northern Ireland publish separate figures.",
+    body: "Avoidable mortality in this explorer: England and Wales only.",
   },
   periodLe: {
     id: "period-le",
     tone: "always",
     title: "Period life expectancy is not a forecast",
-    body: "These figures are period life expectancy: they summarise mortality rates in those years, not a prediction of how long a baby born then will live. Several recent periods still include pandemic years.",
+    body: "Period life expectancy summarises death rates in the selected years — not a forecast for individuals.",
   },
   hleDevelopment: {
     id: "hle-development",
     tone: "always",
     title: "Official statistics in development",
-    body: "Healthy life expectancy estimates are official statistics in development because of survey sample limits. ONS publishes confidence intervals for that reason.",
+    body: "Healthy life expectancy: official statistics in development; geography may differ from period LE.",
   },
   countryLe: {
     id: "country-le",
@@ -53,7 +53,7 @@ export const WARNING_COPY = {
     id: "deprivation-not-cause",
     tone: "always",
     title: "Context, not a cause",
-    body: "Deprivation is shown as context, not as an explanation. Many factors sit behind differences in life expectancy.",
+    body: "Deprivation is context only — not a cause of life expectancy.",
   },
   periodSnap: {
     id: "period-snap",
@@ -64,14 +64,14 @@ export const WARNING_COPY = {
   wimdEmpty: {
     id: "wimd-empty",
     tone: "empty",
-    title: "Wales deprivation profiles not bundled",
-    body: "WIMD 2025 is the official Wales index, but a local-authority summary file could not be bundled in this build. We are not inventing ranks. Use the Welsh Government release, and do not compare WIMD with the English IoD.",
+    title: "Wales index not in this explorer",
+    body: "Wales index not in this explorer (different index from England).",
   },
   scotNiDeprivation: {
     id: "scot-ni-deprivation",
     tone: "empty",
-    title: "No interactive SIMD or NIMDM in v1",
-    body: "Scotland (SIMD) and Northern Ireland (NIMDM 2017, now dated) are not interactive layers here. Nation indices must not be mixed into one ranking.",
+    title: "SIMD / NIMDM not included",
+    body: "SIMD / NIMDM not included — not a UK ranking.",
   },
   ciSmall: {
     id: "ci-small",

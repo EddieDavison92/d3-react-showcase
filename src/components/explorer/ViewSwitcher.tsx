@@ -122,7 +122,7 @@ export function ViewSwitcher({
           />
         ) : null}
       </div>
-      <p className="text-[11px] leading-snug text-muted-foreground">{viewNote(value)}</p>
+      <p className="text-xs leading-snug text-slate-700 dark:text-slate-200">{viewNote(value)}</p>
     </div>
   )
 }

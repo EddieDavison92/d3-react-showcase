@@ -1,6 +1,6 @@
 import type { FeatureCollection } from "geojson"
 import { interpolateRamp, linearT, NO_DATA } from "@/lib/explorer/colours"
-import { formatRate, formatSigned, formatYears } from "@/lib/explorer/format"
+import { formatCi, formatRate, formatSigned, formatYears } from "@/lib/explorer/format"
 import { SEX_GAP_LABEL } from "@/lib/explorer/views"
 import type { PackedPoint } from "@/lib/explorer/types"
 
@@ -68,10 +68,7 @@ export function hoverText(
   extra?: string
 ): string {
   if (!point || point[0] === null) return `${name}\nNo figure in this cut`
-  const ci =
-    point[1] !== null && point[2] !== null
-      ? `\n95% CI ${formatYears(point[1])}–${formatYears(point[2])}`
-      : ""
+  const ci = formatCi(point) ? `\n${formatCi(point)}` : ""
   const main = unit.includes("100,000") ? formatRate(point[0]) : formatYears(point[0])
   return `${name}\n${main} ${unit}${ci}${extra ? `\n${extra}` : ""}`
 }
@@ -79,10 +76,7 @@ export function hoverText(
 function pointLine(label: string, point: PackedPoint | null, unit: string): string {
   if (!point || point[0] === null) return `${label} –`
   const value = unit.includes("100,000") ? formatRate(point[0]) : formatYears(point[0])
-  const ci =
-    point[1] !== null && point[2] !== null
-      ? ` (95% CI ${formatYears(point[1])}–${formatYears(point[2])})`
-      : ""
+  const ci = formatCi(point) ? ` (${formatCi(point)})` : ""
   return `${label} ${value}${ci}`
 }
 

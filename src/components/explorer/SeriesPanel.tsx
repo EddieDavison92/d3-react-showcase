@@ -84,6 +84,7 @@ export function SeriesPanel({
   canCompare,
   emphasiseCi,
   compareUi = true,
+  heading,
 }: {
   periods: string[]
   series: Series[]
@@ -95,6 +96,7 @@ export function SeriesPanel({
   canCompare: boolean
   emphasiseCi?: boolean
   compareUi?: boolean
+  heading?: string
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null)
   const yearIndex = Math.max(0, periods.indexOf(year))
@@ -210,7 +212,7 @@ export function SeriesPanel({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-sm font-medium">
-            {series[0]?.name ?? "Series"}
+            {heading ?? series[0]?.name ?? "Series"}
           </p>
           {series.length > 1 ? (
             <p className="text-xs text-muted-foreground">

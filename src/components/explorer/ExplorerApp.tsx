@@ -25,6 +25,7 @@ import {
   loadLe,
   loadLookups,
 } from "@/lib/explorer/data"
+import { yearsNotInGoodHealth } from "@/lib/explorer/derive"
 import { applyExplorerChange } from "@/lib/explorer/nesting"
 import { DEFAULT_STATE, parseSearchParams, toSearchParams } from "@/lib/explorer/url-state"
 import type {
@@ -138,6 +139,17 @@ export function ExplorerApp() {
   const mapFamily = familyOf(mapMetric)
   const file =
     mapFamily === "le" ? le : mapFamily === "hle" ? hle : mapFamily === "avoidable" ? avoidable : null
+  const divergence =
+    (mapFamily === "le" || mapFamily === "hle") && state.area
+      ? yearsNotInGoodHealth({
+          le,
+          hle,
+          lookups,
+          code: state.area,
+          sex: state.sex,
+          year: state.year,
+        })
+      : null
 
   const areas = useMemo(() => {
     if (!file) return []
@@ -203,6 +215,7 @@ export function ExplorerApp() {
             file={file}
             deprivation={deprivation}
             areas={areas}
+            divergence={divergence}
             onChange={commit}
           />
         ) : (

@@ -12,8 +12,8 @@ export const VIEW_OPTIONS: {
   { id: "absolute", label: "Absolute", shortLabel: "Absolute", aria: "Absolute life expectancy" },
   { id: "d2017", label: "Δ 2017–19", shortLabel: "Δ17–19", aria: "Change vs 2017–19 (pre-COVID)" },
   { id: "d2019", label: "Δ 2019–21", shortLabel: "Δ19–21", aria: "Change vs 2019–21 (trough)" },
-  { id: "vs_nation", label: "vs nation", shortLabel: "vs nation", aria: "Area minus own nation comparator" },
-  { id: "sex_gap", label: "Sex gap", shortLabel: "Sex gap", aria: "Male minus Female (derived)" },
+  { id: "vs_nation", label: "vs nation", shortLabel: "vs nation", aria: "Difference from own nation period life expectancy in years" },
+  { id: "sex_gap", label: "Sex gap", shortLabel: "Sex gap", aria: "Male minus female period life expectancy in years" },
   { id: "ci", label: "CI focus", shortLabel: "CI", aria: "Emphasise uncertainty on map + series" },
 ]
 
@@ -64,31 +64,56 @@ export function viewNote(view: ViewId): string {
     case "d2017":
       return "Change since 2017–19 (pre-pandemic). Missing baselines stay uncoloured."
     case "d2019":
-      return "Change since 2019–21 (pandemic trough). A rise from the trough is not full recovery."
+      return "A rise from the trough is not full recovery."
     case "vs_nation":
-      return "Area minus its own nation comparator (named in the legend when an area is selected)."
+      return "Each area vs its own nation. Map is change from nation; chart below is the level history."
     case "sex_gap":
-      return `${SEX_GAP_LABEL}. Not an ONS persons estimate — local files have no persons LE.`
+      return "Male minus female for the selected period. Not a decline/gain story."
     case "ci":
-      return "Same Absolute fill. Wider CI = less certain."
+      return "Highlights areas with wider intervals. Small populations stay noisy."
   }
 }
 
-export function legendCaption(
-  view: ViewId,
-  unit: string,
-  opts?: { nationName?: string | null }
-): string {
-  const deltaUnit = unit === "years" ? "Δ years" : `Δ ${unit}`
+export function legendCaption(view: ViewId, unit: string): string {
   switch (view) {
     case "d2017":
     case "d2019":
-      return deltaUnit
-    case "vs_nation":
-      return opts?.nationName ? `vs ${opts.nationName} (${unit})` : `vs nation (${unit})`
+      return unit === "years" ? "Δ years" : `Δ ${unit}`
     case "sex_gap":
-      return `M − F (${unit})`
+      return unit === "years" ? "years (M − F)" : `${unit} (M − F)`
     default:
       return unit
+  }
+}
+
+export function legendEnds(view: ViewId): {
+  left: string
+  right: string
+  leftShort?: string
+  rightShort?: string
+  aria: string
+} {
+  switch (view) {
+    case "d2017":
+    case "d2019":
+      return { left: "Decline", right: "Gain", aria: "Change in years, decline to gain" }
+    case "vs_nation":
+      return {
+        left: "Below own nation",
+        right: "Above own nation",
+        leftShort: "Below",
+        rightShort: "Above",
+        aria: "Difference from own nation period life expectancy in years",
+      }
+    case "sex_gap":
+      return {
+        left: "Men shorter",
+        right: "Women shorter",
+        leftShort: "Men −",
+        rightShort: "Women −",
+        aria: "Male minus female period life expectancy in years",
+      }
+    default:
+      return { left: "Lower", right: "Higher", aria: "Lower to higher years" }
   }
 }

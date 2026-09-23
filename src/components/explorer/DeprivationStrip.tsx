@@ -57,7 +57,7 @@ export function DeprivationStrip({
         )}
       </div>
       <p className="mt-1 flex flex-wrap items-baseline gap-x-2 text-muted-foreground">
-        <span>Context only — not a cause of life expectancy.</span>
+        <span>Deprivation is context only — not a cause of life expectancy.</span>
         <AboutNumbers
           triggerVariant="ghost"
           label="About deprivation indices"
@@ -119,10 +119,10 @@ function nationPack(deprivation: DeprivationFile | null, nation?: string) {
 function emptyCopy(area?: AreaRecord | null): string {
   if (!area) return ""
   if (area.nation === "W") {
-    return "WIMD not bundled in this build — ranks are not invented."
+    return "Wales index not in this explorer (different index from England)."
   }
   if (area.nation === "S" || area.nation === "N") {
-    return "Index not in this build"
+    return "SIMD / NIMDM not included — not a UK ranking."
   }
   if (area.grain === "region" || area.grain === "country" || area.grain === "counties") {
     return "IoD 2025 is a lower-tier index — not published for this geography."

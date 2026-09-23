@@ -65,6 +65,9 @@ export function AboutNumbers({
                 co-plotted with lower-tier areas.
               </p>
               <p>
+                Equal-area cells — not council outlines.
+              </p>
+              <p>
                 <Link className="underline underline-offset-4" href={ONS_LINKS.leBulletin}>
                   ONS local areas bulletin
                 </Link>
