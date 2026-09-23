@@ -60,6 +60,18 @@ export function mixColour(a: string, b: string, t: number): string {
   return `#${toHex(r)}${toHex(g)}${toHex(bl)}`
 }
 
+export function blendColours(
+  from: Record<string, string>,
+  to: Record<string, string>,
+  t: number
+): Record<string, string> {
+  const mixed: Record<string, string> = {}
+  for (const key of Object.keys(to)) {
+    mixed[key] = mixColour(from[key] ?? NO_DATA, to[key] ?? NO_DATA, t)
+  }
+  return mixed
+}
+
 function toHex(n: number): string {
   return n.toString(16).padStart(2, "0")
 }

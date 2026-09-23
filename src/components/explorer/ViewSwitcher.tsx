@@ -36,13 +36,14 @@ export function ViewSwitcher({
     const reveal = () => {
       const selected = row.querySelector('[aria-checked="true"]') as HTMLElement | null
       if (!selected) return
-      const edge = 12
+      const edge = 16
+      const peekPad = 28
       const start = selected.offsetLeft
       const end = start + selected.offsetWidth
       if (start < row.scrollLeft + edge) {
         row.scrollTo({ left: Math.max(0, start - edge) })
-      } else if (end > row.scrollLeft + row.clientWidth - 28) {
-        row.scrollTo({ left: end - row.clientWidth + 28 })
+      } else if (end > row.scrollLeft + row.clientWidth - peekPad) {
+        row.scrollTo({ left: end - row.clientWidth + peekPad })
       }
     }
     reveal()
@@ -96,7 +97,7 @@ export function ViewSwitcher({
                 title={option.aria}
                 onClick={() => onChange(option.id)}
                 className={cn(
-                  "relative z-[1] h-9 min-h-9 min-w-[4.85rem] shrink-0 whitespace-nowrap px-1.5 text-center text-[13px] font-medium md:h-8 md:min-h-8 md:min-w-[6.2rem] md:grow md:basis-0",
+                  "relative z-[1] h-9 min-h-9 min-w-[4.15rem] shrink-0 whitespace-nowrap px-1.5 text-center text-[13px] font-medium md:h-8 md:min-h-8 md:min-w-[6.2rem] md:grow md:basis-0",
                   index > 0 && !selected ? "border-l border-slate-200" : "border-l border-transparent",
                   selected ? "text-white" : "text-muted-foreground hover:text-foreground"
                 )}
@@ -110,13 +111,13 @@ export function ViewSwitcher({
         {peek.left ? (
           <span
             aria-hidden
-            className="pointer-events-none absolute inset-y-0 left-0 w-8 rounded-l-[10px] bg-gradient-to-r from-white from-35% to-transparent md:hidden"
+            className="pointer-events-none absolute inset-y-0 left-0 z-[2] w-10 rounded-l-[10px] bg-gradient-to-r from-white from-40% to-transparent md:hidden"
           />
         ) : null}
         {peek.right ? (
           <span
             aria-hidden
-            className="pointer-events-none absolute inset-y-0 right-0 w-14 rounded-r-[10px] bg-gradient-to-l from-background from-30% to-transparent md:hidden"
+            className="pointer-events-none absolute inset-y-0 right-0 z-[2] w-12 rounded-r-[10px] bg-gradient-to-l from-white from-45% via-white/70 to-transparent md:hidden"
           />
         ) : null}
       </div>

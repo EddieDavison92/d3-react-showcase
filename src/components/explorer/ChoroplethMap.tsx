@@ -5,7 +5,7 @@ import maplibregl from "maplibre-gl"
 import "maplibre-gl/dist/maplibre-gl.css"
 import type { FeatureCollection } from "geojson"
 import { boundsOfGeojson } from "@/components/explorer/map-helpers"
-import { motionMs, NO_DATA } from "@/lib/explorer/colours"
+import { blendColours, motionMs, NO_DATA } from "@/lib/explorer/colours"
 import { buildHexField } from "@/lib/explorer/hex-field"
 import { cn } from "@/lib/utils"
 
@@ -19,12 +19,15 @@ const UK_BOUNDS: [[number, number], [number, number]] = [
 const MIN_SIZE = 24
 const INTERNAL_STROKE = "#94a3b8"
 const COAST_STROKE = "#475569"
+const SCRUB_MS = 180
+const FLIP_MS = 240
 const FILL_OPACITY: maplibregl.ExpressionSpecification = [
   "case",
   ["boolean", ["feature-state", "hatch"], false],
   0.58,
   0.96,
 ]
+const INSTANT_PAINT = { duration: 0, delay: 0 }
 
 export function ChoroplethMap({
   geojson,
@@ -54,14 +57,15 @@ export function ChoroplethMap({
   className?: string
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const overlayRef = useRef<HTMLCanvasElement | null>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const onSelectRef = useRef(onSelect)
   const coloursRef = useRef(colours)
   const hatchRef = useRef(hatch)
   const selectedRef = useRef(selected)
   const cueRef = useRef({ year, view })
-  const paintedRef = useRef<Record<string, string>>({})
+  const displayedRef = useRef<Record<string, string>>({})
+  const targetRef = useRef<Record<string, string>>({})
+  const rafRef = useRef(0)
   const [hover, setHover] = useState<HoverInfo | null>(null)
   const [size, setSize] = useState({ width: 320, height: 240 })
   const [ready, setReady] = useState(false)
@@ -78,6 +82,8 @@ export function ChoroplethMap({
   }, [colours, hatch, selected])
 
   useEffect(() => {
+    displayedRef.current = {}
+    targetRef.current = {}
     const el = containerRef.current
     if (!el) return
     let map: maplibregl.Map | null = null
@@ -107,10 +113,13 @@ export function ChoroplethMap({
 
     const attach = () => {
       if (!map?.getSource("hex")) return
-      if (!Object.keys(paintedRef.current).length) {
-        const shown = coloursRef.current
-        paint(map, hexField, shown, selectedRef.current, hatchRef.current)
-        paintedRef.current = { ...shown }
+      const shown = Object.keys(displayedRef.current).length
+        ? displayedRef.current
+        : coloursRef.current
+      paint(map, hexField, shown, selectedRef.current, hatchRef.current)
+      if (!Object.keys(displayedRef.current).length) {
+        displayedRef.current = { ...shown }
+        targetRef.current = { ...shown }
       }
       fit()
     }
@@ -137,7 +146,6 @@ export function ChoroplethMap({
         pitchWithRotate: false,
         renderWorldCopies: false,
         trackResize: true,
-        preserveDrawingBuffer: true,
         interactive,
       })
       if (interactive) {
@@ -195,6 +203,9 @@ export function ChoroplethMap({
             "fill-opacity": FILL_OPACITY,
           },
         })
+        // Feature-state updates must land immediately; we lerp hex fills in JS.
+        map.setPaintProperty("fill", "fill-color-transition", INSTANT_PAINT)
+        map.setPaintProperty("fill", "fill-opacity-transition", INSTANT_PAINT)
         map.addLayer({
           id: "hatch",
           type: "fill",
@@ -276,56 +287,61 @@ export function ChoroplethMap({
     return () => {
       cancelled = true
       cancelAnimationFrame(raf)
+      cancelAnimationFrame(rafRef.current)
       observer.disconnect()
       window.visualViewport?.removeEventListener("resize", onViewport)
       window.removeEventListener("orientationchange", onViewport)
       map?.remove()
       mapRef.current = null
+      setReady(false)
     }
   }, [geojson, hexField, interactive])
 
   useEffect(() => {
     const map = mapRef.current
-    const overlay = overlayRef.current
-    if (!map?.isStyleLoaded() || !map.getLayer("fill")) return
-    const cue = cueRef.current
-    const hasPainted = Object.keys(paintedRef.current).length > 0
-    const coloursChanged = hasPainted && !sameColours(paintedRef.current, colours)
+    if (!ready || !map?.isStyleLoaded() || !map.getLayer("fill")) return
     if (map.getLayer("line")) {
       const stroke = strokePaint(view)
       map.setPaintProperty("line", "line-color", stroke["line-color"])
       map.setPaintProperty("line", "line-width", stroke["line-width"])
       map.setPaintProperty("line", "line-opacity", stroke["line-opacity"])
     }
+    const hasPainted = Object.keys(displayedRef.current).length > 0
+    const targetChanged = hasPainted && !sameColours(targetRef.current, colours)
+    const viewFlipped = Boolean(view && view !== cueRef.current.view)
+    cueRef.current = { year, view }
+
     if (!hasPainted) {
       paint(map, hexField, colours, selected, hatch)
-      paintedRef.current = { ...colours }
-      cueRef.current = { year, view }
+      displayedRef.current = { ...colours }
+      targetRef.current = { ...colours }
       return
     }
-    if (!coloursChanged) {
+    if (!targetChanged) {
+      paint(map, hexField, displayedRef.current, selected, hatch)
+      return
+    }
+
+    cancelAnimationFrame(rafRef.current)
+    const duration = viewFlipped ? motionMs(FLIP_MS) : motionMs(SCRUB_MS)
+    const from = { ...displayedRef.current }
+    targetRef.current = { ...colours }
+    if (!duration) {
       paint(map, hexField, colours, selected, hatch)
-      cueRef.current = { year, view }
+      displayedRef.current = { ...colours }
       return
     }
-    const duration = view && view !== cue.view ? motionMs(240) : motionMs(180)
-    cueRef.current = { year, view }
-    if (duration && overlay) snapshotCover(overlay, map)
-    paint(map, hexField, colours, selected, hatch)
-    paintedRef.current = { ...colours }
-    map.triggerRepaint()
-    if (!duration || !overlay) {
-      if (overlay) {
-        overlay.style.transition = "none"
-        overlay.style.opacity = "0"
-      }
-      return
+
+    const start = performance.now()
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration)
+      const mixed = blendColours(from, colours, easeInOut(t))
+      paint(map, hexField, mixed, selectedRef.current, hatchRef.current)
+      displayedRef.current = mixed
+      if (t < 1) rafRef.current = requestAnimationFrame(tick)
     }
-    // Two frames so the snapshot is painted before the CSS opacity transition starts.
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => dissolveCover(overlay, duration))
-    })
-  }, [colours, hatch, selected, hexField, year, view])
+    rafRef.current = requestAnimationFrame(tick)
+  }, [colours, hatch, selected, hexField, year, view, ready])
 
   const tooltipStyle = hover
     ? {
@@ -349,12 +365,6 @@ export function ChoroplethMap({
         </div>
       ) : null}
       <div ref={containerRef} className="absolute inset-0 h-full w-full max-w-full" />
-      <canvas
-        ref={overlayRef}
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-[2] h-full w-full"
-        style={{ opacity: 0 }}
-      />
       {interactive && hover && !quietHover ? (
         <div
           className="pointer-events-none absolute z-10 max-w-[min(100%-1rem,18rem)] whitespace-pre-wrap rounded-md border bg-popover px-2 py-1.5 text-xs shadow"
@@ -367,23 +377,8 @@ export function ChoroplethMap({
   )
 }
 
-function snapshotCover(overlay: HTMLCanvasElement, map: maplibregl.Map) {
-  const src = map.getCanvas()
-  overlay.width = src.width
-  overlay.height = src.height
-  const ctx = overlay.getContext("2d")
-  if (!ctx) return
-  ctx.drawImage(src, 0, 0)
-  overlay.style.transition = "none"
-  overlay.style.opacity = "1"
-}
-
-function dissolveCover(overlay: HTMLCanvasElement, duration: number) {
-  overlay.style.transition = "none"
-  overlay.style.opacity = "1"
-  void overlay.offsetHeight
-  overlay.style.transition = `opacity ${duration}ms ease-out`
-  overlay.style.opacity = "0"
+function easeInOut(t: number): number {
+  return 0.5 - Math.cos(Math.PI * t) / 2
 }
 
 function strokePaint(view?: string): {
