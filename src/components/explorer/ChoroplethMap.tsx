@@ -5,7 +5,15 @@ import maplibregl from "maplibre-gl"
 import "maplibre-gl/dist/maplibre-gl.css"
 import type { FeatureCollection } from "geojson"
 import { boundsOfGeojson } from "@/components/explorer/map-helpers"
-import { blendColours, motionMs, NO_DATA } from "@/lib/explorer/colours"
+import {
+  mixRgb,
+  motionMs,
+  NO_DATA,
+  rgbLookup,
+  rgbToHex,
+  toRgb,
+  type Rgb,
+} from "@/lib/explorer/colours"
 import { buildHexField } from "@/lib/explorer/hex-field"
 import { cn } from "@/lib/utils"
 
@@ -19,8 +27,9 @@ const UK_BOUNDS: [[number, number], [number, number]] = [
 const MIN_SIZE = 24
 const INTERNAL_STROKE = "#94a3b8"
 const COAST_STROKE = "#475569"
-const SCRUB_MS = 180
-const FLIP_MS = 240
+const SCRUB_MS = 200
+const FLIP_MS = 260
+const NO_DATA_RGB: Rgb = [226, 232, 240]
 const FILL_OPACITY: maplibregl.ExpressionSpecification = [
   "case",
   ["boolean", ["feature-state", "hatch"], false],
@@ -82,8 +91,6 @@ export function ChoroplethMap({
   }, [colours, hatch, selected])
 
   useEffect(() => {
-    displayedRef.current = {}
-    targetRef.current = {}
     const el = containerRef.current
     if (!el) return
     let map: maplibregl.Map | null = null
@@ -197,8 +204,10 @@ export function ChoroplethMap({
           source: "hex",
           paint: {
             "fill-color": [
-              "to-color",
-              ["coalesce", ["feature-state", "colour"], NO_DATA],
+              "rgb",
+              ["coalesce", ["feature-state", "r"], NO_DATA_RGB[0]],
+              ["coalesce", ["feature-state", "g"], NO_DATA_RGB[1]],
+              ["coalesce", ["feature-state", "b"], NO_DATA_RGB[2]],
             ],
             "fill-opacity": FILL_OPACITY,
           },
@@ -293,9 +302,55 @@ export function ChoroplethMap({
       window.removeEventListener("orientationchange", onViewport)
       map?.remove()
       mapRef.current = null
+      displayedRef.current = {}
+      targetRef.current = {}
       setReady(false)
     }
   }, [geojson, hexField, interactive])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map?.isStyleLoaded() || !map.getLayer("fill")) return
+    const hasPainted = Object.keys(displayedRef.current).length > 0
+    const targetChanged = hasPainted && !sameColours(targetRef.current, colours)
+    const viewFlipped = Boolean(view && view !== cueRef.current.view)
+    cueRef.current = { year, view }
+
+    if (!hasPainted) {
+      paint(map, hexField, colours, selectedRef.current, hatchRef.current)
+      displayedRef.current = { ...colours }
+      targetRef.current = { ...colours }
+      return
+    }
+    if (!targetChanged) return
+
+    cancelAnimationFrame(rafRef.current)
+    const duration = viewFlipped ? motionMs(FLIP_MS) : motionMs(SCRUB_MS)
+    const fromRgb = rgbLookup(displayedRef.current)
+    const toRgb = rgbLookup(colours)
+    targetRef.current = { ...colours }
+    if (!duration) {
+      paint(map, hexField, colours, selectedRef.current, hatchRef.current)
+      displayedRef.current = { ...colours }
+      return
+    }
+
+    let start = 0
+    const tick = (now: number) => {
+      if (!start) start = now
+      const t = Math.min(1, (now - start) / duration)
+      const mixed: Record<string, string> = {}
+      for (const code of Object.keys(toRgb)) {
+        mixed[code] = rgbToHex(mixRgb(fromRgb[code] ?? NO_DATA_RGB, toRgb[code], t))
+      }
+      paint(map, hexField, mixed, selectedRef.current, hatchRef.current)
+      displayedRef.current = mixed
+      map.triggerRepaint()
+      if (t < 1) rafRef.current = requestAnimationFrame(tick)
+    }
+    rafRef.current = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafRef.current)
+  }, [colours, hexField, year, view, ready])
 
   useEffect(() => {
     const map = mapRef.current
@@ -306,42 +361,11 @@ export function ChoroplethMap({
       map.setPaintProperty("line", "line-width", stroke["line-width"])
       map.setPaintProperty("line", "line-opacity", stroke["line-opacity"])
     }
-    const hasPainted = Object.keys(displayedRef.current).length > 0
-    const targetChanged = hasPainted && !sameColours(targetRef.current, colours)
-    const viewFlipped = Boolean(view && view !== cueRef.current.view)
-    cueRef.current = { year, view }
-
-    if (!hasPainted) {
-      paint(map, hexField, colours, selected, hatch)
-      displayedRef.current = { ...colours }
-      targetRef.current = { ...colours }
-      return
-    }
-    if (!targetChanged) {
-      paint(map, hexField, displayedRef.current, selected, hatch)
-      return
-    }
-
-    cancelAnimationFrame(rafRef.current)
-    const duration = viewFlipped ? motionMs(FLIP_MS) : motionMs(SCRUB_MS)
-    const from = { ...displayedRef.current }
-    targetRef.current = { ...colours }
-    if (!duration) {
-      paint(map, hexField, colours, selected, hatch)
-      displayedRef.current = { ...colours }
-      return
-    }
-
-    const start = performance.now()
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / duration)
-      const mixed = blendColours(from, colours, easeInOut(t))
-      paint(map, hexField, mixed, selectedRef.current, hatchRef.current)
-      displayedRef.current = mixed
-      if (t < 1) rafRef.current = requestAnimationFrame(tick)
-    }
-    rafRef.current = requestAnimationFrame(tick)
-  }, [colours, hatch, selected, hexField, year, view, ready])
+    const shown = Object.keys(displayedRef.current).length
+      ? displayedRef.current
+      : colours
+    paint(map, hexField, shown, selected, hatch)
+  }, [colours, hatch, selected, hexField, view, ready])
 
   const tooltipStyle = hover
     ? {
@@ -377,10 +401,6 @@ export function ChoroplethMap({
   )
 }
 
-function easeInOut(t: number): number {
-  return 0.5 - Math.cos(Math.PI * t) / 2
-}
-
 function strokePaint(view?: string): {
   "line-color": maplibregl.ExpressionSpecification
   "line-width": maplibregl.ExpressionSpecification
@@ -414,10 +434,13 @@ function paint(
     const id = String(feature.properties?.id ?? feature.id ?? "")
     const code = String(feature.properties?.code ?? "")
     if (!id || !code) continue
+    const rgb = toRgb(colours[code] ?? NO_DATA)
     map.setFeatureState(
       { source: "hex", id },
       {
-        colour: colours[code] ?? NO_DATA,
+        r: Math.round(rgb[0]),
+        g: Math.round(rgb[1]),
+        b: Math.round(rgb[2]),
         selected: code === selected,
         hatch: Boolean(hatch?.[code]),
       }

@@ -51,25 +51,32 @@ export function interpolateRamp(
   return mixColour(ramp[i], ramp[i + 1], f)
 }
 
-export function mixColour(a: string, b: string, t: number): string {
-  const pa = parseColour(a)
-  const pb = parseColour(b)
-  const r = Math.round(pa[0] + (pb[0] - pa[0]) * t)
-  const g = Math.round(pa[1] + (pb[1] - pa[1]) * t)
-  const bl = Math.round(pa[2] + (pb[2] - pa[2]) * t)
-  return `#${toHex(r)}${toHex(g)}${toHex(bl)}`
+export type Rgb = [number, number, number]
+
+export function toRgb(hex: string): Rgb {
+  return parseColour(hex)
 }
 
-export function blendColours(
-  from: Record<string, string>,
-  to: Record<string, string>,
-  t: number
-): Record<string, string> {
-  const mixed: Record<string, string> = {}
-  for (const key of Object.keys(to)) {
-    mixed[key] = mixColour(from[key] ?? NO_DATA, to[key] ?? NO_DATA, t)
-  }
-  return mixed
+export function mixRgb(a: Rgb, b: Rgb, t: number): Rgb {
+  return [
+    a[0] + (b[0] - a[0]) * t,
+    a[1] + (b[1] - a[1]) * t,
+    a[2] + (b[2] - a[2]) * t,
+  ]
+}
+
+export function rgbToHex(rgb: Rgb): string {
+  return `#${toHex(Math.round(rgb[0]))}${toHex(Math.round(rgb[1]))}${toHex(Math.round(rgb[2]))}`
+}
+
+export function mixColour(a: string, b: string, t: number): string {
+  return rgbToHex(mixRgb(toRgb(a), toRgb(b), t))
+}
+
+export function rgbLookup(colours: Record<string, string>): Record<string, Rgb> {
+  const out: Record<string, Rgb> = {}
+  for (const key of Object.keys(colours)) out[key] = toRgb(colours[key] ?? NO_DATA)
+  return out
 }
 
 function toHex(n: number): string {
