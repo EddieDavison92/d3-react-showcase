@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ModeToggle } from "@/components/ui/mode-toggle"
@@ -54,20 +55,28 @@ export function SiteHeader() {
 }
 
 function ShareButton() {
+  const [copied, setCopied] = useState(false)
+  useEffect(() => {
+    if (!copied) return
+    const timer = window.setTimeout(() => setCopied(false), 1800)
+    return () => window.clearTimeout(timer)
+  }, [copied])
   return (
     <Button
       variant="ghost"
       size="sm"
-      className="h-9 min-h-9 px-2 sm:h-11 sm:min-h-11 sm:px-3"
+      className="h-9 min-h-9 min-w-[4.5rem] px-2 sm:h-11 sm:min-h-11 sm:px-3"
+      aria-live="polite"
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(window.location.href)
+          setCopied(true)
         } catch {
           window.prompt("Copy this link", window.location.href)
         }
       }}
     >
-      Share
+      {copied ? "Link copied" : "Share"}
     </Button>
   )
 }

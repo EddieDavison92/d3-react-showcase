@@ -26,18 +26,22 @@ export default function HomePage() {
           <p className="text-sm text-muted-foreground">
             Default: 2022–24 · Male · at birth · Absolute. Not a forecast.
           </p>
-          <p className="text-sm text-teal-800">
+          <p className="flex flex-wrap items-center gap-x-2 pt-2 text-sm text-teal-800">
             <Link href="/catalogue" className="underline-offset-4 hover:underline">
               Browse catalogue
             </Link>
-            {" · "}
+            <span aria-hidden className="text-slate-300">
+              ·
+            </span>
             <AboutNumbers
               triggerVariant="ghost"
               label="About the numbers"
-              triggerClassName="h-auto min-h-0 px-0 text-sm font-normal text-teal-800 underline-offset-4 hover:underline hover:text-teal-950"
+              triggerClassName="h-auto min-h-0 px-0 text-sm font-normal text-teal-800 underline-offset-4 hover:bg-transparent hover:underline hover:text-teal-950"
             />
-            {" · "}
-            <Link className="underline underline-offset-4" href={ONS_LINKS.leBulletin}>
+            <span aria-hidden className="text-slate-300">
+              ·
+            </span>
+            <Link className="underline-offset-4 hover:underline" href={ONS_LINKS.leBulletin}>
               ONS bulletin
             </Link>
           </p>

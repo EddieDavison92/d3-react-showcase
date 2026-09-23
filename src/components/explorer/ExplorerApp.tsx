@@ -184,7 +184,7 @@ export function ExplorerApp() {
         <Sheet open={cutsOpen} onOpenChange={setCutsOpen}>
           <SheetTrigger asChild>
             <Button variant="outline" className="min-h-11 w-full justify-between text-left">
-              <span>Browse cuts</span>
+              <span>Data &amp; area</span>
               <span className="truncate text-xs font-normal text-muted-foreground">
                 {metricLabel(state.metric)}
               </span>
@@ -195,9 +195,9 @@ export function ExplorerApp() {
             className="flex max-h-[88dvh] w-full flex-col overflow-y-auto rounded-t-xl p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
           >
             <SheetHeader className="text-left">
-              <SheetTitle>Catalogue</SheetTitle>
+              <SheetTitle>Data &amp; area</SheetTitle>
               <SheetDescription>
-                Switching metric reloads Explore.
+                Choose a measure, geography and area. Switching measure reloads the map.
               </SheetDescription>
             </SheetHeader>
             <div className="mt-4">{rail}</div>

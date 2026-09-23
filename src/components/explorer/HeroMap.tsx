@@ -72,14 +72,15 @@ export function HeroMap() {
             formatHover={emptyHover}
             interactive={false}
             enterMs={700}
+            background="#ffffff"
           />
         ) : (
-          <div className="relative h-full animate-pulse bg-[#f8fafc]">
+          <div className="relative h-full animate-pulse">
             <div className="absolute inset-[14%] rounded-[42%] border border-slate-300/80" />
           </div>
         )}
       </div>
-      <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
+      <p className="mt-2 text-xs leading-snug text-muted-foreground">
         2022–24 · Male · at birth · Absolute. Darker teal = longer male period life
         expectancy.
         <br />
