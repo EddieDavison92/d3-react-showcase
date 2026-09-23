@@ -60,9 +60,8 @@ export function HeroMap() {
   const emptyHover = useMemo(() => () => "", [])
 
   return (
-    <div className="relative">
-      <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,rgba(204,251,241,0.35),transparent_70%)]" />
-      <div className="relative h-[42vh] max-h-[22rem] w-full lg:h-[min(68vh,36rem)] lg:max-h-none">
+    <figure className="relative">
+      <div className="relative h-[46vh] max-h-[26rem] w-full lg:h-[min(68vh,42rem)] lg:max-h-none">
         {geojson ? (
           <ChoroplethMap
             geojson={geojson}
@@ -80,7 +79,7 @@ export function HeroMap() {
           </div>
         )}
       </div>
-      <p className="mt-2 text-xs leading-snug text-muted-foreground">
+      <figcaption className="mx-auto mt-3 max-w-lg text-xs leading-relaxed text-muted-foreground lg:text-center">
         2022–24 · Male · at birth · Absolute. Darker teal = longer male period life
         expectancy.
         <br />
@@ -88,7 +87,7 @@ export function HeroMap() {
         <Link href={exploreHref()} className="text-teal-800 underline-offset-2 hover:underline">
           Explore →
         </Link>
-      </p>
-    </div>
+      </figcaption>
+    </figure>
   )
 }
