@@ -21,17 +21,21 @@ function Segmented<T extends string>({
   ariaLabel?: string
 }) {
   return (
-    <div className="flex flex-wrap gap-1" role="group" aria-label={ariaLabel}>
+    <div
+      className="flex w-fit max-w-full flex-wrap rounded-[10px] bg-slate-100/80 p-0.5"
+      role="group"
+      aria-label={ariaLabel}
+    >
       {options.map((option) => (
         <button
           key={option.value}
           type="button"
           onClick={() => onChange(option.value)}
           className={cn(
-            "h-9 min-h-9 rounded-md border px-2.5 text-sm sm:h-11 sm:min-h-11 sm:px-3",
+            "h-9 min-h-9 rounded-md px-3 text-sm motion-safe:transition-colors lg:h-10 lg:min-h-10",
             value === option.value
-              ? "border-teal-800 bg-teal-800 text-white"
-              : "border-input bg-background hover:bg-muted"
+              ? "bg-white font-medium text-foreground shadow-sm ring-1 ring-slate-900/[0.06]"
+              : "text-muted-foreground hover:text-foreground"
           )}
           aria-pressed={value === option.value}
         >
@@ -64,7 +68,7 @@ export function CompactFilterBar({
           onChange={(sex: SexId) => onChange({ sex })}
         />
       ) : hideSex ? (
-        <span className="rounded-md border px-2.5 py-1 text-[11px] text-muted-foreground">
+        <span className="px-1 text-xs text-muted-foreground">
           {SEX_GAP_LABEL}
         </span>
       ) : null}
@@ -155,13 +159,16 @@ export function FilterPanel({
           <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">
             Sex
           </Label>
-          <div className="flex flex-wrap gap-1" aria-label="Sex locked to derived gap">
+          <div
+            className="flex w-fit rounded-[10px] bg-slate-100/80 p-0.5"
+            aria-label="Sex locked to derived gap"
+          >
             {["Male", "Female"].map((label) => (
               <button
                 key={label}
                 type="button"
                 disabled
-                className="h-9 min-h-9 rounded-md border border-input px-2.5 text-sm opacity-50 sm:h-11 sm:min-h-11 sm:px-3"
+                className="h-9 min-h-9 rounded-md px-3 text-sm text-muted-foreground opacity-50 lg:h-10 lg:min-h-10"
               >
                 {label}
               </button>

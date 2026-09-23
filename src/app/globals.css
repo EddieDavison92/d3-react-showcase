@@ -206,11 +206,11 @@ vercel-live-feedback {
 }
 
 .period-scrub:focus-visible::-webkit-slider-thumb {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0f766e;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0f172a;
 }
 
 .period-scrub:focus-visible::-moz-range-thumb {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0f766e;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0f172a;
 }
 
 .period-scrub::-webkit-slider-runnable-track {
@@ -218,7 +218,7 @@ vercel-live-feedback {
   border-radius: 999px;
   background: linear-gradient(
     to right,
-    #0f766e var(--fill, 0%),
+    #94a3b8 var(--fill, 0%),
     #e2e8f0 var(--fill, 0%)
   );
 }
@@ -229,7 +229,7 @@ vercel-live-feedback {
   height: 14px;
   margin-top: -4px;
   border-radius: 999px;
-  background: #0f766e;
+  background: #0f172a;
   border: 2px solid #fff;
   box-shadow: 0 0 0 1px #94a3b8;
 }
@@ -243,7 +243,7 @@ vercel-live-feedback {
 .period-scrub::-moz-range-progress {
   height: 6px;
   border-radius: 999px;
-  background: #0f766e;
+  background: #94a3b8;
 }
 
 .period-scrub::-moz-range-thumb {
@@ -251,6 +251,6 @@ vercel-live-feedback {
   height: 14px;
   border: 2px solid #fff;
   border-radius: 999px;
-  background: #0f766e;
+  background: #0f172a;
   box-shadow: 0 0 0 1px #94a3b8;
 }

@@ -15,7 +15,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { familyOf, metricLabel } from "@/lib/explorer/catalogue"
+import { familyOf, geoShort, metricShort } from "@/lib/explorer/catalogue"
 import {
   areasForGeo,
   indexAreas,
@@ -184,9 +184,11 @@ export function ExplorerApp() {
         <Sheet open={cutsOpen} onOpenChange={setCutsOpen}>
           <SheetTrigger asChild>
             <Button variant="outline" className="min-h-11 w-full justify-between text-left">
-              <span>Data &amp; area</span>
-              <span className="truncate text-xs font-normal text-muted-foreground">
-                {metricLabel(state.metric)}
+              <span className="shrink-0">Data &amp; area</span>
+              <span className="min-w-0 truncate text-xs font-normal text-muted-foreground">
+                {state.area
+                  ? `${areaByCode.get(state.area)?.name ?? state.area} · ${geoShort(state.geo)}`
+                  : `${metricShort(state.metric)} · ${geoShort(state.geo)}`}
               </span>
             </Button>
           </SheetTrigger>

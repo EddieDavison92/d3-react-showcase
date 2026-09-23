@@ -61,7 +61,7 @@ export function DeprivationStrip({
         <AboutNumbers
           triggerVariant="ghost"
           label="About deprivation indices"
-          triggerClassName="h-auto min-h-0 px-0 text-[11px] font-normal text-muted-foreground underline underline-offset-2 hover:text-foreground"
+          triggerClassName="h-auto min-h-0 px-0 sm:h-auto sm:min-h-0 sm:px-0 text-[11px] font-normal text-muted-foreground underline underline-offset-2 hover:text-foreground"
         />
       </p>
     </div>

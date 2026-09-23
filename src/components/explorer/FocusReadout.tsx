@@ -47,27 +47,29 @@ export function FocusReadout({
 
   if (figure) {
     return (
-      <div className="focus-card-enter rounded-lg border border-slate-200/80 bg-white/95 px-3.5 py-3 shadow-sm backdrop-blur-sm dark:bg-slate-950/85">
+      <div className="focus-card-enter rounded-xl border border-slate-200/70 bg-white/95 px-4 py-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.22)] backdrop-blur-sm">
         <p className="text-sm font-semibold leading-tight">{name}</p>
         {level !== null ? (
           <>
-            <p className="mt-1 text-2xl font-semibold sm:text-[1.75rem] leading-none tabular-nums tracking-tight text-teal-900 dark:text-teal-200">
+            <p className="mt-1.5 text-[1.75rem] font-semibold leading-none tracking-tight tabular-nums text-foreground sm:text-[2rem]">
               {formatYears(level)}
-              <span className="ml-1 text-sm font-normal text-muted-foreground">{unit}</span>
+              <span className="ml-1 text-sm font-normal tracking-normal text-muted-foreground">
+                {unit}
+              </span>
             </p>
             {hasCi ? (
               <p
                 className={
                   emphasiseCi
-                    ? "text-xs font-medium tabular-nums text-foreground"
-                    : "text-xs tabular-nums text-muted-foreground"
+                    ? "mt-1 text-xs font-medium tabular-nums text-foreground"
+                    : "mt-1 text-xs tabular-nums text-muted-foreground"
                 }
               >
                 {formatCi(point)}
               </p>
             ) : null}
             {derived ? (
-              <p className="mt-2 border-t border-slate-200/80 pt-2 text-sm font-medium tabular-nums text-foreground">
+              <p className="mt-2.5 border-t border-slate-200/70 pt-2.5 text-sm font-medium tabular-nums text-foreground">
                 {derived}
               </p>
             ) : null}
@@ -85,7 +87,7 @@ export function FocusReadout({
               </p>
             ) : null}
             {showAges || divergence ? (
-              <div className="mt-2 hidden space-y-0.5 border-t border-slate-200/80 pt-2 text-xs leading-snug text-muted-foreground sm:block">
+              <div className="mt-2.5 hidden space-y-1 border-t border-slate-200/70 pt-2.5 text-xs leading-snug text-muted-foreground sm:block">
                 {showAges ? (
                   <p className="tabular-nums">
                     {age === "65"

@@ -14,10 +14,11 @@ export function ContextChip({
   nationName?: string | null
 }) {
   const paintMetric = mapMetric ?? state.metric
-  // Sex/age chips repeat the toggles sitting directly above them on mobile.
+  // On phones the toggles, "Data & area" trigger and scrub already say geo, period,
+  // sex and age — only the comparator and deprivation cues stay.
   const bits: { text: string; mobile: boolean }[] = [
-    { text: geoShort(state.geo), mobile: true },
-    { text: compactPeriod(state.year), mobile: true },
+    { text: geoShort(state.geo), mobile: false },
+    { text: compactPeriod(state.year), mobile: false },
   ]
   bits.push({ text: state.view === "sex_gap" ? SEX_GAP_LABEL : state.sex, mobile: false })
   if (familyOf(paintMetric) === "le") {
@@ -30,19 +31,26 @@ export function ContextChip({
     bits.push({ text: "deprivation strip", mobile: true })
   }
 
+  const firstMobile = bits.findIndex((bit) => bit.mobile)
+
+  // One quiet caption line, not pills: it names the figure without competing with it.
   return (
-    <div className="flex flex-wrap gap-1">
-      {bits.map((bit) => (
-        <span
-          key={bit.text}
-          className={cn(
-            "rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] leading-tight text-muted-foreground",
-            !bit.mobile && "hidden lg:inline"
-          )}
-        >
+    <p
+      className={cn(
+        "flex-wrap items-baseline gap-x-1.5 text-[13px] font-medium leading-snug text-slate-700",
+        firstMobile >= 0 ? "flex" : "hidden lg:flex"
+      )}
+    >
+      {bits.map((bit, i) => (
+        <span key={bit.text} className={cn("inline-flex gap-x-1.5", !bit.mobile && "hidden lg:inline-flex")}>
+          {i > 0 ? (
+            <span aria-hidden className={cn("text-slate-300", i === firstMobile && "hidden lg:inline")}>
+              ·
+            </span>
+          ) : null}
           {bit.text}
         </span>
       ))}
-    </div>
+    </p>
   )
 }

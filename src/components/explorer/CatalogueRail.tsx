@@ -28,7 +28,7 @@ export function CatalogueRail({
               className={cn(
                 "flex min-h-11 w-full flex-col justify-center rounded-md px-2.5 py-1.5 text-left transition-colors",
                 active
-                  ? "border-l-2 border-l-teal-800 bg-teal-50/70 dark:border-l-teal-400 dark:bg-teal-950/20"
+                  ? "border-l-2 border-l-slate-900 bg-slate-100/70"
                   : "border-l-2 border-l-transparent hover:bg-muted/50"
               )}
             >

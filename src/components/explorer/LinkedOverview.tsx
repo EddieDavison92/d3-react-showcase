@@ -330,20 +330,22 @@ export function LinkedOverview({
       : null
 
   return (
-    <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-2 overflow-x-clip">
-      <ContextChip
-        state={state}
-        mapMetric={mapMetric}
-        nationName={nationName}
-      />
-      {switcherViews.length ? (
-        <ViewSwitcher
-          value={state.view}
-          options={switcherViews}
-          onChange={(view) => onChange({ view })}
+    <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-3 overflow-x-clip">
+      <div className="min-w-0 space-y-2">
+        <ContextChip
+          state={state}
+          mapMetric={mapMetric}
+          nationName={nationName}
         />
-      ) : null}
-      <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-2">
+        {switcherViews.length ? (
+          <ViewSwitcher
+            value={state.view}
+            options={switcherViews}
+            onChange={(view) => onChange({ view })}
+          />
+        ) : null}
+      </div>
+      <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-4">
         {geoFailed ? (
           <EmptyNote title="Boundaries could not be loaded">
             The boundary file did not load. Try another geography or reload.
@@ -396,7 +398,7 @@ export function LinkedOverview({
               {state.area ? (
                 <div
                   key={state.area}
-                  className="pointer-events-none absolute right-2 top-2 z-10 w-[min(100%-1rem,12.5rem)] sm:right-3 sm:top-3 sm:w-[min(100%-1.5rem,15rem)]"
+                  className="pointer-events-none absolute right-2 top-2 z-10 w-[min(100%-1rem,12.5rem)] sm:right-4 sm:top-4 sm:w-[min(100%-2rem,16.5rem)]"
                 >
                   <FocusReadout
                     figure

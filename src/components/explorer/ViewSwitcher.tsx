@@ -85,7 +85,7 @@ export function ViewSwitcher({
         >
           <span
             aria-hidden
-            className="pointer-events-none absolute top-0.5 bottom-0.5 rounded-md bg-teal-800 motion-safe:transition-[left,width] motion-safe:duration-200"
+            className="pointer-events-none absolute top-0.5 bottom-0.5 rounded-md bg-white shadow-sm ring-1 ring-slate-900/[0.06] motion-safe:transition-[left,width] motion-safe:duration-200"
             style={{ left: pill.left, width: pill.width }}
           />
           {shown.map((option, index) => {
@@ -102,7 +102,7 @@ export function ViewSwitcher({
                 className={cn(
                   "relative z-[1] h-9 min-h-9 min-w-[3.7rem] shrink-0 whitespace-nowrap px-1 text-center text-[12px] font-medium md:h-8 md:min-h-8 md:min-w-[6.2rem] md:grow md:basis-0 md:px-1.5 md:text-[13px]",
                   index > 0 && !selected ? "border-l border-slate-200" : "border-l border-transparent",
-                  selected ? "text-white" : "text-muted-foreground hover:text-foreground"
+                  selected ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <span className="md:hidden">{option.shortLabel}</span>

@@ -140,21 +140,32 @@ export function SeriesPanel({
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`)
 
-    g.append("g")
+    // Quiet axes: hairline grid, no domain rules, muted labels — the lines carry the story.
+    const xAxis = g
+      .append("g")
       .attr("transform", `translate(0,${innerH})`)
       .call(
         d3
           .axisBottom(x)
+          .tickSize(0)
+          .tickPadding(10)
           .tickValues(periods.filter((_, i) => i === 0 || i === periods.length - 1 || i === yearIndex))
           .tickFormat((d) => compactPeriod(String(d)))
       )
-      .selectAll("text")
-      .attr("font-size", 10)
-
-    g.append("g")
-      .call(d3.axisLeft(y).ticks(5))
-      .selectAll("text")
-      .attr("font-size", 10)
+    const yAxis = g
+      .append("g")
+      .call(d3.axisLeft(y).ticks(4).tickSize(-innerW).tickPadding(8))
+    for (const axis of [xAxis, yAxis]) {
+      axis.select(".domain").remove()
+      axis.selectAll("text").attr("font-size", 11).attr("fill", "#64748b")
+    }
+    yAxis.selectAll(".tick line").attr("stroke", "#e2e8f0")
+    g.append("line")
+      .attr("x1", 0)
+      .attr("x2", innerW)
+      .attr("y1", innerH)
+      .attr("y2", innerH)
+      .attr("stroke", "#cbd5e1")
 
     const markerX = x(year)
     if (markerX !== undefined) {
@@ -163,8 +174,8 @@ export function SeriesPanel({
         .attr("x2", markerX)
         .attr("y1", 0)
         .attr("y2", innerH)
-        .attr("stroke", "#0f766e")
-        .attr("stroke-dasharray", "3,3")
+        .attr("stroke", "#94a3b8")
+        .attr("stroke-dasharray", "2,3")
         .attr("stroke-width", 1)
     }
 
@@ -208,10 +219,10 @@ export function SeriesPanel({
   }, [emphasiseCi, extent, periods, series, year, yearIndex, onYear])
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-2">
+    <div className="flex h-full min-h-0 flex-col gap-2 pt-1">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-sm font-medium">
+          <p className="text-sm font-semibold">
             {heading ?? series[0]?.name ?? "Series"}
           </p>
           {series.length > 1 ? (
@@ -221,19 +232,15 @@ export function SeriesPanel({
           ) : null}
         </div>
         {compareUi ? (
-          <div className="flex flex-col items-end gap-1">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Compare
-            </p>
-            <button
-              type="button"
-              disabled={!canCompare}
-              onClick={onAddCompare}
-              className="min-h-11 rounded-md border px-3 text-sm disabled:opacity-40"
-            >
-              Add to compare
-            </button>
-          </div>
+          <button
+            type="button"
+            disabled={!canCompare}
+            onClick={onAddCompare}
+            title="Keep this area on the chart, then pick another — up to two extra areas."
+            className="min-h-11 rounded-md px-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40 lg:min-h-9"
+          >
+            + Add to compare
+          </button>
         ) : null}
       </div>
       <svg ref={svgRef} className="w-full min-w-0" height={200} />
