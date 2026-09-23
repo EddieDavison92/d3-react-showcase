@@ -144,6 +144,39 @@ vercel-live-feedback {
   }
 }
 
+@media (max-width: 767px) {
+  .six-seg-row {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      #000 0%,
+      #000 calc(100% - 2.75rem),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      #000 0%,
+      #000 calc(100% - 2.75rem),
+      transparent 100%
+    );
+  }
+  .six-seg-row[data-peek-left="true"] {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      #000 1.25rem,
+      #000 calc(100% - 2.75rem),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      #000 1.25rem,
+      #000 calc(100% - 2.75rem),
+      transparent 100%
+    );
+  }
+}
+
 .period-scrub {
   -webkit-appearance: none;
   appearance: none;

@@ -19,7 +19,7 @@ export function ViewSwitcher({
     : VIEW_OPTIONS
   const rowRef = useRef<HTMLDivElement>(null)
   const [pill, setPill] = useState({ left: 0, width: 0 })
-  const [peek, setPeek] = useState({ left: false, right: false })
+  const [peek, setPeek] = useState({ left: false, right: true })
 
   useLayoutEffect(() => {
     const row = rowRef.current
@@ -50,6 +50,7 @@ export function ViewSwitcher({
     measure()
     const observer = new ResizeObserver(measure)
     observer.observe(row)
+    for (const child of Array.from(row.children)) observer.observe(child)
     row.addEventListener("scroll", measure, { passive: true })
     return () => {
       observer.disconnect()
@@ -75,9 +76,11 @@ export function ViewSwitcher({
       <div className="relative min-w-0">
         <div
           ref={rowRef}
-          className="relative flex flex-nowrap overflow-x-auto rounded-[10px] bg-slate-100/80 p-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="six-seg-row relative flex flex-nowrap overflow-x-auto rounded-[10px] bg-slate-100/80 p-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           role="radiogroup"
           aria-label="Map view"
+          data-peek-left={peek.left ? "true" : "false"}
+          data-peek-right={peek.right ? "true" : "false"}
           onKeyDown={move}
         >
           <span
@@ -97,7 +100,7 @@ export function ViewSwitcher({
                 title={option.aria}
                 onClick={() => onChange(option.id)}
                 className={cn(
-                  "relative z-[1] h-9 min-h-9 min-w-[4.15rem] shrink-0 whitespace-nowrap px-1.5 text-center text-[13px] font-medium md:h-8 md:min-h-8 md:min-w-[6.2rem] md:grow md:basis-0",
+                  "relative z-[1] h-9 min-h-9 min-w-[3.7rem] shrink-0 whitespace-nowrap px-1 text-center text-[12px] font-medium md:h-8 md:min-h-8 md:min-w-[6.2rem] md:grow md:basis-0 md:px-1.5 md:text-[13px]",
                   index > 0 && !selected ? "border-l border-slate-200" : "border-l border-transparent",
                   selected ? "text-white" : "text-muted-foreground hover:text-foreground"
                 )}
@@ -108,16 +111,14 @@ export function ViewSwitcher({
             )
           })}
         </div>
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 right-0 z-[2] w-14 rounded-r-[10px] bg-gradient-to-l from-white from-50% via-white/80 to-transparent md:hidden"
+        />
         {peek.left ? (
           <span
             aria-hidden
             className="pointer-events-none absolute inset-y-0 left-0 z-[2] w-10 rounded-l-[10px] bg-gradient-to-r from-white from-40% to-transparent md:hidden"
-          />
-        ) : null}
-        {peek.right ? (
-          <span
-            aria-hidden
-            className="pointer-events-none absolute inset-y-0 right-0 z-[2] w-12 rounded-r-[10px] bg-gradient-to-l from-white from-45% via-white/70 to-transparent md:hidden"
           />
         ) : null}
       </div>
