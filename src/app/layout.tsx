@@ -36,7 +36,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
-          enableSystem
+          // Map grounds and ramps are light-only; no dark theme until they are themed.
+          forcedTheme="light"
           disableTransitionOnChange
         >
           <TooltipProvider>

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ModeToggle } from "@/components/ui/mode-toggle"
 import { Button } from "@/components/ui/button"
 import { AboutNumbers } from "@/components/explorer/AboutNumbers"
 import { siteConfig } from "@/config/site"
@@ -45,9 +44,6 @@ export function SiteHeader() {
         <div className="ml-auto flex min-w-0 shrink items-center gap-0.5 sm:gap-1">
           <AboutNumbers />
           <ShareButton />
-          <div className="hidden sm:block">
-            <ModeToggle />
-          </div>
         </div>
       </div>
     </header>
