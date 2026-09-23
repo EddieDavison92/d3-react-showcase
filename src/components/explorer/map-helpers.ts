@@ -36,16 +36,44 @@ export function boundsOfGeojson(
   ]
 }
 
+/**
+ * Fixed colour domain across every period in the scrub, so a darker cell
+ * means a longer life expectancy in any year — not just relative to that
+ * year’s spread. Ends snap outward to `step` so legend labels are exact.
+ */
+export function stableDomain(
+  slices: Record<string, number | null>[],
+  diverging: boolean,
+  step: number
+): [number, number] | undefined {
+  let min = Infinity
+  let max = -Infinity
+  for (const slice of slices) {
+    for (const value of Object.values(slice)) {
+      if (value === null || !Number.isFinite(value)) continue
+      if (value < min) min = value
+      if (value > max) max = value
+    }
+  }
+  if (!Number.isFinite(min)) return undefined
+  if (diverging) {
+    const abs = Math.ceil(Math.max(Math.abs(min), Math.abs(max), step) / step) * step
+    return [-abs, abs]
+  }
+  return [Math.floor(min / step) * step, Math.ceil(max / step) * step]
+}
+
 export function colourLookup(
   values: Record<string, number | null>,
   ramp: readonly string[],
-  diverging: boolean
+  diverging: boolean,
+  domain?: [number, number]
 ): { colours: Record<string, string>; min: number; max: number } {
   const finite = Object.values(values).filter((v): v is number => v !== null && Number.isFinite(v))
   if (!finite.length) return { colours: {}, min: 0, max: 1 }
-  let min = Math.min(...finite)
-  let max = Math.max(...finite)
-  if (diverging) {
+  let min = domain?.[0] ?? Math.min(...finite)
+  let max = domain?.[1] ?? Math.max(...finite)
+  if (diverging && !domain) {
     const abs = Math.max(Math.abs(min), Math.abs(max), 0.1)
     min = -abs
     max = abs
@@ -67,7 +95,7 @@ export function hoverText(
   unit: string,
   extra?: string
 ): string {
-  if (!point || point[0] === null) return `${name}\nNo figure in this cut`
+  if (!point || point[0] === null) return `${name}\nNo figure for this selection`
   const ci = formatCi(point) ? `\n${formatCi(point)}` : ""
   const main = unit.includes("100,000") ? formatRate(point[0]) : formatYears(point[0])
   return `${name}\n${main} ${unit}${ci}${extra ? `\n${extra}` : ""}`

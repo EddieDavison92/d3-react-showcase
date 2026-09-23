@@ -29,13 +29,15 @@ export const DIVERGING_RAMP = [
   "#64748b",
   "#94a3b8",
   "#e2e8f0",
-  "#f8fafc",
+  "#e9e7e2",
   "#99f6e4",
   "#5eead4",
   "#14b8a6",
   "#0f766e",
   "#115e59",
 ] as const
+
+export const DIVERGING_RAMP_REVERSED = [...DIVERGING_RAMP].reverse()
 
 export const NO_DATA = "#e2e8f0"
 

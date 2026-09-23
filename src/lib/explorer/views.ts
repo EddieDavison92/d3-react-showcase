@@ -66,7 +66,7 @@ export function viewNote(view: ViewId): string {
     case "d2019":
       return "A rise from the trough is not full recovery."
     case "vs_nation":
-      return "Each area vs its own nation. Map is change from nation; chart below is the level history."
+      return "Each area vs its own nation. Map shows the difference from nation; chart below is the level history."
     case "sex_gap":
       return "Male minus female for the selected period. Not a decline/gain story."
     case "ci":
@@ -86,7 +86,10 @@ export function legendCaption(view: ViewId, unit: string): string {
   }
 }
 
-export function legendEnds(view: ViewId): {
+export function legendEnds(
+  view: ViewId,
+  unit = "years"
+): {
   left: string
   right: string
   leftShort?: string
@@ -96,6 +99,10 @@ export function legendEnds(view: ViewId): {
   switch (view) {
     case "d2017":
     case "d2019":
+      // A rising death rate is not a gain.
+      if (unit !== "years") {
+        return { left: "Fall", right: "Rise", aria: `Change in ${unit}, fall to rise` }
+      }
       return { left: "Decline", right: "Gain", aria: "Change in years, decline to gain" }
     case "vs_nation":
       return {
@@ -109,8 +116,6 @@ export function legendEnds(view: ViewId): {
       return {
         left: "Men shorter",
         right: "Women shorter",
-        leftShort: "Men −",
-        rightShort: "Women −",
         aria: "Male minus female period life expectancy in years",
       }
     default:

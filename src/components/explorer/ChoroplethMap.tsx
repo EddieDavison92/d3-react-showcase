@@ -30,8 +30,11 @@ const COAST_STROKE = "#475569"
 const SCRUB_MS = 200
 const FLIP_MS = 260
 const NO_DATA_RGB: Rgb = [226, 232, 240]
+// No figure = empty cell (outline only), so it never reads as a value near zero.
 const FILL_OPACITY: maplibregl.ExpressionSpecification = [
   "case",
+  ["boolean", ["feature-state", "nodata"], false],
+  0,
   ["boolean", ["feature-state", "hatch"], false],
   0.58,
   0.96,
@@ -50,6 +53,7 @@ export function ChoroplethMap({
   view,
   enterMs = 0,
   quietHover = false,
+  background = "#f8fafc",
   className,
 }: {
   geojson: FeatureCollection
@@ -63,6 +67,8 @@ export function ChoroplethMap({
   view?: string
   enterMs?: number
   quietHover?: boolean
+  /** Canvas ground; the landing hero floats on the page ground instead of a panel. */
+  background?: string
   className?: string
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -142,7 +148,7 @@ export function ChoroplethMap({
             {
               id: "background",
               type: "background",
-              paint: { "background-color": "#f8fafc" },
+              paint: { "background-color": background },
             },
           ],
         },
@@ -194,7 +200,7 @@ export function ChoroplethMap({
           source: "hex",
           paint: {
             "fill-color": "#64748b",
-            "fill-opacity": 0.12,
+            "fill-opacity": ["case", ["boolean", ["feature-state", "nodata"], false], 0, 0.12],
             "fill-translate": [1.2, 1.5],
           },
         })
@@ -306,7 +312,7 @@ export function ChoroplethMap({
       targetRef.current = {}
       setReady(false)
     }
-  }, [geojson, hexField, interactive])
+  }, [background, geojson, hexField, interactive])
 
   useEffect(() => {
     const map = mapRef.current
@@ -343,7 +349,7 @@ export function ChoroplethMap({
       for (const code of Object.keys(toRgb)) {
         mixed[code] = rgbToHex(mixRgb(fromRgb[code] ?? NO_DATA_RGB, toRgb[code], t))
       }
-      paint(map, hexField, mixed, selectedRef.current, hatchRef.current)
+      paint(map, hexField, mixed, selectedRef.current, hatchRef.current, colours)
       displayedRef.current = mixed
       map.triggerRepaint()
       if (t < 1) rafRef.current = requestAnimationFrame(tick)
@@ -364,7 +370,7 @@ export function ChoroplethMap({
     const shown = Object.keys(displayedRef.current).length
       ? displayedRef.current
       : colours
-    paint(map, hexField, shown, selected, hatch)
+    paint(map, hexField, shown, selected, hatch, colours)
   }, [colours, hatch, selected, hexField, view, ready])
 
   const tooltipStyle = hover
@@ -376,15 +382,16 @@ export function ChoroplethMap({
 
   return (
     <div
+      style={{ background }}
       className={cn(
-        "relative h-full min-h-[240px] w-full max-w-full overflow-hidden bg-[#f8fafc]",
+        "relative h-full min-h-[240px] w-full max-w-full overflow-hidden",
         interactive ? "rounded-lg" : "rounded-none",
         enterMs && ready ? "hero-map-enter" : "",
         className
       )}
     >
       {!ready ? (
-        <div className="absolute inset-0 animate-pulse bg-[#f8fafc]">
+        <div className="absolute inset-0 animate-pulse" style={{ background }}>
           <div className="absolute inset-[12%] rounded-[40%] border border-slate-300/70" />
         </div>
       ) : null}
@@ -427,7 +434,8 @@ function paint(
   hexField: FeatureCollection,
   colours: Record<string, string>,
   selected: string | null,
-  hatch?: Record<string, boolean>
+  hatch?: Record<string, boolean>,
+  target: Record<string, string> = colours
 ) {
   if (!map.getSource("hex")) return
   for (const feature of hexField.features) {
@@ -443,6 +451,7 @@ function paint(
         b: Math.round(rgb[2]),
         selected: code === selected,
         hatch: Boolean(hatch?.[code]),
+        nodata: !target[code] || target[code] === NO_DATA,
       }
     )
   }

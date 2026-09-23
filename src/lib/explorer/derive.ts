@@ -1,5 +1,5 @@
 import { dimKey, readPoint } from "./data"
-import { formatYears } from "./format"
+import { formatSigned, formatYears } from "./format"
 import type {
   AreaRecord,
   LookupsFile,
@@ -94,7 +94,7 @@ export function deriveMap(args: {
           delta.value === null
             ? now?.[0] !== null && now?.[0] !== undefined
               ? `No ${label} baseline`
-              : "No figure in this cut"
+              : "No figure for this selection"
             : `Δ vs ${label} ${signed(delta.value)}${delta.uncertain ? " · change uncertain (CIs overlap)" : ""}`,
       }
       continue
@@ -186,8 +186,7 @@ export function yearsNotInGoodHealth(args: {
 }
 
 function signed(value: number): string {
-  const text = formatYears(value)
-  return value > 0 ? `+${text}` : text
+  return formatSigned(value)
 }
 
 function quantile(values: number[], q: number): number {

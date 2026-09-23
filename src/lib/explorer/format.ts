@@ -17,8 +17,9 @@ export function formatYears(value: number | null | undefined, digits = 1): strin
 
 export function formatSigned(value: number | null | undefined, digits = 1): string {
   if (value === null || value === undefined || Number.isNaN(value)) return "–"
-  const text = value.toFixed(digits)
-  return value > 0 ? `+${text}` : text
+  const text = Math.abs(value).toFixed(digits)
+  if (Number(text) === 0) return text
+  return value > 0 ? `+${text}` : `\u2212${text}`
 }
 
 export function formatCi(point: [number | null, number | null, number | null] | null): string {

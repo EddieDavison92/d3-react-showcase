@@ -11,6 +11,7 @@ export function FocusReadout({
   birthPoint,
   age65Point,
   showAges,
+  age,
   divergence,
   sexGap,
   vsNation,
@@ -26,6 +27,7 @@ export function FocusReadout({
   birthPoint?: PackedPoint | null
   age65Point?: PackedPoint | null
   showAges?: boolean
+  age?: string
   divergence?: { years: number; grain: string } | null
   sexGap?: {
     male: number | null
@@ -45,11 +47,11 @@ export function FocusReadout({
 
   if (figure) {
     return (
-      <div className="rounded-lg border border-slate-200/80 bg-white/90 px-3 py-2 shadow-sm backdrop-blur-sm dark:bg-slate-950/80">
+      <div className="focus-card-enter rounded-lg border border-slate-200/80 bg-white/95 px-3.5 py-3 shadow-sm backdrop-blur-sm dark:bg-slate-950/85">
         <p className="text-sm font-semibold leading-tight">{name}</p>
         {level !== null ? (
           <>
-            <p className="mt-0.5 text-2xl font-semibold tabular-nums tracking-tight text-teal-900 dark:text-teal-200">
+            <p className="mt-1 text-2xl font-semibold sm:text-[1.75rem] leading-none tabular-nums tracking-tight text-teal-900 dark:text-teal-200">
               {formatYears(level)}
               <span className="ml-1 text-sm font-normal text-muted-foreground">{unit}</span>
             </p>
@@ -58,45 +60,49 @@ export function FocusReadout({
                 className={
                   emphasiseCi
                     ? "text-xs font-medium tabular-nums text-foreground"
-                    : "text-[11px] tabular-nums text-muted-foreground"
+                    : "text-xs tabular-nums text-muted-foreground"
                 }
               >
                 {formatCi(point)}
               </p>
             ) : null}
-            {showAges ? (
-              <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
-                At birth {formatYears(birthPoint?.[0])} {formatCi(birthPoint ?? null)}
-                {" · "}
-                at 65 {formatYears(age65Point?.[0])} {formatCi(age65Point ?? null)}
+            {derived ? (
+              <p className="mt-2 border-t border-slate-200/80 pt-2 text-sm font-medium tabular-nums text-foreground">
+                {derived}
               </p>
             ) : null}
-            {derived ? (
-              <p className="mt-1 text-sm tabular-nums text-foreground">{derived}</p>
-            ) : null}
             {sexGap ? (
-              <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
+              <p className="text-xs tabular-nums text-muted-foreground">
                 Male {formatYears(sexGap.male)} · Female {formatYears(sexGap.female)}
               </p>
             ) : null}
             {uncertainChange ? (
-              <p className="mt-0.5 text-[11px] text-muted-foreground">
-                Change uncertain — intervals overlap
-              </p>
+              <p className="text-xs text-muted-foreground">Change uncertain — intervals overlap</p>
             ) : null}
             {vsNation?.ukDelta !== null && vsNation?.ukDelta !== undefined ? (
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs tabular-nums text-muted-foreground">
                 vs UK {formatSigned(vsNation.ukDelta)} {unit}
               </p>
             ) : null}
-            {divergence ? (
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Years not in good health {formatYears(divergence.years)} ({divergence.grain}).
-              </p>
+            {showAges || divergence ? (
+              <div className="mt-2 hidden space-y-0.5 border-t border-slate-200/80 pt-2 text-xs leading-snug text-muted-foreground sm:block">
+                {showAges ? (
+                  <p className="tabular-nums">
+                    {age === "65"
+                      ? `At birth ${formatYears(birthPoint?.[0])} ${unit} · ${formatCi(birthPoint ?? null)}`
+                      : `At 65 ${formatYears(age65Point?.[0])} ${unit} · ${formatCi(age65Point ?? null)}`}
+                  </p>
+                ) : null}
+                {divergence ? (
+                  <p>
+                    Years not in good health {formatYears(divergence.years)} ({divergence.grain}).
+                  </p>
+                ) : null}
+              </div>
             ) : null}
           </>
         ) : (
-          <p className="mt-1 text-xs text-muted-foreground">No figure in this cut.</p>
+          <p className="mt-1 text-xs text-muted-foreground">No figure for this selection.</p>
         )}
       </div>
     )

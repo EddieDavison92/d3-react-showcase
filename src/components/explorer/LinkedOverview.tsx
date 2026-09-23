@@ -11,20 +11,33 @@ const ChoroplethMap = dynamic(
 import { ContextChip } from "@/components/explorer/ContextChip"
 import { DeprivationStrip } from "@/components/explorer/DeprivationStrip"
 import { FocusReadout } from "@/components/explorer/FocusReadout"
-import { colourLookup, hoverText, sexGapHover } from "@/components/explorer/map-helpers"
+import {
+  colourLookup,
+  hoverText,
+  sexGapHover,
+  stableDomain,
+} from "@/components/explorer/map-helpers"
 import { MapLegend } from "@/components/explorer/MapLegend"
 import { PeriodScrub, SeriesPanel } from "@/components/explorer/SeriesPanel"
 import { ViewSwitcher } from "@/components/explorer/ViewSwitcher"
 import {
   AVOIDABLE_RAMP,
   DIVERGING_RAMP,
+  DIVERGING_RAMP_REVERSED,
   TEAL_RAMP,
 } from "@/lib/explorer/colours"
 import { familyOf } from "@/lib/explorer/catalogue"
 import { dimKey, geoUrl, readPoint, readSeries } from "@/lib/explorer/data"
 import { comparatorsFor, deriveMap, NATION_COMPARATOR } from "@/lib/explorer/derive"
 import { formatCi, formatYears } from "@/lib/explorer/format"
-import { isDivergingView, legendCaption, legendEnds, viewsFor } from "@/lib/explorer/views"
+import {
+  isDivergingView,
+  legendCaption,
+  legendEnds,
+  PERIOD_PRECOVID,
+  PERIOD_TROUGH,
+  viewsFor,
+} from "@/lib/explorer/views"
 import type {
   AreaRecord,
   DeprivationFile,
@@ -137,19 +150,49 @@ export function LinkedOverview({
   }, [derived, state.view])
 
   const diverging = isDivergingView(state.view)
-  const ramp =
-    diverging
-      ? DIVERGING_RAMP
-      : mapFamily === "avoidable"
-        ? AVOIDABLE_RAMP
-        : TEAL_RAMP
-
-  const painted = useMemo(
-    () => colourLookup(values, ramp, diverging),
-    [values, ramp, diverging]
-  )
+  // Mortality rates: fewer deaths reads teal, as longer life does for LE.
+  const ramp = diverging
+    ? mapFamily === "avoidable"
+      ? DIVERGING_RAMP_REVERSED
+      : DIVERGING_RAMP
+    : mapFamily === "avoidable"
+      ? AVOIDABLE_RAMP
+      : TEAL_RAMP
 
   const unit = mapFamily === "avoidable" ? "per 100,000" : "years"
+
+  // One scale for the whole scrub: Δ views only from their baseline onward.
+  const domain = useMemo(() => {
+    if (!file) return undefined
+    const baseline =
+      state.view === "d2017"
+        ? file.periods.indexOf(PERIOD_PRECOVID)
+        : state.view === "d2019"
+          ? file.periods.indexOf(PERIOD_TROUGH)
+          : 0
+    const slices: Record<string, number | null>[] = []
+    for (let i = Math.max(0, baseline); i < file.periods.length; i += 1) {
+      const cells = deriveMap({
+        view: state.view,
+        file,
+        areas,
+        metric: mapMetric,
+        sex,
+        age: state.age,
+        periodIndex: i,
+      })
+      const slice: Record<string, number | null> = {}
+      for (const [code, cell] of Object.entries(cells)) slice[code] = cell.value
+      slices.push(slice)
+    }
+    const step = unit === "years" ? (diverging ? 0.5 : 1) : 10
+    return stableDomain(slices, diverging, step)
+  }, [areas, diverging, file, mapMetric, sex, state.age, state.view, unit])
+
+  const painted = useMemo(
+    () => colourLookup(values, ramp, diverging, domain),
+    [values, ramp, diverging, domain]
+  )
   const selectedName = selectedArea?.name ?? null
   const ukComparator = file?.areas.find((area) => area.code === NATION_COMPARATOR.UK.code)
   const seriesCodes = Array.from(
@@ -233,7 +276,7 @@ export function LinkedOverview({
       ? `${seriesSubject} — levels over time`
       : "Levels over time"
     : undefined
-  const ends = legendEnds(state.view)
+  const ends = legendEnds(state.view, unit)
   const birthPoint =
     focusCode && file ? readPoint(file, focusCode, sex, "birth", periodIndex) : null
   const age65Point =
@@ -300,21 +343,14 @@ export function LinkedOverview({
           onChange={(view) => onChange({ view })}
         />
       ) : null}
-      {showStrip ? (
-        <DeprivationStrip
-          area={selectedArea ?? null}
-          deprivation={deprivation}
-          emphasised={family === "deprivation"}
-        />
-      ) : null}
       <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-2">
         {geoFailed ? (
           <EmptyNote title="Boundaries could not be loaded">
-            The geography file for this cut did not load. Try another geography or reload.
+            The boundary file did not load. Try another geography or reload.
           </EmptyNote>
         ) : showMap ? (
-          <div className="flex min-h-0 min-w-0 max-w-full flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-[#f8fafc]">
-            <div className="relative h-[52dvh] min-h-[260px] w-full max-w-full lg:h-[min(68dvh,42rem)]">
+          <div className="flex min-w-0 max-w-full shrink-0 flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-[#f8fafc]">
+            <div className="relative h-[56dvh] min-h-[300px] w-full max-w-full shrink-0 lg:h-[clamp(420px,calc(100dvh-22rem),46rem)]">
               {hasMapFeatures && geojson ? (
                 <ChoroplethMap
                   geojson={geojson}
@@ -343,7 +379,7 @@ export function LinkedOverview({
                         state.view === "vs_nation") &&
                       (cell?.value === null || cell?.value === undefined)
                     ) {
-                      return `${name}\n${extra ?? "No figure in this cut"}`
+                      return `${name}\n${extra ?? "No figure for this selection"}`
                     }
                     const point = file ? readPoint(file, code, sex, dim, periodIndex) : null
                     return hoverText(name, point, unit, extra)
@@ -353,12 +389,15 @@ export function LinkedOverview({
                 <div className="relative flex h-full min-h-[220px] items-center justify-center bg-[#f8fafc]">
                   <div className="absolute inset-[12%] animate-pulse rounded-[40%] border border-slate-300/70" />
                   <p className="relative text-sm text-muted-foreground">
-                    {geojson ? "No boundaries in this cut." : "Loading map…"}
+                    {geojson ? "No boundaries for this geography." : "Loading map…"}
                   </p>
                 </div>
               )}
               {state.area ? (
-                <div className="pointer-events-none absolute right-3 top-3 z-10 w-[min(100%-1.5rem,15rem)]">
+                <div
+                  key={state.area}
+                  className="pointer-events-none absolute right-2 top-2 z-10 w-[min(100%-1rem,12.5rem)] sm:right-3 sm:top-3 sm:w-[min(100%-1.5rem,15rem)]"
+                >
                   <FocusReadout
                     figure
                     name={selectedName ?? state.area}
@@ -369,6 +408,7 @@ export function LinkedOverview({
                     birthPoint={birthPoint}
                     age65Point={age65Point}
                     showAges={showAges}
+                    age={state.age}
                     divergence={divergence}
                     sexGap={sexGap}
                     vsNation={vsNation}
@@ -380,14 +420,12 @@ export function LinkedOverview({
                   />
                 </div>
               ) : (
-                <div className="pointer-events-none absolute right-3 top-3 z-10 hidden w-[min(100%-1.5rem,12rem)] md:block">
-                  <p className="rounded-md border border-slate-200/80 bg-white/90 px-2.5 py-1.5 text-sm shadow-sm backdrop-blur-sm dark:bg-slate-950/80">
-                    Select an area
-                  </p>
-                </div>
+                <p className="pointer-events-none absolute right-4 top-3 z-10 hidden text-xs text-slate-500 md:block">
+                  Select an area
+                </p>
               )}
             </div>
-            <div className="space-y-1.5 bg-white/90 px-3 pb-2 pt-1">
+            <div className="space-y-1 border-t border-slate-200/70 bg-white px-3 pb-2 pt-2 sm:px-4">
               {hasMapFeatures ? (
                 <MapLegend
                   min={painted.min}
@@ -400,10 +438,15 @@ export function LinkedOverview({
                   leftLabelShort={ends.leftShort}
                   rightLabelShort={ends.rightShort}
                   ariaLabel={ends.aria}
+                  marker={
+                    selectedArea && focusCell?.value != null
+                      ? { value: focusCell.value, label: selectedArea.name }
+                      : null
+                  }
                   note={
                     state.view === "ci"
                       ? "Wider CI = less certain. Hatching and lighter fill mark wider 95% intervals."
-                      : undefined
+                      : "One equal-area cell per area — not council outlines."
                   }
                 />
               ) : null}
@@ -427,6 +470,13 @@ export function LinkedOverview({
             unit={legendCaption(state.view, unit)}
           />
         )}
+        {showStrip ? (
+          <DeprivationStrip
+            area={selectedArea ?? null}
+            deprivation={deprivation}
+            emphasised={family === "deprivation"}
+          />
+        ) : null}
         <SeriesPanel
           periods={file?.periods ?? []}
           series={series}
