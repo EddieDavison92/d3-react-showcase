@@ -179,7 +179,8 @@ def build() -> dict:
                     out["england"][spec["key"]] = value
                 elif is_local(code):
                     out[grain].setdefault(code, {})[spec["key"]] = value
-        entry["period"] = periods["ltla"]
+        # "2023 - 25" -> "2023–25" for display.
+        entry["period"] = periods["ltla"].replace(" - ", "–")
         entry["url"] = f"https://fingertips.phe.org.uk/search/{spec['id']}"
         out["indicators"].append(entry)
         print(

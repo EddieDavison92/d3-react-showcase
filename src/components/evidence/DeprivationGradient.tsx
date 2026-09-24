@@ -8,7 +8,7 @@ import { formatYears } from "@/lib/explorer/format"
 
 const HEIGHT = 240
 const MARGIN = { top: 12, right: 60, bottom: 40, left: 34 }
-export const SEX_COLOURS = { Male: "#0f766e", Female: "#7c3aed" } as const
+export const SEX_COLOURS = { Male: "#2f6db5", Female: "#c27812" } as const
 
 /** Mean life expectancy by deprivation tenth, one line per sex. */
 export function DeprivationGradient({ rows }: { rows: DecileRow[] }) {
@@ -38,6 +38,7 @@ export function DeprivationGradient({ rows }: { rows: DecileRow[] }) {
   return (
     <div ref={ref} className="relative">
       <svg
+        className="chart"
         width={width}
         height={HEIGHT}
         role="img"
@@ -47,8 +48,8 @@ export function DeprivationGradient({ rows }: { rows: DecileRow[] }) {
         <g transform={`translate(${MARGIN.left},${MARGIN.top})`}>
           {y.ticks(4).map((t) => (
             <g key={t} transform={`translate(0,${y(t)})`}>
-              <line x2={innerW} stroke="#eef0f3" />
-              <text x={-6} dy="0.32em" textAnchor="end" className="fill-slate-500 text-[10px] tabular-nums">
+              <line x2={innerW} stroke="#e7e6e1" />
+              <text x={-6} dy="0.32em" textAnchor="end" className="fill-ink-3 text-[10px] tabular">
                 {t}
               </text>
             </g>
@@ -59,19 +60,19 @@ export function DeprivationGradient({ rows }: { rows: DecileRow[] }) {
               x={x(r.decile)}
               y={innerH + 16}
               textAnchor="middle"
-              className="fill-slate-500 text-[10px] tabular-nums"
+              className="fill-ink-3 text-[10px] tabular"
             >
               {r.decile}
             </text>
           ))}
-          <text x={0} y={innerH + 34} className="fill-slate-500 text-[11px]">
+          <text x={0} y={innerH + 34} className="fill-ink-3 text-[11px]">
             ← Most deprived
           </text>
-          <text x={innerW} y={innerH + 34} textAnchor="end" className="fill-slate-500 text-[11px]">
+          <text x={innerW} y={innerH + 34} textAnchor="end" className="fill-ink-3 text-[11px]">
             Least deprived →
           </text>
           {series.map((s) => (
-            <g key={s.sex}>
+            <g key={s.sex === "Male" ? "Men" : "Women"}>
               <path d={line(s.points) ?? ""} fill="none" stroke={s.colour} strokeWidth={2} />
               {s.points.map((p) =>
                 p.v === null ? null : (
@@ -81,7 +82,7 @@ export function DeprivationGradient({ rows }: { rows: DecileRow[] }) {
                     cy={y(p.v)}
                     r={hover === p.decile ? 5 : 3.5}
                     fill={s.colour}
-                    stroke="#fff"
+                    stroke="#f4f4f0"
                     strokeWidth={2}
                   />
                 )
@@ -91,9 +92,9 @@ export function DeprivationGradient({ rows }: { rows: DecileRow[] }) {
                 y={y(s.points[9]?.v ?? 0)}
                 dy="0.32em"
                 className="text-[11px] font-medium"
-                fill="#334155"
+                fill="#111315"
               >
-                {s.sex}
+                {s.sex === "Male" ? "Men" : "Women"}
               </text>
             </g>
           ))}
@@ -111,16 +112,16 @@ export function DeprivationGradient({ rows }: { rows: DecileRow[] }) {
       </svg>
       {hover !== null ? (
         <div
-          className="pointer-events-none absolute top-0 z-10 rounded-md border border-slate-200 bg-white px-2.5 py-2 text-xs shadow-md"
+          className="pointer-events-none absolute top-0 z-10 rounded-lg border border-line bg-white px-3 py-2 text-xs shadow-[0_12px_32px_-16px_rgba(17,19,21,0.45)]"
           style={{ left: Math.min(width - 140, MARGIN.left + (x(hover) ?? 0) + 12) }}
         >
-          <p className="font-medium text-slate-900">Tenth {hover}</p>
-          <p className="text-slate-500">{rows[hover - 1].n} local authorities</p>
+          <p className="font-medium text-ink">Tenth {hover}</p>
+          <p className="text-ink-3">{rows[hover - 1].n} local authorities</p>
           {series.map((s) => (
-            <p key={s.sex} className="mt-0.5 flex items-center gap-1.5 text-slate-600">
+            <p key={s.sex === "Male" ? "Men" : "Women"} className="mt-0.5 flex items-center gap-1.5 text-ink-2">
               <span className="h-2 w-2 rounded-full" style={{ background: s.colour }} />
-              {s.sex}
-              <span className="ml-auto pl-3 font-medium tabular-nums text-slate-900">
+              {s.sex === "Male" ? "Men" : "Women"}
+              <span className="ml-auto pl-3 font-medium tabular text-ink">
                 {formatYears(s.points[hover - 1].v)}
               </span>
             </p>

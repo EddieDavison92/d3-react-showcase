@@ -131,12 +131,12 @@ export function byDeprivationTenth(
   const scored = Object.entries(evidence.ltla)
     .filter(([code, f]) => f.imd !== undefined && le.values[code])
     .sort((a, b) => b[1].imd - a[1].imd)
+  // Same grouping as the story: position i of n falls in tenth floor(10i/n) + 1.
+  const groups: [string, Record<string, number>][][] = Array.from({ length: 10 }, () => [])
+  scored.forEach((entry, i) => groups[Math.min(9, Math.floor((i * 10) / scored.length))].push(entry))
   const rows: DecileRow[] = []
   for (let d = 0; d < 10; d += 1) {
-    const slice = scored.slice(
-      Math.round((d * scored.length) / 10),
-      Math.round(((d + 1) * scored.length) / 10)
-    )
+    const slice = groups[d]
     const mean = (sex: SexId) => {
       const vals = slice
         .map(([code]) => le.values[code]?.[sex]?.birth?.[periodIndex]?.[0])

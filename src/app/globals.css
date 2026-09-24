@@ -3,70 +3,115 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 224 71.4% 4.1%;
-    --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
-    --primary: 173 80% 21%;
-    --primary-foreground: 166 76% 97%;
-    --secondary: 220 14.3% 95.9%;
-    --secondary-foreground: 220.9 39.3% 11%;
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
-    --accent: 220 14.3% 95.9%;
-    --accent-foreground: 220.9 39.3% 11%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 224 71.4% 4.1%;
-    --radius: 0.5rem;
-  }
-
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
   html {
-    @apply h-full overflow-x-clip;
+    @apply bg-paper text-ink;
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
   }
   body {
-    @apply min-h-dvh overflow-x-clip bg-background text-foreground;
-    font-synthesis-weight: none;
+    @apply min-h-dvh overflow-x-clip bg-paper font-sans text-ink antialiased;
+    font-optical-sizing: auto;
     text-rendering: optimizeLegibility;
+  }
+  * {
+    @apply border-line;
+  }
+  ::selection {
+    background: #cfe3dc;
+    color: #0a4c41;
+  }
+  :focus-visible {
+    outline: 2px solid #0f6b5c;
+    outline-offset: 2px;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums lining-nums;
   }
 }
 
+@layer components {
+  /* Small caps label used above figures and sections. */
+  /* Condensed mono label above figures and sections. */
+  .kicker {
+    @apply text-[11px] font-semibold uppercase leading-4 tracking-[0.12em] text-ink-3;
+  }
+  /* Condensed heavy headline and figure face. */
+  .display {
+    font-family: var(--font-display), Georgia, serif;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+  /* Figures in running text and labels: tabular lining numerals. */
+  .mono {
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  .prose-story p + p {
+    @apply mt-4;
+  }
+  .link {
+    @apply text-brand underline decoration-brand/30 underline-offset-[3px] transition-colors hover:decoration-brand;
+  }
+}
+
+/* Chart text: one size and colour everywhere. */
+.chart text {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Dots in the story stage glide between layouts. */
+.mark {
+  transition:
+    transform 1100ms cubic-bezier(0.65, 0, 0.25, 1),
+    fill 700ms ease,
+    opacity 700ms ease;
+  transition-delay: var(--delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .mark,
+  .animate-rise {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* MapLibre */
 .maplibregl-map,
 .maplibregl-canvas-container {
   width: 100% !important;
   max-width: 100%;
+  font-family: inherit;
 }
 
 .maplibregl-canvas {
   max-width: 100%;
 }
 
+.maplibregl-canvas:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px #0b6e62;
+}
+
 .maplibregl-ctrl-group {
-  background: transparent !important;
-  box-shadow: none !important;
-  border: 0 !important;
+  background: #fff !important;
+  border-radius: 10px !important;
+  box-shadow: 0 1px 2px rgba(17, 19, 21, 0.06), 0 8px 24px -12px rgba(17, 19, 21, 0.25) !important;
+  overflow: hidden;
 }
 
 .maplibregl-ctrl-group button {
   width: 2.25rem !important;
   height: 2.25rem !important;
-  background-color: rgba(248, 250, 252, 0.92) !important;
 }
 
 .maplibregl-ctrl-bottom-right {
-  bottom: 0.4rem;
-  right: 0.4rem;
+  bottom: 1rem;
+  right: 1rem;
 }
 
 .maplibregl-ctrl-top-left,
@@ -75,6 +120,38 @@
 .maplibregl-ctrl-attrib,
 .maplibregl-ctrl-logo {
   display: none !important;
+}
+
+@keyframes scrollcue {
+  0% {
+    transform: translateY(-100%);
+  }
+  60%,
+  100% {
+    transform: translateY(300%);
+  }
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes hero-map-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.hero-map-enter {
+  animation: hero-map-enter 700ms ease-out both;
 }
 
 /* Hide dev and Vercel overlays that sit on top of the map. */
@@ -90,84 +167,59 @@ vercel-live-feedback {
   display: none !important;
 }
 
-@keyframes hero-map-enter {
-  from {
-    opacity: 0;
-    filter: saturate(0.55);
-  }
-  to {
-    opacity: 1;
-    filter: saturate(1);
-  }
-}
-
-.hero-map-enter {
-  animation: hero-map-enter 700ms ease-out both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-map-enter {
-    animation: none;
-  }
-}
-
-.period-scrub {
+/* Period slider */
+.range {
   -webkit-appearance: none;
   appearance: none;
   background: transparent;
   cursor: pointer;
 }
 
-.period-scrub:focus-visible {
+.range:focus-visible {
   outline: none;
 }
 
-.period-scrub:focus-visible::-webkit-slider-thumb {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0f172a;
-}
-
-.period-scrub:focus-visible::-moz-range-thumb {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0f172a;
-}
-
-.period-scrub::-webkit-slider-runnable-track {
-  height: 6px;
+.range::-webkit-slider-runnable-track {
+  height: 4px;
   border-radius: 999px;
-  background: linear-gradient(
-    to right,
-    #94a3b8 var(--fill, 0%),
-    #e2e8f0 var(--fill, 0%)
-  );
+  background: linear-gradient(to right, #111315 var(--fill, 0%), #d9d8d2 var(--fill, 0%));
 }
 
-.period-scrub::-webkit-slider-thumb {
+.range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: #d9d8d2;
+}
+
+.range::-moz-range-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: #111315;
+}
+
+.range::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  margin-top: -4px;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
   border-radius: 999px;
-  background: #0f172a;
-  border: 2px solid #fff;
-  box-shadow: 0 0 0 1px #94a3b8;
+  background: #fff;
+  border: 1.5px solid #111315;
+  box-shadow: 0 1px 3px rgba(17, 19, 21, 0.25);
 }
 
-.period-scrub::-moz-range-track {
-  height: 6px;
+.range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
   border-radius: 999px;
-  background: #e2e8f0;
+  background: #fff;
+  border: 1.5px solid #111315;
 }
 
-.period-scrub::-moz-range-progress {
-  height: 6px;
-  border-radius: 999px;
-  background: #94a3b8;
+.range:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px rgba(11, 110, 98, 0.35);
 }
 
-.period-scrub::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border: 2px solid #fff;
-  border-radius: 999px;
-  background: #0f172a;
-  box-shadow: 0 0 0 1px #94a3b8;
+.range:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 4px rgba(11, 110, 98, 0.35);
 }

@@ -1,8 +1,8 @@
 export const siteConfig = {
-  name: "UK life expectancy",
+  name: "Ten years apart",
   description:
-    "Life expectancy for every UK local authority, with healthy life expectancy, avoidable deaths and the risk factors that track them.",
-  github: "https://github.com/EddieDavison92/life-expectancy-uk",
+    "How long people live across the UK's local authorities, how progress stalled after 2011, and how the gap between places has grown.",
+  github: "https://github.com/EddieDavison92/ten-years-apart",
 }
 
 export type SiteConfig = typeof siteConfig

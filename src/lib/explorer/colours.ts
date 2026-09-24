@@ -1,45 +1,17 @@
-/** Teal sequential for Absolute only. Diverging warm slate ↔ teal for Δ / gap / relative. */
+/** Map ramps, shared with the story palette. */
 
-export const TEAL_RAMP = [
-  "#f0fdfa",
-  "#99f6e4",
-  "#5eead4",
-  "#2dd4bf",
-  "#14b8a6",
-  "#0f766e",
-  "#134e4a",
-  "#042f2e",
-] as const
+/** Life expectancy: pale (shorter) to deep teal (longer). */
+export const TEAL_RAMP = ["#eaf0ea", "#c8dfd4", "#99c7b5", "#66aa94", "#3f8d77", "#236f5e", "#12544a", "#083a33"] as const
 
-export const AVOIDABLE_RAMP = [
-  "#fff7ed",
-  "#ffedd5",
-  "#fed7aa",
-  "#fdba74",
-  "#fb923c",
-  "#f97316",
-  "#ea580c",
-  "#c2410c",
-  "#9a3412",
-] as const
+/** Death rates: pale sand (fewer) to brick (more). */
+export const AVOIDABLE_RAMP = ["#f7efe1", "#efd9b8", "#e5bb8e", "#d6966a", "#c0714c", "#9e5035", "#763723"] as const
 
-export const DIVERGING_RAMP = [
-  "#334155",
-  "#475569",
-  "#64748b",
-  "#94a3b8",
-  "#e2e8f0",
-  "#e9e7e2",
-  "#99f6e4",
-  "#5eead4",
-  "#14b8a6",
-  "#0f766e",
-  "#115e59",
-] as const
+/** Change and gaps: brick (lower) through warm grey to teal (higher). */
+export const DIVERGING_RAMP = ["#7a1f14", "#b3452c", "#dc8466", "#efc2ad", "#e6e4de", "#b9ddd2", "#6fb6a1", "#2a8a76", "#0b5a4c"] as const
 
 export const DIVERGING_RAMP_REVERSED = [...DIVERGING_RAMP].reverse()
 
-export const NO_DATA = "#e2e8f0"
+export const NO_DATA = "#dddcd5"
 
 export function interpolateRamp(
   ramp: readonly string[],
