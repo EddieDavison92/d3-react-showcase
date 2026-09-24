@@ -25,11 +25,11 @@ const UK_BOUNDS: [[number, number], [number, number]] = [
 
 const SOURCE = "areas"
 const MIN_SIZE = 24
-const BOUNDARY_STROKE = "#94a3b8"
-const SELECTED_STROKE = "#0f172a"
+const BOUNDARY_STROKE = "#f4f4f0"
+const SELECTED_STROKE = "#111315"
 const SCRUB_MS = 200
 const FLIP_MS = 260
-const NO_DATA_RGB: Rgb = [226, 232, 240]
+const NO_DATA_RGB: Rgb = [221, 220, 213]
 // No figure = unfilled area (outline only), so it never reads as a value near zero.
 const FILL_OPACITY: maplibregl.ExpressionSpecification = [
   "case",
@@ -53,7 +53,8 @@ export function ChoroplethMap({
   view,
   enterMs = 0,
   quietHover = false,
-  background = "#f8fafc",
+  background = "#f4f4f0",
+  fitPadding,
   className,
 }: {
   geojson: FeatureCollection
@@ -69,6 +70,8 @@ export function ChoroplethMap({
   quietHover?: boolean
   /** Canvas ground; the landing hero floats on the page ground instead of a panel. */
   background?: string
+  /** Space to keep clear when fitting, e.g. under floating panels. */
+  fitPadding?: maplibregl.PaddingOptions
   className?: string
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -85,9 +88,15 @@ export function ChoroplethMap({
   const [size, setSize] = useState({ width: 320, height: 240 })
   const [ready, setReady] = useState(false)
 
+  const paddingRef = useRef(fitPadding)
+
   useEffect(() => {
     onSelectRef.current = onSelect
   }, [onSelect])
+
+  useEffect(() => {
+    paddingRef.current = fitPadding
+  }, [fitPadding])
 
   useEffect(() => {
     coloursRef.current = colours
@@ -103,7 +112,7 @@ export function ChoroplethMap({
     let fitting = false
     let cancelled = false
     const featureBounds = boundsOfGeojson(geojson) ?? UK_BOUNDS
-    const padding = interactive ? 28 : 36
+    const padding = paddingRef.current ?? (interactive ? 28 : 36)
 
     const fit = () => {
       if (!map || userMoved || cancelled) return
@@ -388,16 +397,21 @@ export function ChoroplethMap({
     >
       {!ready ? (
         <div className="absolute inset-0 animate-pulse" style={{ background }}>
-          <div className="absolute inset-[12%] rounded-[40%] border border-slate-300/70" />
         </div>
       ) : null}
       <div ref={containerRef} className="absolute inset-0 h-full w-full max-w-full" />
       {interactive && hover && !quietHover ? (
         <div
-          className="pointer-events-none absolute z-10 max-w-[min(100%-1rem,18rem)] whitespace-pre-wrap rounded-md border bg-popover px-2 py-1.5 text-xs shadow"
+          className="pointer-events-none absolute z-10 max-w-[min(100%-1rem,18rem)] rounded-lg border border-line bg-white px-3 py-2 text-xs leading-relaxed text-ink-2 shadow-[0_12px_32px_-16px_rgba(17,19,21,0.45)]"
           style={tooltipStyle}
         >
-          {formatHover(hover.code, hover.name)}
+          {formatHover(hover.code, hover.name)
+            .split(/\n/)
+            .map((line, i) => (
+              <p key={i} className={i === 0 ? "text-[13px] font-semibold text-ink" : "tabular"}>
+                {line}
+              </p>
+            ))}
         </div>
       ) : null}
     </div>
@@ -411,8 +425,8 @@ function strokePaint(view?: string): {
 } {
   const lift =
     view === "d2017" || view === "d2019" || view === "vs_nation" || view === "sex_gap"
-      ? "#334155"
-      : "#134e4a"
+      ? "#111315"
+      : "#111315"
   const active: maplibregl.ExpressionSpecification = [
     "any",
     ["boolean", ["feature-state", "hover"], false],
@@ -420,8 +434,8 @@ function strokePaint(view?: string): {
   ]
   return {
     "line-color": ["case", active, lift, BOUNDARY_STROKE],
-    "line-width": ["case", active, 1.15, 0.65],
-    "line-opacity": 0.85,
+    "line-width": ["case", active, 1.4, 0.6],
+    "line-opacity": 0.95,
   }
 }
 

@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Evidence" }
 
 export default function EvidencePage() {
   return (
-    <Suspense fallback={<p className="py-24 text-center text-sm text-slate-500">Loading…</p>}>
+    <Suspense fallback={<p className="py-24 text-center text-sm text-ink-3">Loading…</p>}>
       <EvidenceApp />
     </Suspense>
   )

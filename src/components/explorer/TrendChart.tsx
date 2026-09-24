@@ -89,8 +89,8 @@ export function TrendChart({
         <g transform={`translate(${MARGIN.left},${MARGIN.top})`}>
           {y.ticks(4).map((tick) => (
             <g key={tick} transform={`translate(0,${y(tick)})`}>
-              <line x2={innerW} stroke="#eef0f3" />
-              <text x={-6} dy="0.32em" textAnchor="end" className="fill-slate-500 text-[10px] tabular-nums">
+              <line x2={innerW} stroke="#e7e6e1" />
+              <text x={-6} dy="0.32em" textAnchor="end" className="fill-ink-3 text-[10px] tabular-nums">
                 {tick}
               </text>
             </g>
@@ -101,7 +101,7 @@ export function TrendChart({
               x={x(i)}
               y={innerH + 16}
               textAnchor={i === 0 ? "start" : "end"}
-              className="fill-slate-500 text-[10px] tabular-nums"
+              className="fill-ink-3 text-[10px] tabular-nums"
             >
               {compactPeriod(periods[i])}
             </text>
@@ -111,7 +111,7 @@ export function TrendChart({
               x1={x(active)}
               x2={x(active)}
               y2={innerH}
-              stroke={hover === null ? "#cbd5e1" : "#94a3b8"}
+              stroke={hover === null ? "#d9d8d2" : "#62666d"}
             />
           ) : null}
           {series.map((s) =>
@@ -140,7 +140,7 @@ export function TrendChart({
                     cy={y(v)}
                     r={s.band ? 4 : 3}
                     fill={s.colour}
-                    stroke="#fff"
+                    stroke="#f4f4f0"
                     strokeWidth={2}
                   />
                 )
@@ -150,17 +150,17 @@ export function TrendChart({
       </svg>
       {hover !== null ? (
         <div
-          className="pointer-events-none absolute top-0 z-10 min-w-[9rem] rounded-md border border-slate-200 bg-white px-2.5 py-2 text-xs shadow-md"
+          className="pointer-events-none absolute top-0 z-10 min-w-[9rem] rounded-lg border border-line bg-white px-3 py-2 text-xs shadow-[0_12px_32px_-16px_rgba(17,19,21,0.45)]"
           style={{
             left: Math.min(width - 150, Math.max(0, MARGIN.left + (x(hover) ?? 0) + 10)),
           }}
         >
-          <p className="font-medium text-slate-900">{compactPeriod(periods[hover])}</p>
+          <p className="font-medium text-ink">{compactPeriod(periods[hover])}</p>
           {series.map((s) => (
-            <p key={s.code} className="mt-0.5 flex items-center gap-1.5 text-slate-600">
+            <p key={s.code} className="mt-0.5 flex items-center gap-1.5 text-ink-2">
               <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: s.colour }} />
               <span className="truncate">{s.name}</span>
-              <span className="ml-auto pl-2 font-medium tabular-nums text-slate-900">
+              <span className="ml-auto pl-2 font-medium tabular-nums text-ink">
                 {formatYears(s.points[hover]?.[0], digits)}
               </span>
             </p>
@@ -168,7 +168,7 @@ export function TrendChart({
         </div>
       ) : null}
       {series.length > 1 ? (
-        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-600">
+        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-ink-2">
           {series.map((s) => (
             <span key={s.code} className="inline-flex items-center gap-1.5">
               <span className="h-0.5 w-3 rounded-full" style={{ background: s.colour }} />

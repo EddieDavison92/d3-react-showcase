@@ -2,12 +2,18 @@ import Link from "next/link"
 
 export default function NotFound() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-3 py-24 text-center">
-      <p className="text-sm font-medium text-slate-500">404</p>
-      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Page not found</h1>
-      <Link href="/explore" className="text-sm font-medium text-teal-800 hover:underline">
-        Open the map →
-      </Link>
+    <div className="flex flex-1 flex-col items-start justify-center gap-4 py-32">
+      <p className="kicker">404</p>
+      <h1 className="display text-6xl text-ink">Nothing lives here</h1>
+      <p className="text-lg text-ink-2">That page doesn&apos;t exist. The story, the atlas and every area report do.</p>
+      <div className="flex gap-3 text-sm">
+        <Link href="/" className="rounded-full bg-ink px-5 py-2.5 text-paper hover:bg-ink/85">
+          Read the story
+        </Link>
+        <Link href="/explore" className="rounded-full border border-line px-5 py-2.5 text-ink hover:border-ink/30">
+          Open the atlas
+        </Link>
+      </div>
     </div>
   )
 }

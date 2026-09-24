@@ -6,7 +6,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { CorrelationBars, type CorrelationRow } from "@/components/evidence/CorrelationBars"
 import { DeprivationGradient, SEX_COLOURS } from "@/components/evidence/DeprivationGradient"
 import { FactorScatter } from "@/components/evidence/FactorScatter"
-import { Eyebrow, Segmented } from "@/components/explorer/controls"
+import { PlaceSearch } from "@/components/story/PlaceSearch"
+import { SexToggle } from "@/components/story/SexToggle"
 import { loadLe } from "@/lib/explorer/data"
 import {
   byDeprivationTenth,
@@ -55,15 +56,18 @@ export function EvidenceApp() {
   const periodIndex = le ? le.periods.length - 1 : -1
   const period = le ? le.periods[periodIndex] : ""
 
+  // Order is fixed by the male correlation so switching sex never reshuffles the list.
   const correlations = useMemo(() => {
     if (!le || !evidence) return []
+    const r = (key: string, s: SexId) => fit(pairs({ evidence, le, grain: "ltla", key, sex: s, periodIndex }))
     return evidence.indicators
       .map((indicator) => {
-        const model = fit(pairs({ evidence, le, grain: "ltla", key: indicator.key, sex, periodIndex }))
-        return model ? { indicator, r: model.r, n: model.n } : null
+        const model = r(indicator.key, sex)
+        const order = r(indicator.key, "Male")?.r ?? 0
+        return model ? { indicator, r: model.r, n: model.n, order } : null
       })
-      .filter((row): row is CorrelationRow => row !== null)
-      .sort((a, b) => a.r - b.r)
+      .filter((row): row is CorrelationRow & { order: number } => row !== null)
+      .sort((a, b) => a.order - b.order)
   }, [evidence, le, periodIndex, sex])
 
   const deciles = useMemo(
@@ -82,11 +86,20 @@ export function EvidenceApp() {
     [evidence, indicator, le, periodIndex, sex]
   )
   const model = useMemo(() => fit(points), [points])
+  // One y range for both sexes so the toggle moves dots, not the axis.
+  const yDomain = useMemo((): [number, number] | undefined => {
+    if (!le) return undefined
+    const vals = Object.keys(evidence?.ltla ?? {}).flatMap((code) =>
+      (["Male", "Female"] as const).map((s) => le.values[code]?.[s]?.birth?.[periodIndex]?.[0] ?? null)
+    )
+    const finite = vals.filter((v): v is number => v !== null)
+    return finite.length ? [Math.min(...finite), Math.max(...finite)] : undefined
+  }, [evidence, le, periodIndex])
   const focus = points.find((p) => p.code === area) ?? null
 
   if (!le || !evidence || !indicator) {
     return (
-      <p className="py-24 text-center text-sm text-slate-500">
+      <p className="py-32 text-center text-sm text-ink-3">
         {failed ? "The data didn't load. Reload the page to try again." : "Loading…"}
       </p>
     )
@@ -100,140 +113,125 @@ export function EvidenceApp() {
   const outcomes = correlations.filter((c) => c.indicator.group === OUTCOME_GROUP)
   const r2 = model ? Math.round(model.r * model.r * 100) : null
   const expected = focus && model ? model.intercept + model.slope * focus.x : null
-  const yLabel = `${sex} life expectancy, ${compactPeriod(period)}`
+  const sexWord = sex === "Male" ? "male" : "female"
+  const yLabel = `${sex === "Male" ? "Men" : "Women"}: life expectancy, ${compactPeriod(period)}`
+  const searchable = points.map((p) => ({ code: p.code, name: p.name, geo: "ltla" as const }))
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6 pb-10">
-      <header className="flex flex-col gap-4 pt-2 sm:flex-row sm:items-end sm:justify-between">
-        <div className="max-w-2xl">
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-            What tracks life expectancy
+    <div className="mx-auto w-full max-w-6xl pb-16 pt-10 sm:pt-14">
+      <header>
+        <div className="max-w-3xl animate-rise">
+          <p className="kicker">Evidence</p>
+          <h1 className="mt-3 display text-5xl text-ink sm:text-6xl">
+            What travels with life expectancy
           </h1>
-          <p className="mt-2 text-slate-600">
-            Life expectancy at birth across {points.length} English local authorities, set against
-            deprivation, behaviour and early death rates from OHID. These are associations between
-            areas, not proof of cause.
+          <p className="mt-5 text-lg leading-relaxed text-ink-2">
+            {points.length} English local authorities, their life expectancy at birth, and fifteen measures of local
+            circumstance from OHID. Associations between places, not proof of cause.
           </p>
         </div>
-        <Segmented
-          label="Sex"
-          value={sex}
-          options={[
-            { value: "Male", label: "Male" },
-            { value: "Female", label: "Female" },
-          ]}
-          onChange={(value: SexId) => update({ sex: value.toLowerCase() })}
-        />
       </header>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-5">
-        <div className="grid gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
-          <div>
-            <Eyebrow>Deprivation gap</Eyebrow>
-            <h2 className="mt-1 text-lg font-semibold tracking-tight text-slate-900">
-              Life expectancy falls with every step of deprivation
-            </h2>
-            <dl className="mt-4 space-y-3">
-              {(["male", "female"] as const).map((s) => (
-                <div key={s}>
-                  <dt className="flex items-center gap-1.5 text-xs text-slate-500">
-                    <span
-                      className="h-2 w-2 rounded-full"
-                      style={{ background: SEX_COLOURS[s === "male" ? "Male" : "Female"] }}
-                    />
-                    {s === "male" ? "Males" : "Females"}
-                  </dt>
-                  <dd className="text-2xl font-semibold tabular-nums text-slate-900">
-                    {formatYears(gap(s))}
-                    <span className="ml-1 text-sm font-normal text-slate-500">years</span>
-                  </dd>
-                </div>
-              ))}
-            </dl>
-            <p className="mt-3 text-xs leading-relaxed text-slate-500">
-              Gap between the most and least deprived tenths of local authorities, ranked by IMD
-              2025 score. Unweighted mean of areas, {compactPeriod(period)}.
-            </p>
-          </div>
-          <DeprivationGradient rows={deciles} />
-        </div>
-      </section>
-
-      <section className="grid gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-        <div className="rounded-lg border border-slate-200 bg-white p-5">
-          <Eyebrow>Correlation with {sex.toLowerCase()} life expectancy</Eyebrow>
-          <p className="mt-1 text-sm text-slate-600">
-            Pearson r across local authorities. −1 means areas with more of it always live shorter
-            lives. Pick one to plot it.
+      <section className="mt-16 grid gap-10 border-t border-line pt-10 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-12">
+        <div>
+          <h2 className="display text-3xl text-ink">The deprivation gradient</h2>
+          <p className="mt-3 text-sm leading-relaxed text-ink-3">
+            Local authorities in ten equal groups by IMD 2025 score. Each point is the mean life expectancy of one
+            group, {compactPeriod(period)}; areas are not weighted by population.
           </p>
-          <div className="mt-4 space-y-5">
-            <CorrelationBars
-              title="Circumstances and behaviour"
-              rows={drivers}
-              selected={indicator.key}
-              onSelect={(key) => update({ factor: key })}
-            />
-            <CorrelationBars
-              title="Early deaths — part of life expectancy itself"
-              rows={outcomes}
-              selected={indicator.key}
-              onSelect={(key) => update({ factor: key })}
-            />
-          </div>
+          <dl className="mt-6 space-y-4">
+            {(["male", "female"] as const).map((s) => (
+              <div key={s} className="border-t border-line pt-3">
+                <dt className="flex items-center gap-2 text-sm text-ink-2">
+                  <span className="h-2 w-2 rounded-full" style={{ background: SEX_COLOURS[s === "male" ? "Male" : "Female"] }} />
+                  {s === "male" ? "Men" : "Women"}, most vs least deprived
+                </dt>
+                <dd className="mt-1 display text-5xl tabular text-ink">
+                  {formatYears(gap(s))}
+                  <span className="ml-1.5 font-sans text-sm tracking-normal text-ink-3">years</span>
+                </dd>
+              </div>
+            ))}
+          </dl>
         </div>
+        <DeprivationGradient rows={deciles} />
+      </section>
 
-        <div className="rounded-lg border border-slate-200 bg-white p-5">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-            <h2 className="font-semibold text-slate-900">{indicator.label}</h2>
-            <p className="text-xs text-slate-500">
-              {indicator.period} · England {formatIndicator(evidence.england[indicator.key], indicator)}
-            </p>
-          </div>
-          {model && r2 !== null ? (
-            <p className="mt-1 text-sm text-slate-600">
-              r = {formatSigned(model.r, 2)}. Differences in this measure line up with{" "}
-              <span className="font-medium text-slate-900">{r2}%</span> of the variation in{" "}
-              {sex.toLowerCase()} life expectancy between areas.
-            </p>
-          ) : null}
-          <div className="mt-3">
-            <FactorScatter
-              indicator={indicator}
-              points={points}
-              model={model}
-              selected={area}
-              yLabel={yLabel}
-              onSelect={(code) => update({ area: code })}
-            />
-          </div>
-          {focus && expected !== null ? (
-            <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-md bg-slate-50 px-3 py-2 text-sm">
-              <p className="text-slate-700">
-                <span className="font-medium text-slate-900">{focus.name}</span>:{" "}
-                {formatYears(focus.y)} years, {formatYears(Math.abs(focus.y - expected))} years{" "}
-                {focus.y >= expected ? "above" : "below"} the line for its{" "}
-                {indicator.label.toLowerCase()} ({formatIndicator(focus.x, indicator)}).
-              </p>
-              <Link
-                href={exploreHref({ area: focus.code, sex })}
-                className="text-xs font-medium text-teal-800 hover:underline"
-              >
-                Open on map →
-              </Link>
+      <section className="mt-20 border-t border-line pt-10">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-12">
+          <div>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <h2 className="display text-3xl text-ink">How closely each one tracks</h2>
+              <SexToggle value={sex === "Male" ? "male" : "female"} onChange={(v) => update({ sex: v })} />
             </div>
-          ) : (
-            <p className="mt-2 text-xs text-slate-500">Click a dot to pick an area.</p>
-          )}
+            <p className="mt-3 text-sm leading-relaxed text-ink-3">
+              Pearson r with {sexWord} life expectancy across local authorities. Near −1, places with more of it
+              reliably have shorter lives. Pick a measure to plot it.
+            </p>
+            <div className="mt-6 space-y-6">
+              <CorrelationBars title="Circumstances and behaviour" rows={drivers} selected={indicator.key} onSelect={(key) => update({ factor: key })} />
+              <CorrelationBars title="Deaths by cause: part of life expectancy itself" rows={outcomes} selected={indicator.key} onSelect={(key) => update({ factor: key })} />
+            </div>
+          </div>
+
+          <div className="min-w-0 lg:sticky lg:top-20 lg:self-start">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="kicker">{indicator.group}</p>
+                <h3 className="mt-1 display text-2xl text-ink">{indicator.label}</h3>
+                <p className="mt-1 text-xs text-ink-3">
+                  {indicator.period} · England {formatIndicator(evidence.england[indicator.key], indicator)}
+                </p>
+              </div>
+              {model && r2 !== null ? (
+                <div className="text-right">
+                  <p className="display text-4xl tabular text-ink">
+                    <span className="mr-1 text-xl italic text-ink-3">r</span>
+                    {formatSigned(model.r, 2)}
+                  </p>
+                  <p className="text-xs text-ink-3">lines up with {r2}% of the variation</p>
+                </div>
+              ) : null}
+            </div>
+            <div className="mt-4">
+              <FactorScatter
+                indicator={indicator}
+                points={points}
+                model={model}
+                selected={area}
+                yLabel={yLabel}
+                colour={SEX_COLOURS[sex]}
+                yDomain={yDomain}
+                onSelect={(code) => update({ area: code })}
+              />
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <PlaceSearch areas={searchable} size="sm" placeholder="Highlight a place" onPick={(code) => update({ area: code })} className="w-full sm:w-64" />
+              {focus && expected !== null ? (
+                <p className="min-w-0 flex-1 text-sm text-ink-2">
+                  <Link href={`/area/${focus.code}`} className="font-semibold text-ink hover:underline">
+                    {focus.name}
+                  </Link>
+                  : {formatYears(focus.y)} years, {formatYears(Math.abs(focus.y - expected))} {focus.y >= expected ? "above" : "below"} the line.
+                </p>
+              ) : (
+                <p className="text-sm text-ink-3">Or click a dot.</p>
+              )}
+            </div>
+          </div>
         </div>
       </section>
 
-      <p className="text-xs leading-relaxed text-slate-500">
-        Factors use the latest OHID period for each indicator (shown above the chart); life
-        expectancy is ONS {compactPeriod(period)}. Fingertips data fetched {evidence.meta.fetched}.
-        City of London and Isles of Scilly are excluded. Correlation across areas says nothing
+      <p className="mt-20 max-w-3xl border-l-2 border-line pl-4 text-sm leading-relaxed text-ink-3">
+        Each measure uses its latest OHID period; life expectancy is ONS {compactPeriod(period)}. Fingertips data fetched{" "}
+        {evidence.meta.fetched}. City of London and Isles of Scilly are excluded. Correlation across areas says nothing
         about individuals, and deprivation, behaviour and early deaths are tangled together.{" "}
-        <Link href="/about" className="underline underline-offset-2 hover:text-slate-900">
-          Sources and methods
+        <Link href="/about" className="link">
+          Methods
+        </Link>
+        {" · "}
+        <Link href={exploreHref({ sex })} className="link">
+          Atlas
         </Link>
       </p>
     </div>

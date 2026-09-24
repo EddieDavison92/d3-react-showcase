@@ -41,7 +41,7 @@ export function PeriodScrub({
           if (index >= periods.length - 1) onYear(periods[0])
           setPlaying(true)
         }}
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:text-slate-900"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink text-paper transition hover:bg-ink/85"
         aria-label={running ? "Pause" : "Play through periods"}
       >
         {running ? (
@@ -55,7 +55,7 @@ export function PeriodScrub({
           </svg>
         )}
       </button>
-      <span className="w-16 shrink-0 whitespace-nowrap text-sm font-medium tabular-nums text-slate-900">
+      <span className="w-[4.5rem] shrink-0 whitespace-nowrap display text-xl tabular text-ink">
         {compactPeriod(periods[index])}
       </span>
       <input
@@ -70,7 +70,7 @@ export function PeriodScrub({
         onPointerDown={() => onDragging?.(true)}
         onPointerUp={() => onDragging?.(false)}
         onPointerCancel={() => onDragging?.(false)}
-        className="period-scrub h-8 min-w-0 flex-1"
+        className="range h-8 min-w-0 flex-1"
         style={{ ["--fill" as string]: fill }}
         aria-label="Period"
         aria-valuetext={compactPeriod(periods[index])}

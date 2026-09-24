@@ -4,7 +4,7 @@ import type { Metadata } from "next"
 import { ONS_LINKS } from "@/lib/explorer/catalogue"
 import type { EvidenceFile } from "@/lib/explorer/evidence"
 
-export const metadata: Metadata = { title: "About" }
+export const metadata: Metadata = { title: "Methods" }
 
 async function loadEvidence(): Promise<EvidenceFile> {
   const file = path.join(process.cwd(), "public", "data", "evidence.json")
@@ -14,30 +14,30 @@ async function loadEvidence(): Promise<EvidenceFile> {
 export default async function AboutPage() {
   const evidence = await loadEvidence()
   return (
-    <article className="mx-auto w-full max-w-3xl space-y-10 py-4 pb-12 text-slate-700">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-          Sources and methods
-        </h1>
-        <p className="mt-2">
-          Every figure here comes from official statistics, reused under the{" "}
-          <A href={ONS_LINKS.ogl}>Open Government Licence v3.0</A>. This is an independent
-          project, not an ONS product.
+    <article className="mx-auto w-full max-w-6xl pb-16 pt-10 sm:pt-14">
+      <header className="max-w-3xl animate-rise">
+        <p className="kicker">Methods</p>
+        <h1 className="display mt-3 text-5xl text-ink sm:text-7xl">Sources and methods</h1>
+        <p className="mt-6 text-xl leading-relaxed text-ink-2">
+          Every figure comes from official statistics, reused under the{" "}
+          <a className="link" href={ONS_LINKS.ogl}>
+            Open Government Licence v3.0
+          </a>
+          . Numbers in the story are computed from these files when the site is built; none are typed in by hand.
         </p>
       </header>
 
       <Section title="Life expectancy">
         <p>
-          ONS period life expectancy for UK local areas, three-year windows from 2001–03 to
-          2022–24, at birth and at age 65, males and females. A period figure summarises death
-          rates in those years. It is not a forecast of how long anyone born then will live.
+          ONS period life expectancy for UK local areas, three-year windows from 2001–03 to 2022–24, at birth and at age
+          65, for males and females. A period figure summarises death rates in those years. It isn&apos;t a forecast of
+          how long anyone born then will live.
         </p>
         <p>
-          ONS doesn&apos;t test local differences for significance. Where this site calls a change
-          or gap not significant, the 95% confidence intervals overlap. City of London and the
-          Isles of Scilly are left out of the ONS local series because their populations are
-          small. English counties are a separate geography, so they are never ranked against
-          districts.
+          ONS doesn&apos;t test local differences for significance. Where this site calls a change or gap not
+          significant, the 95% confidence intervals overlap. City of London and the Isles of Scilly are left out of the
+          ONS local series because their populations are small. English counties are a separate geography, so they are
+          never ranked against districts.
         </p>
         <Links
           items={[
@@ -48,11 +48,32 @@ export default async function AboutPage() {
         />
       </Section>
 
+      <Section title="The story's calculations">
+        <p>
+          <strong>Gap to the UK.</strong> Each place&apos;s life expectancy minus the UK figure for the same sex and
+          period. Colours saturate at 4.5 years either side.
+        </p>
+        <p>
+          <strong>The stall.</strong> Average yearly gain between period windows: (2011–13 minus 2001–03) ÷ 10, and
+          (2017–19 minus 2011–13) ÷ 6. The dashed line extends the 2001–13 pace from 2011–13; it shows where the earlier
+          trend would have led, not a forecast.
+        </p>
+        <p>
+          <strong>Deprivation tenths.</strong> English local authorities ranked by IMD 2025 average score and cut into ten
+          groups of equal count. The same 2025 grouping is used for every year, so &ldquo;most deprived&rdquo; means most
+          deprived today. Group figures are simple means of areas, not weighted by population.
+        </p>
+        <p>
+          <strong>Healthy years.</strong> The same method on upper-tier authorities, because healthy life expectancy
+          isn&apos;t published for English districts.
+        </p>
+      </Section>
+
       <Section title="Healthy life expectancy">
         <p>
-          Years lived in self-reported good or very good health, from the Annual Population
-          Survey. ONS labels it official statistics in development. In England it is published
-          for upper-tier authorities only, so a district shows its county&apos;s figure.
+          Years lived in self-reported good or very good health, from the Annual Population Survey. ONS labels it
+          official statistics in development, and its survey changed during the pandemic, so treat recent movements with
+          care. In England it is published for upper-tier authorities only, so a district shows its county&apos;s figure.
         </p>
         <Links
           items={[
@@ -65,69 +86,84 @@ export default async function AboutPage() {
 
       <Section title="Avoidable deaths">
         <p>
-          Age-standardised death rates from causes that are preventable through public health
-          or treatable through timely healthcare, for people under 75. ONS publishes these for
-          England and Wales only.
+          Age-standardised death rates from causes that are preventable through public health or treatable through
+          timely healthcare, for people under 75. ONS publishes these for England and Wales only.
         </p>
-        <Links items={[["Bulletin", ONS_LINKS.avoidableBulletin], ["Dataset", ONS_LINKS.avoidableDataset]]} />
+        <Links
+          items={[
+            ["Bulletin", ONS_LINKS.avoidableBulletin],
+            ["Dataset", ONS_LINKS.avoidableDataset],
+          ]}
+        />
       </Section>
 
       <Section title="Deprivation">
         <p>
-          English Indices of Deprivation 2025, local authority summaries (rank of average score).
-          Wales, Scotland and Northern Ireland each have their own index. Their ranks can&apos;t
-          be compared with England&apos;s, so they aren&apos;t included.
+          English Indices of Deprivation 2025, local authority summaries. Wales, Scotland and Northern Ireland each have
+          their own index. Their ranks can&apos;t be compared with England&apos;s, so they aren&apos;t included.
         </p>
         <Links items={[["IoD 2025", ONS_LINKS.iod]]} />
       </Section>
 
-      <Section title="Evidence indicators">
+      <Section title="Local indicators">
         <p>
-          The Evidence page and the risk-factor profile use {evidence.indicators.length}{" "}
-          indicators from <A href={evidence.meta.url}>OHID Fingertips</A>, England only, fetched{" "}
-          {evidence.meta.fetched}. Each uses the latest period with values for at least 90% of
-          local authorities (80% for drug deaths, where small counts are suppressed). Correlations
-          are Pearson r across local authorities, with each area counted once regardless of
-          population.
+          {evidence.indicators.length} indicators from{" "}
+          <a className="link" href={evidence.meta.url}>
+            OHID Fingertips
+          </a>
+          , England only, fetched {evidence.meta.fetched}. Each uses the latest period with values for at least 90% of
+          local authorities (80% for drug deaths, where small counts are suppressed). Correlations are Pearson r across
+          local authorities, each area counted once regardless of population.
         </p>
-        <div className="overflow-x-auto rounded-lg border border-slate-200">
-          <table className="w-full text-sm">
+        <div className="-mx-4 overflow-x-auto sm:mx-0">
+          <table className="w-full min-w-[34rem] border-collapse text-sm">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs text-slate-500">
-                <th className="px-3 py-2 font-medium">Indicator</th>
-                <th className="px-3 py-2 font-medium">Group</th>
-                <th className="px-3 py-2 font-medium">Period</th>
-                <th className="px-3 py-2 font-medium">Unit</th>
+              <tr className="border-y-2 border-ink text-left">
+                <th className="py-2.5 pl-4 pr-3 font-semibold text-ink sm:pl-0">Indicator</th>
+                <th className="px-3 py-2.5 font-semibold text-ink">Group</th>
+                <th className="px-3 py-2.5 font-semibold text-ink">Period</th>
+                <th className="py-2.5 pl-3 pr-4 font-semibold text-ink sm:pr-0">Unit</th>
               </tr>
             </thead>
             <tbody>
               {evidence.indicators.map((indicator) => (
-                <tr key={indicator.key} className="border-b border-slate-100 last:border-0">
-                  <td className="px-3 py-2">
-                    <A href={indicator.url}>{indicator.label}</A>
+                <tr key={indicator.key} className="border-b border-line">
+                  <td className="py-2.5 pl-4 pr-3 sm:pl-0">
+                    <a className="link" href={indicator.url}>
+                      {indicator.label}
+                    </a>
                   </td>
-                  <td className="px-3 py-2 text-slate-500">{indicator.group}</td>
-                  <td className="px-3 py-2 tabular-nums text-slate-500">{indicator.period}</td>
-                  <td className="px-3 py-2 text-slate-500">{indicator.unit}</td>
+                  <td className="px-3 py-2.5 text-ink-2">{indicator.group}</td>
+                  <td className="mono px-3 py-2.5 text-[12px] text-ink-2">{indicator.period}</td>
+                  <td className="py-2.5 pl-3 pr-4 text-ink-2 sm:pr-0">{indicator.unit}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
         <p>
-          Correlation between areas isn&apos;t causation, and it says nothing about individuals.
-          Deprivation, smoking, obesity and early deaths move together, so their links with life
-          expectancy overlap rather than add up. OHID&apos;s{" "}
-          <A href={ONS_LINKS.segment}>Segment tool</A> splits the deprivation gap in life
-          expectancy by cause of death.
+          Correlation between areas isn&apos;t causation, and it says nothing about individuals. Deprivation, smoking,
+          obesity and early deaths move together, so their links with life expectancy overlap rather than add up.
+          OHID&apos;s{" "}
+          <a className="link" href={ONS_LINKS.segment}>
+            Segment tool
+          </a>{" "}
+          splits the deprivation gap in life expectancy by cause of death.
         </p>
       </Section>
 
-      <Section title="Boundaries and code">
+      <Section title="Maps and code">
         <p>
-          Simplified boundaries from the ONS Open Geography Portal (contains OS data © Crown
-          copyright and database right). Postcode search uses postcodes.io. The processing
-          scripts are in the <A href="https://github.com/EddieDavison92/life-expectancy-uk">GitHub repository</A>.
+          Boundaries from the ONS Open Geography Portal (contains OS data © Crown copyright and database right). The hex
+          layout in the story is{" "}
+          <a className="link" href="https://github.com/odileeds/hexmaps">
+            Open Innovations&apos; UK local authority hex map
+          </a>{" "}
+          (MIT licence). Postcode search uses postcodes.io. Processing scripts are in the{" "}
+          <a className="link" href="https://github.com/EddieDavison92/life-expectancy-uk">
+            GitHub repository
+          </a>
+          .
         </p>
       </Section>
     </article>
@@ -136,28 +172,22 @@ export default async function AboutPage() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-3 leading-relaxed">
-      <h2 className="text-lg font-semibold tracking-tight text-slate-900">{title}</h2>
-      {children}
+    <section className="mt-16 grid gap-6 border-t border-line pt-8 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-12">
+      <h2 className="display text-3xl text-ink">{title}</h2>
+      <div className="max-w-3xl space-y-4 text-[17px] leading-relaxed text-ink-2 [&_strong]:font-semibold [&_strong]:text-ink">
+        {children}
+      </div>
     </section>
-  )
-}
-
-function A({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <a href={href} className="text-teal-800 underline underline-offset-2 hover:text-teal-950">
-      {children}
-    </a>
   )
 }
 
 function Links({ items }: { items: [string, string][] }) {
   return (
-    <p className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+    <p className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
       {items.map(([label, href]) => (
-        <A key={href} href={href}>
-          {label}
-        </A>
+        <a key={href} className="link" href={href}>
+          {label} ↗
+        </a>
       ))}
     </p>
   )
