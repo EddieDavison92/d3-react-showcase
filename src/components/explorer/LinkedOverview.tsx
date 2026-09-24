@@ -546,7 +546,7 @@ function CountryTable({
               key={area.code}
               className={cn(
                 "cursor-pointer border-t hover:bg-muted/40",
-                selected === area.code && "bg-teal-50 dark:bg-teal-950/40"
+                selected === area.code && "bg-slate-100"
               )}
               onClick={() => onSelect(area.code)}
             >
