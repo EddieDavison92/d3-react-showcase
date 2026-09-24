@@ -36,6 +36,7 @@ import {
   legendEnds,
   PERIOD_PRECOVID,
   PERIOD_TROUGH,
+  significanceNote,
   viewsFor,
 } from "@/lib/explorer/views"
 import type {
@@ -414,9 +415,10 @@ export function LinkedOverview({
                     divergence={divergence}
                     sexGap={sexGap}
                     vsNation={vsNation}
-                    uncertainChange={
-                      (state.view === "d2017" || state.view === "d2019") &&
-                      Boolean(focusCell?.uncertain)
+                    significanceNote={
+                      focusCell?.uncertain
+                        ? significanceNote(state.view, vsNation?.label ?? nationName)
+                        : null
                     }
                     emphasiseCi={state.view === "ci"}
                   />

@@ -15,7 +15,7 @@ export function FocusReadout({
   divergence,
   sexGap,
   vsNation,
-  uncertainChange,
+  significanceNote,
   emphasiseCi,
   figure,
 }: {
@@ -37,27 +37,32 @@ export function FocusReadout({
     femaleCi?: string
   } | null
   vsNation?: { label: string; delta: number | null; ukDelta?: number | null } | null
-  uncertainChange?: boolean
+  significanceNote?: string | null
   emphasiseCi?: boolean
   figure?: boolean
 }) {
   const level = point?.[0] ?? null
   const hasCi = point != null && point[1] !== null && point[2] !== null
-  const derived = derivedLine(view, unit, derivedValue, vsNation, sexGap)
+  const gapHeadline = view === "sex_gap" && sexGap?.gap !== null && sexGap?.gap !== undefined
+  const derived = gapHeadline ? null : derivedLine(view, unit, derivedValue, vsNation, sexGap)
+  const hasHeadline = gapHeadline || level !== null
 
   if (figure) {
     return (
       <div className="focus-card-enter rounded-xl border border-slate-200/70 bg-white/95 px-4 py-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.22)] backdrop-blur-sm">
         <p className="text-sm font-semibold leading-tight">{name}</p>
-        {level !== null ? (
+        {hasHeadline ? (
           <>
             <p className="mt-1.5 text-[1.75rem] font-semibold leading-none tracking-tight tabular-nums text-foreground sm:text-[2rem]">
-              {formatYears(level)}
+              {gapHeadline ? formatSigned(sexGap?.gap) : formatYears(level)}
               <span className="ml-1 text-sm font-normal tracking-normal text-muted-foreground">
                 {unit}
               </span>
             </p>
-            {hasCi ? (
+            {gapHeadline ? (
+              <p className="mt-1 text-xs text-muted-foreground">{SEX_GAP_LABEL}</p>
+            ) : null}
+            {hasCi && !gapHeadline ? (
               <p
                 className={
                   emphasiseCi
@@ -75,15 +80,17 @@ export function FocusReadout({
             ) : null}
             {sexGap ? (
               <p className="text-xs tabular-nums text-muted-foreground">
-                Male {formatYears(sexGap.male)} · Female {formatYears(sexGap.female)}
+                Male {formatYears(sexGap.male)}
+                {sexGap.maleCi ? ` (${sexGap.maleCi})` : ""} · Female {formatYears(sexGap.female)}
+                {sexGap.femaleCi ? ` (${sexGap.femaleCi})` : ""}
               </p>
             ) : null}
-            {uncertainChange ? (
-              <p className="text-xs text-muted-foreground">Change uncertain — intervals overlap</p>
+            {significanceNote ? (
+              <p className="mt-1 text-xs text-muted-foreground">{significanceNote}</p>
             ) : null}
             {vsNation?.ukDelta !== null && vsNation?.ukDelta !== undefined ? (
               <p className="text-xs tabular-nums text-muted-foreground">
-                vs UK {formatSigned(vsNation.ukDelta)} {unit}
+                Gap versus the UK {formatSigned(vsNation.ukDelta)} {unit}
               </p>
             ) : null}
             {showAges || divergence ? (
@@ -126,8 +133,8 @@ export function FocusReadout({
         </p>
       )}
       {derived ? <p className="text-xs tabular-nums">{derived}</p> : null}
-      {uncertainChange ? (
-        <p className="text-xs text-muted-foreground">Change uncertain — intervals overlap</p>
+      {significanceNote ? (
+        <p className="text-xs text-muted-foreground">{significanceNote}</p>
       ) : null}
       {sexGap ? (
         <p className="text-xs text-muted-foreground">
@@ -139,9 +146,9 @@ export function FocusReadout({
       ) : null}
       {vsNation ? (
         <p className="text-xs text-muted-foreground">
-          vs {vsNation.label} {formatSigned(vsNation.delta)}
+          Gap versus {vsNation.label} {formatSigned(vsNation.delta)}
           {vsNation.ukDelta !== null && vsNation.ukDelta !== undefined
-            ? ` · vs UK ${formatSigned(vsNation.ukDelta)}`
+            ? ` · gap versus the UK ${formatSigned(vsNation.ukDelta)}`
             : ""}
         </p>
       ) : null}
@@ -172,13 +179,13 @@ function derivedLine(
   sexGap?: { gap: number | null } | null
 ): string | null {
   if (view === "d2017" && derivedValue !== null && derivedValue !== undefined) {
-    return `Δ since 2017–19: ${formatSigned(derivedValue)} ${unit}`
+    return `Change since 2017–19: ${formatSigned(derivedValue)} ${unit}`
   }
   if (view === "d2019" && derivedValue !== null && derivedValue !== undefined) {
-    return `Δ since 2019–21: ${formatSigned(derivedValue)} ${unit}`
+    return `Change since 2019–21: ${formatSigned(derivedValue)} ${unit}`
   }
   if (view === "vs_nation" && vsNation) {
-    return `vs ${vsNation.label}: ${formatSigned(vsNation.delta)} ${unit}`
+    return `Gap versus ${vsNation.label}: ${formatSigned(vsNation.delta)} ${unit}`
   }
   if (view === "sex_gap" && sexGap && sexGap.gap !== null && sexGap.gap !== undefined) {
     return `${SEX_GAP_LABEL} ${formatSigned(sexGap.gap)} ${unit}`

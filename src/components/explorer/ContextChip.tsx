@@ -24,8 +24,14 @@ export function ContextChip({
   if (familyOf(paintMetric) === "le") {
     bits.push({ text: state.age === "65" ? "At 65" : "At birth", mobile: false })
   }
+  if (state.view === "d2017") {
+    bits.push({ text: "Change since 2017–19", mobile: false })
+  }
+  if (state.view === "d2019") {
+    bits.push({ text: "Change since 2019–21", mobile: false })
+  }
   if (state.view === "vs_nation") {
-    bits.push({ text: nationName ? `vs ${nationName}` : "vs own nation", mobile: true })
+    bits.push({ text: nationName ? `Gap versus ${nationName}` : "Gap versus own nation", mobile: true })
   }
   if (familyOf(state.metric) === "deprivation") {
     bits.push({ text: "deprivation strip", mobile: true })

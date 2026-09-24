@@ -55,8 +55,10 @@ export function AboutNumbers({
                 Figures summarise mortality rates in each three-year window. They
                 are not a prediction of how long a baby born then will live. ONS
                 did not apply formal significance tests in the 2022–24 local
-                bulletin. Isles of Scilly and the City of London are omitted for
-                sparse counts.
+                bulletin. Where this explorer says a change or gap is not
+                statistically significant, it means the confidence intervals
+                overlap — not that ONS ran a test. Isles of Scilly and the City
+                of London are omitted for sparse counts.
               </p>
               <p>
                 England <strong className="text-foreground">counties (E10)</strong> sit

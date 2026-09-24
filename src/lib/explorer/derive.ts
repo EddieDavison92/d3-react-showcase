@@ -25,6 +25,11 @@ export type DerivedCell = {
   hoverExtra?: string
 }
 
+export function intervalsOverlap(a: PackedPoint | null, b: PackedPoint | null): boolean {
+  if (!a || !b || a[1] === null || a[2] === null || b[1] === null || b[2] === null) return false
+  return a[1] <= b[2] && b[1] <= a[2]
+}
+
 function subtract(
   now: PackedPoint | null,
   then: PackedPoint | null
@@ -32,12 +37,7 @@ function subtract(
   if (!now || now[0] === null || !then || then[0] === null) {
     return { value: null, uncertain: false }
   }
-  const value = now[0] - then[0]
-  const uncertain =
-    now[1] !== null && now[2] !== null && then[1] !== null && then[2] !== null
-      ? now[1] <= then[2] && then[1] <= now[2]
-      : false
-  return { value, uncertain }
+  return { value: now[0] - then[0], uncertain: intervalsOverlap(now, then) }
 }
 
 export function comparatorsFor(area: AreaRecord): {
@@ -95,7 +95,7 @@ export function deriveMap(args: {
             ? now?.[0] !== null && now?.[0] !== undefined
               ? `No ${label} baseline`
               : "No figure for this selection"
-            : `Δ vs ${label} ${signed(delta.value)}${delta.uncertain ? " · change uncertain (CIs overlap)" : ""}`,
+            : `Change since ${label}: ${signed(delta.value)}${delta.uncertain ? " · not statistically significant (intervals overlap)" : ""}`,
       }
       continue
     }
@@ -118,13 +118,14 @@ export function deriveMap(args: {
       if (delta.value === null) {
         extra = "No own-nation comparator"
       } else {
-        extra = `vs ${nation.name} ${signed(delta.value)}`
+        extra = `Gap versus ${nation.name}: ${signed(delta.value)}`
+        if (delta.uncertain) extra += " · not statistically significant (intervals overlap)"
         if (uk) {
           const ukDelta = subtract(now, readPoint(file, uk.code, sex, dim, periodIndex))
-          if (ukDelta.value !== null) extra += ` · vs UK ${signed(ukDelta.value)}`
+          if (ukDelta.value !== null) extra += ` · gap versus the UK: ${signed(ukDelta.value)}`
         }
       }
-      out[area.code] = { value: delta.value, hoverExtra: extra }
+      out[area.code] = { value: delta.value, uncertain: delta.uncertain, hoverExtra: extra }
       continue
     }
 
@@ -134,7 +135,10 @@ export function deriveMap(args: {
       const delta = subtract(male, female)
       out[area.code] = {
         value: delta.value,
-        hoverExtra: undefined,
+        uncertain: delta.uncertain,
+        hoverExtra: delta.uncertain
+          ? "Sex gap not statistically significant (intervals overlap)"
+          : undefined,
       }
       continue
     }

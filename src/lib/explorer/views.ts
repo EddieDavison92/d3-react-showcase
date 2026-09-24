@@ -60,17 +60,33 @@ export function isDivergingView(view: ViewId): boolean {
 export function viewNote(view: ViewId): string {
   switch (view) {
     case "absolute":
-      return "Latest period levels. Not the only story — try change, vs nation, or the sex gap."
+      return "Period life expectancy: death rates in these years, not a forecast. Other modes name a different gap — change since 2017–19, change since 2019–21, versus the area's own nation, or male minus female."
     case "d2017":
-      return "Change since 2017–19 (pre-pandemic). Missing baselines stay uncoloured."
+      return "Change since 2017–19, in years — not the sex gap or the nation gap. Where the intervals overlap, that change is not statistically significant."
     case "d2019":
-      return "A rise from the trough is not full recovery."
+      return "Change since 2019–21, in years. A rise from the trough is not full recovery. Where the intervals overlap, that change is not statistically significant."
     case "vs_nation":
-      return "Each area vs its own nation. Map shows the difference from nation; chart below is the level history."
+      return "The gap versus each area's own nation, in years — not the UK gap, and not the sex gap. Where the intervals overlap, that nation gap is not statistically significant."
     case "sex_gap":
-      return "Male minus female for the selected period. Not a decline/gain story."
+      return "The sex gap: male minus female for this period, in years. Not a change over time. Where the intervals overlap, the sex gap is not statistically significant."
     case "ci":
-      return "Highlights areas with wider intervals. Small populations stay noisy."
+      return "Confidence intervals. Wider means less certain — small populations stay noisy."
+  }
+}
+
+/** Names the gap, and only claims non-significance. ONS did not publish a formal test. */
+export function significanceNote(view: ViewId, nation?: string | null): string | null {
+  switch (view) {
+    case "d2017":
+      return "Change since 2017–19 is not statistically significant — the intervals overlap."
+    case "d2019":
+      return "Change since 2019–21 is not statistically significant — the intervals overlap."
+    case "vs_nation":
+      return `The gap versus ${nation ?? "the area's own nation"} is not statistically significant — the intervals overlap.`
+    case "sex_gap":
+      return "The sex gap is not statistically significant — the male and female intervals overlap."
+    default:
+      return null
   }
 }
 
