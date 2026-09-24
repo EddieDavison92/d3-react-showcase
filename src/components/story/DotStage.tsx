@@ -188,6 +188,8 @@ export function DotStage({
 
   // Dots fill their hex on the map, then shrink to pack into rows.
   const dot = layout === "map" ? hex.radius * 0.94 : layout === "rank" ? r : r * 0.8
+  // Dots sweep left to right when changing layout; everything tied to a dot shares its delay.
+  const delayOf = (px: number) => Math.round((px / Math.max(1, width)) * 260)
   const hovered = hover !== null ? areas[hover] : null
   const hoverPos = hover !== null ? positions[hover] : null
   const ringSet = new Set([...rings, ...highlight])
@@ -248,7 +250,7 @@ export function DotStage({
           </text>
         </g>
 
-        {/* The dots. */}
+        {/* The dots. A ringed dot carries its ring in the same group, so both move and scale together. */}
         <g onPointerLeave={() => setHover(null)}>
           {areas.map((a, i) => {
             const p = positions[i]
@@ -256,14 +258,13 @@ export function DotStage({
             const px = p?.x ?? width / 2
             const py = p?.y ?? height / 2
             const dimmed = rowed && a.decile === null
-            const delay = (px / Math.max(1, width)) * 260
             const arrive = rankOf[i] * INTRO_STEP
+            const ringed = ringSet.has(a.code)
+            const labelled = highlight.includes(a.code)
             return (
-              <circle
+              <g
                 key={a.code}
                 className="mark"
-                r={1}
-                fill={fill(a)}
                 opacity={stage === "wait" || !shown ? 0 : dimmed ? 0.4 : 1}
                 style={{
                   transform: `translate(${px}px, ${py}px) scale(${stage === "wait" ? 0 : dot})`,
@@ -271,10 +272,23 @@ export function DotStage({
                     ? {
                         transition: `transform ${INTRO_POP}ms cubic-bezier(0.34,1.56,0.64,1) ${arrive}ms, opacity 160ms linear ${arrive}ms`,
                       }
-                    : { ["--delay" as string]: `${Math.round(hover === null ? delay : 0)}ms` }),
+                    : { ["--delay" as string]: `${delayOf(px)}ms` }),
                 }}
                 onPointerEnter={() => setHover(i)}
-              />
+              >
+                <circle r={1} fill={fill(a)} />
+                {ringed ? (
+                  <circle
+                    r={labelled ? 1.45 : 1.3}
+                    fill="none"
+                    stroke={INK}
+                    strokeWidth={labelled ? 1.5 : 1}
+                    vectorEffect="non-scaling-stroke"
+                    className="pointer-events-none"
+                    style={{ opacity: done ? (labelled ? 1 : 0.7) : 0, transition: "opacity 500ms ease" }}
+                  />
+                ) : null}
+              </g>
             )
           })}
         </g>
@@ -295,20 +309,18 @@ export function DotStage({
             )
           : null}
 
-        {/* Rings, and leader lines for labelled areas; labels are HTML below. */}
-        {areas.map((a, i) => {
-          if (!ringSet.has(a.code)) return null
+        {/* Leader lines for labelled areas, on the same delay as their dots; labels are HTML below. */}
+        {highlight.map((code) => {
+          const i = areas.findIndex((a) => a.code === code)
           const p = positions[i]
-          if (!p) return null
-          const labelled = highlight.includes(a.code)
+          if (i < 0 || !p) return null
           return (
             <g
-              key={a.code}
+              key={code}
               className="mark pointer-events-none"
-              style={{ transform: `translate(${p.x}px, ${p.y}px)`, opacity: done ? 1 : 0 }}
+              style={{ transform: `translate(${p.x}px, ${p.y}px)`, opacity: done ? 1 : 0, ["--delay" as string]: `${delayOf(p.x)}ms` }}
             >
-              <circle r={dot + (labelled ? 3.5 : 2)} fill="none" stroke={INK} strokeWidth={labelled ? 1.5 : 1} opacity={labelled ? 1 : 0.7} />
-              {labelled ? <line y1={-dot - 4} y2={-LABEL_LIFT + 12} stroke={INK} strokeWidth={1} /> : null}
+              <line y1={-dot * 1.45 - 2} y2={-LABEL_LIFT + 12} stroke={INK} strokeWidth={1} />
             </g>
           )
         })}
@@ -332,6 +344,7 @@ export function DotStage({
               top: p.y - LABEL_LIFT,
               transform: `translate(${p.x > width - 130 ? "-100%" : p.x < 130 ? "0" : "-50%"}, -50%)`,
               opacity: done ? 1 : 0,
+              transitionDelay: `${delayOf(p.x)}ms`,
             }}
           >
             <span className="font-semibold text-ink">{a.name}</span>{" "}
