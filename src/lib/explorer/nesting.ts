@@ -16,16 +16,13 @@ export type NestingContext = {
   areaByCode: Map<string, AreaRecord>
 }
 
-function clone(state: ExplorerState): ExplorerState {
-  return { ...state, compare: [...state.compare] }
-}
 
 export function applyExplorerChange(
   current: ExplorerState,
   patch: Partial<ExplorerState>,
   ctx: NestingContext
 ): { state: ExplorerState; warnings: ExplorerWarning[] } {
-  const next = clone({ ...current, ...patch })
+  const next = { ...current, ...patch }
   const warnings: ExplorerWarning[] = []
   const family = familyOf(next.metric)
   const metricChanged = patch.metric !== undefined && patch.metric !== current.metric
@@ -108,31 +105,6 @@ export function applyExplorerChange(
     }
   }
 
-  next.compare = next.compare.filter((code) => {
-    if (code === next.area) return false
-    const rec = ctx.areaByCode.get(code)
-    if (!rec) return false
-    if (family === "avoidable" && (rec.nation === "S" || rec.nation === "N")) return false
-    if (family === "hle" && code.startsWith("E07")) return false
-    return true
-  }).slice(0, 2)
-
-  if (family === "le" || family === "deprivation") warnings.push(WARNING_COPY.periodLe)
-  if (family === "hle") {
-    warnings.push(WARNING_COPY.hleDevelopment)
-    if (next.geo === "utla") warnings.push(WARNING_COPY.localAreasMix)
-  }
-  if ((family === "le" || family === "deprivation") && next.geo === "counties") {
-    warnings.push(WARNING_COPY.localAreasMix)
-  }
-  if ((family === "le" || family === "deprivation") && next.geo === "country") {
-    warnings.push(WARNING_COPY.countryLe)
-  }
-  if (family === "avoidable") warnings.push(WARNING_COPY.avoidableEw)
-  if (family === "deprivation") {
-    warnings.push(WARNING_COPY.deprivationNotCause)
-  }
-
   const unique = new Map(warnings.map((w) => [w.id, w]))
   return { state: next, warnings: [...unique.values()] }
 }
@@ -140,6 +112,6 @@ export function applyExplorerChange(
 function hleSnapWarning(parentName: string): ExplorerWarning {
   return {
     ...WARNING_COPY.ltlaUtla,
-    body: `${WARNING_COPY.ltlaUtla.body} Showing ${parentName}.`,
+    title: `Showing ${parentName}`,
   }
 }

@@ -1,29 +1,13 @@
-// app/not-found.tsx
+import Link from "next/link"
+
 export default function NotFound() {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="text-center">
-          <h1
-            className="next-error-h1 border-r pr-6 mr-6 text-2xl antialiased font-semibold inline-block"
-            style={{
-              lineHeight: "49px",
-            }}
-          >
-            404
-          </h1>
-          <div className="inline-block">
-            <h2
-              className=""
-              style={{
-                lineHeight: "49px",
-                margin: 0,
-              }}
-            >
-              This page could not be found.
-            </h2>
-          </div>
-        </div>
-      </div>
-    )
-  }
-  
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center gap-3 py-24 text-center">
+      <p className="text-sm font-medium text-slate-500">404</p>
+      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Page not found</h1>
+      <Link href="/explore" className="text-sm font-medium text-teal-800 hover:underline">
+        Open the map →
+      </Link>
+    </div>
+  )
+}

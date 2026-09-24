@@ -1,43 +1,12 @@
-import type { CatalogueCard, GeoId, MetricFamily, MetricId, SexId } from "./types"
+import type { GeoId, MetricFamily, MetricId, SexId } from "./types"
 
-export const HLE_WATERSHED_HOOK =
-  "Below state pension age (66) in 94% of UK areas for males and 91% for females, and below 55 in more than one in ten. Health Foundation, April 2026 — not a layer on this map."
-
-export const CATALOGUE: CatalogueCard[] = [
-  {
-    id: "le",
-    family: "le",
-    title: "Period life expectancy",
-    blurb:
-      "Remaining years if current age-specific mortality rates persist. UK local areas, males and females, 2001–03 to 2022–24.",
-    badges: ["UK · LTLA", "Accredited official statistics"],
-    core: true,
-  },
-  {
-    id: "hle",
-    family: "hle",
-    title: "Healthy life expectancy",
-    blurb:
-      "Years in good or very good self-rated health. England is upper-tier; not a district-for-district match to period LE.",
-    hook: HLE_WATERSHED_HOOK,
-    badges: ["UK · UTLA (Eng)", "Official statistics in development"],
-  },
-  {
-    id: "avoidable",
-    family: "avoidable",
-    title: "Avoidable mortality",
-    blurb:
-      "Age-standardised rates from avoidable, preventable and treatable causes. England and Wales only.",
-    badges: ["England & Wales only", "Persons available"],
-  },
-  {
-    id: "deprivation",
-    family: "deprivation",
-    title: "Deprivation context",
-    blurb:
-      "Nation-specific indices as a strip on Explore, not a choropleth. England IoD 2025; Wales not bundled. Not a UK league and not a cause.",
-    badges: ["England IoD25", "Wales not bundled", "Not causal"],
-  },
+/** Options for the measure picker. */
+export const MEASURES: { id: MetricId; label: string; note: string }[] = [
+  { id: "le", label: "Life expectancy", note: "UK · 2001–03 to 2022–24" },
+  { id: "hle", label: "Healthy life expectancy", note: "UK · upper-tier in England" },
+  { id: "avoidable", label: "Avoidable deaths", note: "England & Wales" },
+  { id: "preventable", label: "Preventable deaths", note: "England & Wales" },
+  { id: "treatable", label: "Treatable deaths", note: "England & Wales" },
 ]
 
 export function familyOf(metric: MetricId): MetricFamily {
@@ -70,45 +39,45 @@ export function hasAge(metric: MetricId): boolean {
 export function geoLabel(geo: GeoId): string {
   switch (geo) {
     case "ltla":
-      return "Lower-tier local areas"
+      return "Local authorities"
     case "counties":
-      return "England counties"
+      return "English counties"
     case "utla":
-      return "Upper-tier local areas"
+      return "Upper-tier authorities"
     case "region":
       return "English regions"
     case "country":
-      return "Country comparators"
+      return "Nations"
   }
 }
 
 export function geoShort(geo: GeoId): string {
   switch (geo) {
     case "ltla":
-      return "Lower-tier UK"
+      return "Local authority"
     case "counties":
-      return "Counties"
+      return "County"
     case "utla":
       return "Upper-tier"
     case "region":
-      return "Regions"
+      return "Region"
     case "country":
-      return "Countries"
+      return "Nation"
   }
 }
 
 export function metricLabel(metric: MetricId): string {
   switch (metric) {
     case "le":
-      return "Period life expectancy"
+      return "Life expectancy"
     case "hle":
       return "Healthy life expectancy"
     case "avoidable":
-      return "Avoidable mortality"
+      return "Avoidable deaths"
     case "preventable":
-      return "Preventable mortality"
+      return "Preventable deaths"
     case "treatable":
-      return "Treatable mortality"
+      return "Treatable deaths"
     case "deprivation":
       return "Deprivation context"
   }
@@ -151,10 +120,3 @@ export const ONS_LINKS = {
   segmentCommentary:
     "https://www.gov.uk/government/statistics/segment-tool-november-2025-update",
 }
-
-/** Country context from the Health Foundation note. Not for the map scale. */
-export const HLE_WATERSHED_INTL =
-  "Of 21 high-income countries in that analysis (WHO GHO, 2011–21), the UK was one of five where healthy life expectancy fell. Those country ranks are not comparable with these local figures."
-
-export const SEGMENT_CALLOUT =
-  "England only. OHID Segment splits the deprivation gap in life expectancy by cause and age. It still uses IMD 2019 — not the IoD 2025 strip on this map."

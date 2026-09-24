@@ -13,7 +13,7 @@ import type { GeoId } from "@/lib/explorer/types"
 import { cn } from "@/lib/utils"
 
 const inputClass =
-  "flex h-11 min-h-11 w-full rounded-md border border-input bg-background px-3 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:text-sm"
+  "flex h-9 w-full rounded-md border border-slate-200 bg-white pl-8 pr-3 text-base placeholder:text-slate-400 hover:border-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/20 md:text-sm"
 
 export function AreaFinder({
   areas,
@@ -68,7 +68,7 @@ export function AreaFinder({
             query,
             hits: found,
             note: found.length
-              ? "Local area for that postcode, via postcodes.io — not an ONS service."
+              ? "Postcode lookup via postcodes.io."
               : "No area in this explorer for that postcode.",
           })
         })
@@ -106,6 +106,14 @@ export function AreaFinder({
       }}
     >
       <div className="relative">
+        <svg
+          aria-hidden
+          viewBox="0 0 16 16"
+          className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400"
+        >
+          <circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <path d="m10.5 10.5 3 3" stroke="currentColor" strokeWidth="1.5" />
+        </svg>
         <input
           ref={inputRef}
           className={cn(inputClass, value && "pr-10")}
@@ -115,7 +123,7 @@ export function AreaFinder({
           aria-autocomplete="list"
           aria-activedescendant={open && hits[highlighted] ? `${listId}-${hits[highlighted].code}` : undefined}
           aria-label="Find an area"
-          placeholder="Name or postcode"
+          placeholder="Search area or postcode"
           value={shown}
           onFocus={(event) => {
             setOpen(true)
@@ -150,7 +158,7 @@ export function AreaFinder({
         {value ? (
           <button
             type="button"
-            className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
+            className="absolute right-0.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
             aria-label="Clear area"
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => pick(null)}
@@ -164,11 +172,11 @@ export function AreaFinder({
           id={listId}
           role="listbox"
           aria-label="Matching areas"
-          className="mt-1 max-h-64 w-full overflow-auto rounded-md border bg-white py-1 text-sm shadow-md"
+          className="absolute left-0 right-0 top-full z-30 mt-1 max-h-72 overflow-auto rounded-md border border-slate-200 bg-white py-1 text-sm shadow-lg"
         >
           {query.trim().length < 2 ? (
             <p className="px-3 py-2 text-xs text-muted-foreground">
-              Type a name or postcode. Searching all areas for this measure.
+              Type at least two letters, or a postcode.
             </p>
           ) : postcodePending && hits.length === 0 ? (
             <p className="px-3 py-2 text-xs text-muted-foreground">Looking up that postcode…</p>

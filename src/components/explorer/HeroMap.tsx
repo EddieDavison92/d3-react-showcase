@@ -7,8 +7,6 @@ import { colourLookup } from "@/components/explorer/map-helpers"
 import { TEAL_RAMP } from "@/lib/explorer/colours"
 import { areasForGeo, geoUrl, loadLe } from "@/lib/explorer/data"
 import { deriveMap } from "@/lib/explorer/derive"
-import { exploreHref } from "@/lib/explorer/url-state"
-import Link from "next/link"
 
 const ChoroplethMap = dynamic(
   () => import("@/components/explorer/ChoroplethMap").then((mod) => mod.ChoroplethMap),
@@ -79,14 +77,13 @@ export function HeroMap() {
           </div>
         )}
       </div>
-      <figcaption className="mx-auto mt-3 max-w-lg text-xs leading-relaxed text-muted-foreground lg:text-center">
-        2022–24 · Male · at birth · Absolute. Darker teal = longer male period life
-        expectancy.
-        <br />
-        Shaded within each local authority boundary.{" "}
-        <Link href={exploreHref()} className="text-teal-800 underline-offset-2 hover:underline">
-          Explore →
-        </Link>
+      <figcaption className="mt-2 flex items-center justify-center gap-3 text-xs text-slate-500">
+        <span>Male life expectancy at birth, 2022–24</span>
+        <span className="flex items-center gap-1.5">
+          Shorter
+          <span className="h-1.5 w-16 rounded-full bg-gradient-to-r from-teal-100 via-teal-500 to-teal-950" />
+          Longer
+        </span>
       </figcaption>
     </figure>
   )

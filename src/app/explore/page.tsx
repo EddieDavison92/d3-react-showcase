@@ -1,12 +1,13 @@
+import type { Metadata } from "next"
 import { Suspense } from "react"
 import { ExplorerApp } from "@/components/explorer/ExplorerApp"
 
+export const metadata: Metadata = { title: "Map" }
+
 export default function ExplorePage() {
   return (
-    <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col overflow-x-clip lg:min-h-[calc(100dvh-8rem)]">
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading explorer…</p>}>
-        <ExplorerApp />
-      </Suspense>
-    </div>
+    <Suspense>
+      <ExplorerApp />
+    </Suspense>
   )
 }
