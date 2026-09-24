@@ -63,11 +63,12 @@ export function Story({ data }: { data: StoryData }) {
         steps={[
           <div key="intro" className="max-w-xl">
             <p className="kicker animate-rise">Life expectancy across the UK · 2001–2024</p>
-            <h1 className="display mt-3 animate-rise text-[clamp(3rem,6.6vw,6.25rem)] leading-[0.9] text-ink [animation-delay:120ms] sm:mt-6">
+            <h1 className="display mt-3 inline-flex animate-rise flex-col text-[clamp(3rem,6.6vw,6.25rem)] leading-[0.9] text-ink [animation-delay:120ms] sm:mt-6">
               <span className="block whitespace-nowrap">Ten years</span>
-              <span className="mt-[0.08em] flex items-center gap-[0.18em]">
-                <Ruler />
-                <span>apart</span>
+              {/* "apart" ends under "years"; the ruler measures the gap between the two ends. */}
+              <span className="mt-[0.06em] flex w-full items-center gap-[0.16em]">
+                <Ruler from={extremes.male.bottom} to={extremes.male.top} />
+                <span className="italic">apart</span>
               </span>
             </h1>
             <p className="mt-4 max-w-md animate-rise text-[15.5px] leading-relaxed text-ink-2 [animation-delay:260ms] sm:mt-8 sm:text-lg">
@@ -330,18 +331,55 @@ function Notes({ children }: { children: React.ReactNode }) {
   return <p className="mt-10 max-w-3xl border-l-2 border-ink pl-4 text-sm leading-relaxed text-ink-2">{children}</p>
 }
 
-/** Ten-year ruler between the two dots of the mark: brick (shorter) to teal (longer). */
-function Ruler() {
+const RULE_START = 500
+const RULE_MS = 1100
+
+/**
+ * The gap as a measurement: Blackpool (brick) to Hart (teal), one tick per
+ * year. The line draws across, the ticks count off, then the far end lands.
+ */
+function Ruler({ from, to }: { from: { name: string; value: number }; to: { name: string; value: number } }) {
+  const years = Math.round(to.value - from.value)
   return (
-    <span aria-hidden className="relative flex h-[0.5em] w-[2.1em] shrink-0 items-center">
-      <span className="absolute inset-x-[0.11em] top-1/2 h-[2px] -translate-y-1/2 bg-ink" />
-      <span className="absolute inset-x-[0.11em] top-1/2 flex -translate-y-1/2 items-center justify-between">
-        {Array.from({ length: 11 }, (_, i) => (
-          <span key={i} className={cn("w-[2px] bg-ink", i % 5 === 0 ? "h-[0.2em]" : "h-[0.1em]")} />
-        ))}
+    <span aria-hidden className="relative block h-[0.62em] min-w-[1.4em] flex-1">
+      <span
+        className="absolute left-[0.1em] right-[0.1em] top-1/2 h-[1.5px] origin-left -translate-y-1/2 bg-ink motion-safe:animate-[grow_var(--ms)_linear_var(--start)_both]"
+        style={{ ["--ms" as string]: `${RULE_MS}ms`, ["--start" as string]: `${RULE_START}ms` }}
+      />
+      <span className="absolute inset-x-[0.1em] top-1/2">
+        {Array.from({ length: years + 1 }, (_, i) => {
+          const major = i === 0 || i === years || i === Math.round(years / 2)
+          return (
+            <span
+              key={i}
+              className="absolute w-[1.5px] -translate-x-1/2 bg-ink motion-safe:animate-[tick_240ms_ease-out_both]"
+              style={{
+                left: `${(i / years) * 100}%`,
+                height: major ? "0.2em" : "0.1em",
+                top: major ? "-0.1em" : "-0.05em",
+                animationDelay: `${RULE_START + (i / years) * RULE_MS}ms`,
+              }}
+            />
+          )
+        })}
       </span>
-      <span className="absolute left-0 top-1/2 h-[0.22em] w-[0.22em] -translate-y-1/2 rounded-full bg-[#b3452c]" />
-      <span className="absolute right-0 top-1/2 h-[0.22em] w-[0.22em] -translate-y-1/2 rounded-full bg-[#0b5a4c]" />
+      <span className="absolute left-0 top-1/2 h-[0.2em] w-[0.2em] -translate-y-1/2 rounded-full bg-[#b3452c] ring-[0.05em] ring-paper motion-safe:animate-[pop_420ms_cubic-bezier(0.34,1.56,0.64,1)_200ms_both]" />
+      <span
+        className="absolute right-0 top-1/2 h-[0.2em] w-[0.2em] -translate-y-1/2 rounded-full bg-[#0b5a4c] ring-[0.05em] ring-paper motion-safe:animate-[pop_420ms_cubic-bezier(0.34,1.56,0.64,1)_both]"
+        style={{ animationDelay: `${RULE_START + RULE_MS - 60}ms` }}
+      />
+      <span
+        className="absolute left-0 top-[calc(50%+0.27em)] hidden whitespace-nowrap sm:block font-sans text-[11px] font-medium not-italic leading-none tracking-normal text-ink-3 motion-safe:animate-[fade_500ms_ease-out_both] sm:text-xs"
+        style={{ animationDelay: `${RULE_START + RULE_MS + 100}ms` }}
+      >
+        {from.name} <span className="tabular text-[#b3452c]">{from.value.toFixed(1)}</span>
+      </span>
+      <span
+        className="absolute right-0 top-[calc(50%+0.27em)] hidden whitespace-nowrap sm:block font-sans text-[11px] font-medium not-italic leading-none tracking-normal text-ink-3 motion-safe:animate-[fade_500ms_ease-out_both] sm:text-xs"
+        style={{ animationDelay: `${RULE_START + RULE_MS + 200}ms` }}
+      >
+        {to.name} <span className="tabular text-[#0b5a4c]">{to.value.toFixed(1)}</span>
+      </span>
     </span>
   )
 }
