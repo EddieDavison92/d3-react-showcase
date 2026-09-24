@@ -94,7 +94,7 @@ function Panel({
 
   return (
     <Link
-      href={`/evidence?factor=${indicator.key}&sex=${sex}`}
+      href={`/evidence?factor=${indicator.key}&sex=${sex}#factor`}
       className="group -m-3 block rounded-2xl p-3 transition-colors hover:bg-white/80"
     >
       <div className="flex items-baseline justify-between gap-3">

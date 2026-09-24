@@ -112,6 +112,6 @@ export function applyExplorerChange(
 function hleSnapWarning(parentName: string): ExplorerWarning {
   return {
     ...WARNING_COPY.ltlaUtla,
-    title: `Showing ${parentName}`,
+    title: `Showing ${parentName}: healthy life expectancy isn’t published for districts`,
   }
 }

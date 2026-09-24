@@ -119,7 +119,7 @@ export function ControlPanel({
           <Select
             label="Show"
             value={state.view}
-            options={VIEW_OPTIONS.filter((v) => views.includes(v.id)).map((v) => ({ value: v.id, label: v.label }))}
+            options={VIEW_OPTIONS.filter((v) => views.includes(v.id)).map((v) => ({ value: v.id, label: v.label, hint: v.aria }))}
             onChange={(view: ViewId) => onChange({ view })}
           />
         ) : null}

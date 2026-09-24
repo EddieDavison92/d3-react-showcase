@@ -5,7 +5,7 @@ export const WARNING_COPY = {
   ltlaUtla: {
     id: "ltla-utla",
     tone: "mismatch",
-    title: "Showing the upper-tier area",
+    title: "Showing the county: healthy life expectancy isn’t published for districts",
     body: "In England, healthy life expectancy is only published for counties and unitary authorities.",
   },
   nationDeprivation: {
@@ -17,19 +17,19 @@ export const WARNING_COPY = {
   avoidableEw: {
     id: "avoidable-ew",
     tone: "mismatch",
-    title: "England and Wales only",
+    title: "Avoidable deaths cover England and Wales only",
     body: "ONS publishes avoidable mortality for England and Wales, not Scotland or Northern Ireland.",
   },
   noPersons: {
     id: "no-persons",
     tone: "mismatch",
-    title: "Male and female only",
+    title: "Published for men and women separately, not combined",
     body: "ONS publishes local life expectancy for males and females separately, with no persons figure.",
   },
   periodSnap: {
     id: "period-snap",
     tone: "mismatch",
-    title: "Moved to the nearest available period",
+    title: "Moved to the nearest period this measure covers",
     body: "This measure doesn't cover the period you were viewing.",
   },
   wimdEmpty: {
