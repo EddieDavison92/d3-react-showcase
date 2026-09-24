@@ -35,15 +35,17 @@ export function ChangeBars({
   const narrow = width < 560
   const M = { top: 76, right: 56, bottom: 56, left: narrow ? 40 : 128 }
   const w = Math.max(10, width - M.left - M.right)
-  const h = Math.max(10, Math.min(height - M.top - M.bottom, 560))
+  const h = Math.max(10, height - M.top - M.bottom)
   const all = [...changes, ...(others ?? []), 0]
   const x = d3
     .scaleLinear()
-    .domain([Math.min(-0.2, d3.min(all)! - 0.08), Math.max(0.8, d3.max(all)! + 0.1)])
+    .domain([Math.min(-0.2, d3.min(all)! - (narrow ? 0.22 : 0.08)), Math.max(0.8, d3.max(all)! + 0.1)])
     .nice()
     .range([0, w])
-  const y = d3.scaleBand<number>().domain(d3.range(10)).range([0, h]).paddingInner(0.45)
-  const bh = y.bandwidth()
+  // Rows share the full height, like the charts either side; bars stay slim.
+  const step = h / 10
+  const bh = Math.min(30, step * 0.55)
+  const y = (d: number) => d * step + (step - bh) / 2
 
   return (
     <div ref={ref} className="relative h-full w-full">
@@ -84,7 +86,7 @@ export function ChangeBars({
           </text>
 
           {changes.map((c, d) => {
-            const y0 = y(d) ?? 0
+            const y0 = y(d)
             const x0 = x(0)
             const len = Math.abs(x(c) - x0)
             const left = c < 0
