@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react"
 import * as d3 from "d3"
 import { useWidth } from "@/components/explorer/use-width"
+import { CanvasDots } from "@/components/story/CanvasDots"
 import { useTween } from "@/components/story/use-tween"
 import { formatIndicator, type Fit, type Indicator, type Pair } from "@/lib/explorer/evidence"
 import { formatYears } from "@/lib/explorer/format"
@@ -61,9 +62,13 @@ export function FactorScatter({
 
   const focus = points.find((p) => p.code === selected) ?? null
   const [x0, x1] = x.domain()
-  const [ly0, ly1] = useTween(
-    model ? [model.intercept + model.slope * x0, model.intercept + model.slope * x1] : [0, 0],
-    750
+  const fitEnds = useMemo(
+    () => (model ? [model.intercept + model.slope * x0, model.intercept + model.slope * x1] : null),
+    [model, x0, x1]
+  )
+  const dots = useMemo(
+    () => points.map((p) => ({ key: p.code, x: MARGIN.left + x(p.x), y: MARGIN.top + y(p.y) })),
+    [points, x, y]
   )
 
   const nearest = (event: React.MouseEvent<SVGRectElement>) => {
@@ -78,7 +83,10 @@ export function FactorScatter({
 
   return (
     <div ref={ref} className="relative">
-      <svg className="chart" width={width} height={HEIGHT} role="img" aria-label={`${indicator.label} against ${yLabel}, ${points.length} areas`}>
+      <div className="pointer-events-none absolute left-0 top-0" style={{ width, height: HEIGHT }}>
+        <CanvasDots points={dots} width={width} height={HEIGHT} colour={colour} radius={3} alpha={0.35} />
+      </div>
+      <svg className="chart relative" width={width} height={HEIGHT} role="img" aria-label={`${indicator.label} against ${yLabel}, ${points.length} areas`}>
         <g transform={`translate(${MARGIN.left},${MARGIN.top})`}>
           {y.ticks(5).map((t) => (
             <g key={`y${t}`} transform={`translate(0,${y(t)})`}>
@@ -107,29 +115,7 @@ export function FactorScatter({
           <text x={4} y={-4} fontSize={10.5} fill="#3f4349">
             ↑ {yLabel}
           </text>
-          {points.map((p) => (
-            <circle
-              key={p.code}
-              r={3}
-              fill={colour}
-              fillOpacity={0.35}
-              style={{
-                transform: `translate(${x(p.x)}px, ${y(p.y)}px)`,
-                transition: "transform 750ms cubic-bezier(0.65,0,0.25,1), fill 750ms ease",
-              }}
-            />
-          ))}
-          {model ? (
-            <line
-              x1={x(x0)}
-              x2={x(x1)}
-              y1={y(ly0)}
-              y2={y(ly1)}
-              stroke="#111315"
-              strokeWidth={1.5}
-              strokeOpacity={0.7}
-            />
-          ) : null}
+          {fitEnds ? <FitLine ends={fitEnds} x0={x(x0)} x1={x(x1)} y={y} /> : null}
           {hover && hover.code !== focus?.code ? (
             <circle cx={x(hover.x)} cy={y(hover.y)} r={5} fill="#111315" stroke="#f4f4f0" strokeWidth={2} />
           ) : null}
@@ -193,4 +179,20 @@ export function FactorScatter({
       ) : null}
     </div>
   )
+}
+
+/** Fit line easing between sexes and measures; only this re-renders per frame. */
+function FitLine({
+  ends,
+  x0,
+  x1,
+  y,
+}: {
+  ends: number[]
+  x0: number
+  x1: number
+  y: d3.ScaleLinear<number, number>
+}) {
+  const [a, b] = useTween(ends, 750)
+  return <line x1={x0} x2={x1} y1={y(a)} y2={y(b)} stroke="#111315" strokeWidth={1.5} strokeOpacity={0.7} />
 }

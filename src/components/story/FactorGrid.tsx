@@ -4,6 +4,7 @@ import { useMemo, useState } from "react"
 import Link from "next/link"
 import * as d3 from "d3"
 import { SexToggle } from "@/components/story/SexToggle"
+import { CanvasDots } from "@/components/story/CanvasDots"
 import { useInView } from "@/components/story/use-in-view"
 import { useTween } from "@/components/story/use-tween"
 import { formatIndicator } from "@/lib/explorer/evidence"
@@ -86,9 +87,10 @@ function Panel({
     const [x0, x1] = x.domain()
     return [x0, my + slope * (x0 - mx), x1, my + slope * (x1 - mx)]
   }, [pts, x])
-  const [lx0, ly0, lx1, ly1, r] = useTween([...line, factor[sex].r], 750)
   const colour = sex === "male" ? MALE : FEMALE
   const england = factor.england
+  const r = factor[sex].r
+  const dots = useMemo(() => pts.map((p, i) => ({ key: codes[i], x: x(p[0]), y: y(p[1]) })), [pts, codes, x, y])
 
   return (
     <Link
@@ -98,57 +100,69 @@ function Panel({
       <div className="flex items-baseline justify-between gap-3">
         <h3 className="text-[15px] font-semibold text-ink">{indicator.short}</h3>
         <span className="display text-3xl text-ink">
-          <span className="mono mr-1 text-xs font-normal italic text-ink-3">r</span>
-          {formatSigned(r, 2)}
+          <span className="mr-1 text-xs italic text-ink-3">r</span>
+          <TweenNumber value={r} digits={2} />
         </span>
       </div>
       <div className="mt-1.5 h-[3px] overflow-hidden rounded-full bg-line/70">
         <div
-          className="h-full rounded-full bg-ink transition-[width] duration-700 ease-out"
+          className="h-full rounded-full bg-ink transition-[width] duration-700 ease-[cubic-bezier(0.65,0,0.25,1)]"
           style={{ width: seen ? `${Math.abs(r) * 100}%` : "0%", transitionDelay: seen ? `${order * 60}ms` : "0ms" }}
         />
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="chart mt-2 w-full" role="img" aria-label={`${indicator.label} against life expectancy, r = ${factor[sex].r.toFixed(2)}`}>
-        {y.ticks(3).map((t) => (
-          <g key={t} transform={`translate(0,${y(t)})`}>
-            <line x1={M.left} x2={W - M.right} stroke={LINE} opacity={0.8} />
-            <text x={M.left - 6} dy="0.32em" textAnchor="end" fontSize={9} fill={INK_3}>
-              {t}
-            </text>
-          </g>
-        ))}
-        {x.ticks(4).map((t) => (
-          <text key={t} x={x(t)} y={H - 7} textAnchor="middle" fontSize={9} fill={INK_3}>
-            {formatIndicator(t, { ...indicator, decimals: 0 })}
-          </text>
-        ))}
-        {england !== null ? (
-          <g transform={`translate(${x(england)},0)`}>
-            <line y1={M.top} y2={H - M.bottom} stroke={INK} strokeDasharray="2 3" opacity={0.5} />
-            <text y={M.top - 2} x={3} fontSize={8.5} fill={INK_3}>
-              Eng
-            </text>
-          </g>
-        ) : null}
-        <g style={{ opacity: seen ? 1 : 0, transition: `opacity 800ms ${order * 60}ms` }}>
-          {pts.map((p, i) => (
-            <circle
-              key={codes[i]}
-              r={1.9}
-              fill={colour}
-              fillOpacity={0.4}
-              style={{
-                transform: `translate(${x(p[0])}px, ${y(p[1])}px)`,
-                transition: "transform 750ms cubic-bezier(0.65,0,0.25,1), fill 750ms ease",
-              }}
-            />
+      <div className="relative mt-2">
+        <svg viewBox={`0 0 ${W} ${H}`} className="chart block w-full" role="img" aria-label={`${indicator.label} against life expectancy, r = ${r.toFixed(2)}`}>
+          {y.ticks(3).map((t) => (
+            <g key={t} transform={`translate(0,${y(t)})`}>
+              <line x1={M.left} x2={W - M.right} stroke={LINE} opacity={0.8} />
+              <text x={M.left - 6} dy="0.32em" textAnchor="end" fontSize={9} fill={INK_3}>
+                {t}
+              </text>
+            </g>
           ))}
-          <line x1={x(lx0)} x2={x(lx1)} y1={y(ly0)} y2={y(ly1)} stroke={INK} strokeWidth={1.6} strokeLinecap="round" />
-        </g>
-      </svg>
+          {x.ticks(4).map((t) => (
+            <text key={t} x={x(t)} y={H - 7} textAnchor="middle" fontSize={9} fill={INK_3}>
+              {formatIndicator(t, { ...indicator, decimals: 0 })}
+            </text>
+          ))}
+          {england !== null ? (
+            <g transform={`translate(${x(england)},0)`}>
+              <line y1={M.top} y2={H - M.bottom} stroke={INK} strokeDasharray="2 3" opacity={0.5} />
+              <text y={M.top - 2} x={3} fontSize={8.5} fill={INK_3}>
+                Eng
+              </text>
+            </g>
+          ) : null}
+        </svg>
+        <div className="absolute inset-0" style={{ opacity: seen ? 1 : 0, transition: `opacity 800ms ${order * 60}ms` }}>
+          <CanvasDots points={dots} width={W} height={H} colour={colour} />
+          <svg viewBox={`0 0 ${W} ${H}`} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden>
+            <FitLine line={line} x={x} y={y} />
+          </svg>
+        </div>
+      </div>
       <p className="mt-1 text-[11px] leading-snug text-ink-3">
         {indicator.label}, {indicator.period}. England {formatIndicator(england, indicator)}.
       </p>
     </Link>
   )
+}
+
+/** Fit line that eases to its new position; only this re-renders each frame. */
+function FitLine({
+  line,
+  x,
+  y,
+}: {
+  line: number[]
+  x: d3.ScaleLinear<number, number>
+  y: d3.ScaleLinear<number, number>
+}) {
+  const [x0, y0, x1, y1] = useTween(line, 750)
+  return <line x1={x(x0)} x2={x(x1)} y1={y(y0)} y2={y(y1)} stroke={INK} strokeWidth={1.6} strokeLinecap="round" />
+}
+
+function TweenNumber({ value, digits }: { value: number; digits: number }) {
+  const [v] = useTween([value], 750)
+  return <>{formatSigned(v, digits)}</>
 }
