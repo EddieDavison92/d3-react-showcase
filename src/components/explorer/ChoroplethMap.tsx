@@ -112,7 +112,7 @@ export function ChoroplethMap({
     let fitting = false
     let cancelled = false
     const featureBounds = boundsOfGeojson(geojson) ?? UK_BOUNDS
-    const padding = paddingRef.current ?? (interactive ? 28 : 36)
+    const padding = () => paddingRef.current ?? (interactive ? 28 : 36)
 
     const fit = () => {
       if (!map || userMoved || cancelled) return
@@ -120,7 +120,7 @@ export function ChoroplethMap({
       if (el.clientWidth < MIN_SIZE || el.clientHeight < MIN_SIZE) return
       const bounds = boundsOfGeojson(geojson) ?? UK_BOUNDS
       fitting = true
-      map.fitBounds(bounds, { padding, duration: 0, maxZoom: 8 })
+      map.fitBounds(bounds, { padding: padding(), duration: 0, maxZoom: 8 })
       map.once("idle", () => {
         fitting = false
         setReady(true)
@@ -161,7 +161,7 @@ export function ChoroplethMap({
           ],
         },
         bounds: featureBounds,
-        fitBoundsOptions: { padding, duration: 0 },
+        fitBoundsOptions: { padding: padding(), duration: 0 },
         attributionControl: false,
         dragRotate: false,
         pitchWithRotate: false,

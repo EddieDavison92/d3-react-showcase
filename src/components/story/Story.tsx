@@ -70,7 +70,7 @@ export function Story({ data }: { data: StoryData }) {
             </p>
             <p className="mt-10 hidden items-center gap-3 text-[11px] uppercase tracking-wider text-ink-3 lg:flex">
               <span className="relative h-9 w-[2px] overflow-hidden rounded-full bg-line">
-                <span className="absolute inset-x-0 top-0 h-3 animate-[scrollcue_1.8s_ease-in-out_infinite] rounded-full bg-ink" />
+                <span className="absolute inset-x-0 top-0 h-3 motion-safe:animate-[scrollcue_1.8s_ease-in-out_infinite] rounded-full bg-ink" />
               </span>
               Scroll
             </p>
@@ -223,8 +223,10 @@ export function Story({ data }: { data: StoryData }) {
         <FactorGrid data={data} />
         <Notes>
           These are correlations between areas (Pearson r, −1 to +1). They don&apos;t show cause, they overlap with each
-          other, and they say nothing about any individual. Air pollution barely correlates because the most polluted
-          places are also among the longest-lived: all {facts.airTop30London} of the 30 highest are London boroughs.
+          other, and they say nothing about any individual. Air pollution barely correlates:{" "}
+          {facts.airTop30London === 30 ? "all 30" : facts.airTop30London} of the 30 areas with the highest burden are London
+          boroughs, and their men average {formatYears(facts.airTop30MaleMean)} years, against{" "}
+          {formatYears(facts.englandMale)} for England.
           Factors come from OHID Fingertips (fetched {data.fetched}); see the periods on each panel.
         </Notes>
       </Section>

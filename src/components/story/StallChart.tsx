@@ -56,7 +56,7 @@ export function StallChart({ data, step }: { data: StoryData; step: number }) {
       <svg
         width={width}
         height={height}
-        className="chart touch-none"
+        className="chart"
         role="img"
         aria-label="UK life expectancy at birth, men and women, 2001–03 to 2022–24"
         onPointerMove={(e) => {

@@ -206,6 +206,8 @@ export const getStoryData = cache(async () => {
     iqrMale: round(quantile(nowMale, "male", 0.75) - quantile(nowMale, "male", 0.25), 1) as number,
     iqrFemale: round(quantile(nowFemale, "female", 0.75) - quantile(nowFemale, "female", 0.25), 1) as number,
     airTop30London: air.filter(([code]) => code.startsWith("E09")).length,
+    airTop30MaleMean: round(mean(air.map(([code]) => le.values[code]?.Male?.birth?.[iNow]?.[0])), 1),
+    englandMale: le.values.E92000001?.Male?.birth?.[iNow]?.[0] ?? null,
     englandAreas: areas.filter((a) => a.decile !== null).length,
     medianCiMale: round(d3median(ciWidths), 1) as number,
   }

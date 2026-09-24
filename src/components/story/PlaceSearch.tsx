@@ -84,6 +84,7 @@ export function PlaceSearch({
           aria-expanded={open}
           aria-controls={listId}
           aria-autocomplete="list"
+          aria-activedescendant={open && hits[highlighted] ? `${listId}-${hits[highlighted].code}` : undefined}
           aria-label="Search a place or postcode"
           placeholder={placeholder}
           value={query}
@@ -123,6 +124,7 @@ export function PlaceSearch({
             hits.map((hit, i) => (
               <button
                 key={hit.code}
+                id={`${listId}-${hit.code}`}
                 type="button"
                 role="option"
                 aria-selected={i === highlighted}

@@ -187,7 +187,7 @@ export function ExplorerApp() {
             {filtersOpen ? "Done" : "Filters"}
           </button>
         </div>
-        <ControlPanel state={state} places={places} onChange={commit} onPick={pick} collapsed={!filtersOpen} />
+        <ControlPanel state={{ ...state, metric: mapMetric }} places={places} onChange={commit} onPick={pick} collapsed={!filtersOpen} />
       </aside>
 
       {/* Legend and timeline */}

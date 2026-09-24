@@ -35,7 +35,7 @@ export function DecileLines({ data, sex, active = true }: { data: StoryData; sex
       <svg
         width={width}
         height={height}
-        className="chart touch-none"
+        className="chart"
         role="img"
         aria-label="Life expectancy by deprivation tenth over time"
         onPointerMove={(e) => {

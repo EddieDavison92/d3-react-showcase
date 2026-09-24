@@ -55,7 +55,7 @@ export function Scrolly({
       </div>
       <div
         className={cn(
-          "relative z-10 -mt-[calc(100dvh-7.5rem)] pb-[30dvh] lg:col-start-1 lg:row-start-1 lg:mt-0 lg:pb-[45dvh]",
+          "pointer-events-none relative z-10 -mt-[calc(100dvh-7.5rem)] pb-[30dvh] lg:col-start-1 lg:row-start-1 lg:mt-0 lg:pb-[45dvh]",
           side === "right" && "lg:col-start-2"
         )}
       >
@@ -75,7 +75,7 @@ export function Scrolly({
           >
             <div
               className={cn(
-                "w-full rounded-2xl border border-line bg-paper/95 p-5 shadow-[0_12px_40px_-24px_rgba(17,19,21,0.35)] backdrop-blur-sm transition-opacity duration-500 sm:p-6",
+                "pointer-events-auto w-full rounded-2xl border border-line bg-paper/95 p-5 shadow-[0_12px_40px_-24px_rgba(17,19,21,0.35)] backdrop-blur-sm transition-opacity duration-500 sm:p-6",
                 "lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:backdrop-blur-none",
                 active === i ? "opacity-100" : "lg:opacity-30"
               )}

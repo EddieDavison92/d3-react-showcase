@@ -68,7 +68,7 @@ export function AreaTrend({
       <svg
         width={width}
         height={H}
-        className="chart block touch-none"
+        className="chart block"
         role="img"
         aria-label={`${sex === "male" ? "Male" : "Female"} life expectancy in ${name}, ${nationName} and the UK`}
         onPointerMove={(e) => {

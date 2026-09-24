@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import * as d3 from "d3"
 import { useWidth } from "@/components/explorer/use-width"
 import { CanvasDots } from "@/components/story/CanvasDots"
@@ -71,7 +71,14 @@ export function FactorScatter({
     [points, x, y]
   )
 
+  // Hover is paused while dots glide to new positions, so it can't pick a dot at its destination.
+  const moving = useRef(0)
+  useEffect(() => {
+    moving.current = performance.now() + 780
+  }, [dots])
+
   const nearest = (event: React.MouseEvent<SVGRectElement>) => {
+    if (performance.now() < moving.current) return null
     const rect = event.currentTarget.getBoundingClientRect()
     const px = event.clientX - rect.left
     const py = event.clientY - rect.top

@@ -5,6 +5,8 @@ type Row = AreaReport["factors"][number]
 
 const WORSE = "#c0533f"
 const BETTER = "#277563"
+/** No England figure to compare against. */
+const NEUTRAL = "#9a9ea4"
 
 /** One row per indicator: range of all areas, middle half shaded, England ticked. */
 export function Circumstances({ rows, peers }: { rows: Row[]; peers: string }) {
@@ -44,7 +46,7 @@ function FactorRow({ row, peers }: { row: Row; peers: string }) {
         {value !== null ? (
           <span
             className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-[3px] ring-paper"
-            style={{ left: at(value), background: worse ? WORSE : BETTER }}
+            style={{ left: at(value), background: worse === null ? NEUTRAL : worse ? WORSE : BETTER }}
           />
         ) : null}
       </div>

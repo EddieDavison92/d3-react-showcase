@@ -79,7 +79,7 @@ export function TrendChart({
       <svg
         width={width}
         height={HEIGHT}
-        className="block touch-none select-none"
+        className="block select-none"
         role="img"
         aria-label={`Trend ${compactPeriod(periods[0] ?? "")} to ${compactPeriod(periods.at(-1) ?? "")}: ${series.map((s) => s.name).join(", ")}`}
         onPointerMove={(event) => setHover(indexAt(event.clientX, event.currentTarget.getBoundingClientRect()))}
