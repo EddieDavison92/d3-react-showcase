@@ -59,6 +59,13 @@ export function ExplorerApp() {
   const [scrubbing, setScrubbing] = useState(false)
   const [filtersOpen, setFiltersOpen] = useState(false)
 
+  // Notes about a changed selection fade out on their own.
+  useEffect(() => {
+    if (!notice) return
+    const timer = window.setTimeout(() => setNotice(null), 7000)
+    return () => window.clearTimeout(timer)
+  }, [notice])
+
   useEffect(() => {
     loadLe().then(setLe).catch(() => setLe(null))
     loadHle().then(setHle).catch(() => setHle(null))
@@ -160,12 +167,23 @@ export function ExplorerApp() {
           <p className="flex h-full items-center justify-center text-sm text-ink-3">Loading ONS figures…</p>
         )}
         {notice ? (
-          <div className="absolute left-1/2 top-4 z-20 flex w-[min(92%,34rem)] -translate-x-1/2 items-start gap-3 rounded-xl border border-[#e9d6a8] bg-[#fbf3df]/95 px-4 py-2.5 text-sm text-[#5c4712] shadow-lg backdrop-blur animate-rise">
-            <p className="flex-1">
-              <span className="font-medium">{notice.title}.</span> {notice.body}
-            </p>
-            <button type="button" onClick={() => setNotice(null)} aria-label="Dismiss" className="text-[#8a6d1f] hover:text-[#5c4712]">
-              ×
+          <div
+            role="status"
+            className="absolute bottom-4 left-4 z-20 flex max-w-[calc(100%-2rem)] animate-rise items-center gap-2.5 rounded-full border border-line bg-paper/95 py-1.5 pl-3 pr-1.5 text-[13px] text-ink-2 shadow-[0_10px_30px_-18px_rgba(17,19,21,0.45)] backdrop-blur lg:bottom-auto lg:left-[352px] lg:top-4 lg:max-w-[calc(100%-352px-424px)]"
+          >
+            <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-ink-3" />
+            <span className="min-w-0 truncate" title={notice.body}>
+              {notice.title}
+            </span>
+            <button
+              type="button"
+              onClick={() => setNotice(null)}
+              aria-label="Dismiss"
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-ink-3 hover:bg-ink/5 hover:text-ink"
+            >
+              <svg viewBox="0 0 12 12" className="h-2.5 w-2.5" aria-hidden>
+                <path d="m2 2 8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
             </button>
           </div>
         ) : null}
@@ -205,6 +223,7 @@ export function ExplorerApp() {
               rightLabel={ends.rightShort ?? ends.right}
               digits={model.unit === "years" ? (model.diverging ? 1 : 0) : 0}
               marker={selected && selectedValue != null ? { value: selectedValue, label: selected.name } : null}
+              centre={model.centre}
             />
           ) : null}
           <PeriodScrub periods={file.periods} year={state.year} onYear={(year) => commit({ year })} onDragging={setScrubbing} />

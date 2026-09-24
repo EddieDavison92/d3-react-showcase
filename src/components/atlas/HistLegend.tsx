@@ -19,6 +19,7 @@ export function HistLegend({
   leftLabel,
   rightLabel,
   marker,
+  centre,
   digits,
 }: {
   values: (number | null)[]
@@ -30,6 +31,8 @@ export function HistLegend({
   leftLabel: string
   rightLabel: string
   marker?: { value: number; label: string } | null
+  /** Reference figure at the middle of the scale, e.g. the UK. */
+  centre?: { value: number; label: string } | null
   digits: number
 }) {
   const bins = useMemo(() => {
@@ -80,7 +83,9 @@ export function HistLegend({
             ))}
           </linearGradient>
         </defs>
-        {diverging ? <line x1={W / 2} x2={W / 2} y1={0} y2={H + 6} stroke="#111315" strokeOpacity={0.4} vectorEffect="non-scaling-stroke" /> : null}
+        {diverging || centre ? (
+          <line x1={W / 2} x2={W / 2} y1={0} y2={H + 6} stroke="#111315" strokeOpacity={0.45} vectorEffect="non-scaling-stroke" />
+        ) : null}
         {mx !== null ? (
           <g style={{ transform: `translateX(${mx}px)`, transition: "transform 300ms ease" }}>
             <line y1={0} y2={H + 6} stroke="#111315" strokeWidth={2} vectorEffect="non-scaling-stroke" />
@@ -92,6 +97,11 @@ export function HistLegend({
           {leftLabel} {fmt(min)}
         </span>
         {diverging ? <span>0</span> : null}
+        {centre && !diverging ? (
+          <span className="font-medium text-ink-2">
+            {centre.label} {formatYears(centre.value, digits === 0 && centre.value < 200 ? 1 : digits)}
+          </span>
+        ) : null}
         <span>
           {rightLabel} {fmt(max)}
         </span>
