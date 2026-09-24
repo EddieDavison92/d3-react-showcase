@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useMemo } from "react"
+import { ChangeBars } from "@/components/story/ChangeBars"
 import { DecileLines } from "@/components/story/DecileLines"
 import { DotStage, type DotScene } from "@/components/story/DotStage"
 import { FactorGrid } from "@/components/story/FactorGrid"
@@ -31,6 +32,16 @@ export function Story({ data }: { data: StoryData }) {
   const d1 = deciles.male[0]
   const d10 = deciles.male[9]
   const change = (row: (number | null)[]) => (row[index.now] ?? 0) - (row[index.stall] ?? 0)
+  // How many of the most deprived tenths went backwards, counted from the data.
+  const moves = deciles.male.map(change)
+  const fell = moves.findIndex((m) => m >= 0)
+  const fellCount = fell === -1 ? 10 : fell
+  const splitSentence =
+    fellCount > 0 && moves.slice(fellCount).every((m) => m >= 0)
+      ? `The ${fellCount === 1 ? "most deprived tenth" : `${words(fellCount)} most deprived tenths`} went backwards; ${
+          fellCount === 9 ? "the other one" : `the other ${words(10 - fellCount)}`
+        } gained.`
+      : `${capital(words(moves.filter((m) => m < 0).length))} of the ten tenths went backwards.`
 
   const ends = [extremes.male.top.code, extremes.male.bottom.code]
   const reference = { male: stall.male.now, female: stall.female.now }
@@ -39,10 +50,7 @@ export function Story({ data }: { data: StoryData }) {
     { layout: "map", colour: "gap", sex: "male", highlight: ends, rings: [...extremes.male.topTen, ...extremes.male.bottomTen] },
     { layout: "rank", colour: "gap", sex: "male", highlight: ends },
   ]
-  const splitScenes: DotScene[] = [
-    { layout: "decile", colour: "decile", sex: "male", means: true },
-    { layout: "change", colour: "change", sex: "male", means: true },
-  ]
+  const tenths: DotScene = { layout: "decile", colour: "decile", sex: "male", means: true }
 
   return (
     <article className="pb-24">
@@ -149,12 +157,22 @@ export function Story({ data }: { data: StoryData }) {
         id="split"
         stage={(step) => (
           <div className="relative h-full">
-            <div className={cn("absolute inset-0 transition-opacity duration-700", step < 2 ? "opacity-100" : "pointer-events-none opacity-0")}>
-              <DotStage areas={data.areas} scene={splitScenes[Math.min(step, 1)]} now={index.now} base={index.stall} reference={reference} />
-            </div>
-            <div className={cn("absolute inset-0 transition-opacity duration-700", step >= 2 ? "opacity-100" : "pointer-events-none opacity-0")}>
+            <Layer on={step === 0}>
+              <DotStage areas={data.areas} scene={tenths} now={index.now} base={index.stall} reference={reference} />
+            </Layer>
+            <Layer on={step === 1}>
+              <ChangeBars
+                changes={moves}
+                others={deciles.female.map(change)}
+                label="Change in life expectancy since 2011–13: average of local authorities in each deprivation tenth"
+                shortLabel="Change since 2011–13, by deprivation tenth"
+                otherLabel="Women"
+                active={step === 1}
+              />
+            </Layer>
+            <Layer on={step >= 2}>
               <DecileLines data={data} sex="male" active={step >= 2} />
-            </div>
+            </Layer>
           </div>
         )}
         steps={[
@@ -171,15 +189,14 @@ export function Story({ data }: { data: StoryData }) {
           </Step>,
           <Step key="moved" n="02" title="Moving apart">
             <p>
-              Now each dot shows the change since 2011–13. On average the least deprived tenth{" "}
-              {moved(change(d10))}. The most deprived {moved(change(d1))}.
+              Here is how each tenth&apos;s average moved between 2011–13 and 2022–24. For men, {splitSentence.charAt(0).toLowerCase() + splitSentence.slice(1)}
+            </p>
+            <p>
+              The least deprived tenth {moved(change(d10))}; the most deprived {moved(change(d1))}. The black ticks show
+              women, where the least deprived tenth {moved(change(deciles.female[9]))}.
             </p>
             <p>
               Across the UK, {lower.male} of {lower.of} places now have lower male life expectancy than in 2011–13.
-            </p>
-            <p className="text-sm text-ink-3">
-              Single areas are noisy: a typical 95% interval spans about {formatYears(facts.medianCiMale)} years, so
-              read the groups, not individual dots.
             </p>
           </Step>,
           <Step key="gap" n="03" title="A wider gap">
@@ -257,6 +274,15 @@ export function Story({ data }: { data: StoryData }) {
         </div>
       </Section>
     </article>
+  )
+}
+
+/** One of several stacked stages, crossfaded by step. */
+function Layer({ on, children }: { on: boolean; children: React.ReactNode }) {
+  return (
+    <div className={cn("absolute inset-0 transition-opacity duration-700", on ? "opacity-100" : "pointer-events-none opacity-0")}>
+      {children}
+    </div>
   )
 }
 
