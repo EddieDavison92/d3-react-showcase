@@ -1,13 +1,13 @@
 import type { Metadata } from "next"
 import { Suspense } from "react"
-import { ExplorerApp } from "@/components/explorer/ExplorerApp"
+import { EvidenceApp } from "@/components/evidence/EvidenceApp"
 
-export const metadata: Metadata = { title: "Map" }
+export const metadata: Metadata = { title: "Evidence" }
 
-export default function ExplorePage() {
+export default function EvidencePage() {
   return (
     <Suspense fallback={<p className="py-24 text-center text-sm text-slate-500">Loading…</p>}>
-      <ExplorerApp />
+      <EvidenceApp />
     </Suspense>
   )
 }

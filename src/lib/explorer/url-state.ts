@@ -10,7 +10,6 @@ export const DEFAULT_STATE: ExplorerState = {
   sex: "Male",
   age: "birth",
   view: "absolute",
-  compare: [],
 }
 
 const METRICS = new Set<MetricId>([
@@ -44,8 +43,6 @@ export function parseSearchParams(params: URLSearchParams): Partial<ExplorerStat
   if (age === "birth" || age === "65") next.age = age as AgeId
   const view = parseView(params.get("view"))
   if (view) next.view = view
-  const compare = params.get("compare")
-  if (compare) next.compare = compare.split(",").filter(Boolean).slice(0, 2)
   return next
 }
 
@@ -58,7 +55,6 @@ export function toSearchParams(state: ExplorerState): URLSearchParams {
   if (state.sex) params.set("sex", state.sex.toLowerCase())
   if (state.age) params.set("age", state.age)
   if (state.view !== "absolute") params.set("view", state.view)
-  if (state.compare.length) params.set("compare", state.compare.join(","))
   return params
 }
 

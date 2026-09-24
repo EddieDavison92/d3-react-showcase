@@ -99,7 +99,6 @@ export type ExplorerState = {
   sex: SexId
   age: AgeId
   view: ViewId
-  compare: string[]
 }
 
 export type WarningTone = "always" | "mismatch" | "empty"
@@ -109,15 +108,4 @@ export type ExplorerWarning = {
   tone: WarningTone
   title: string
   body: string
-}
-
-export type CatalogueCard = {
-  id: MetricId
-  family: MetricFamily
-  title: string
-  blurb: string
-  badges: string[]
-  core?: boolean
-  /** Short catalogue note. Not a map layer. */
-  hook?: string
 }

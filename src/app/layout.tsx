@@ -1,12 +1,10 @@
 import type { Metadata } from "next"
+import { Analytics } from "@vercel/analytics/react"
+import { SiteFooter } from "@/components/site-footer"
+import { SiteHeader } from "@/components/site-header"
+import { siteConfig } from "@/config/site"
 import { fontSans } from "@/lib/fonts"
 import { cn } from "@/lib/utils"
-import { SiteHeader } from "@/components/site-header"
-import { SiteFooter } from "@/components/site-footer"
-import { siteConfig } from "@/config/site"
-import { ThemeProvider } from "@/components/theme-provider"
-import { Analytics } from "@vercel/analytics/react"
-import { TooltipProvider } from "@/components/ui/tooltip"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -20,34 +18,15 @@ export const metadata: Metadata = {
   },
 }
 
-interface RootLayoutProps {
-  children: React.ReactNode
-}
-
-export default function RootLayout({ children }: RootLayoutProps) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-GB" suppressHydrationWarning>
-      <body
-        className={cn(
-          "flex min-h-dvh flex-col overflow-x-clip touch-manipulation antialiased",
-          fontSans.className
-        )}
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          // Map grounds and ramps are light-only; no dark theme until they are themed.
-          forcedTheme="light"
-          disableTransitionOnChange
-        >
-          <TooltipProvider>
-            <SiteHeader />
-            <main className="mx-auto flex min-h-0 w-full min-w-0 max-w-[1600px] flex-1 flex-col overflow-x-clip px-3 py-3 sm:px-4 sm:py-4">
-              {children}
-            </main>
-            <SiteFooter />
-          </TooltipProvider>
-        </ThemeProvider>
+    <html lang="en-GB">
+      <body className={cn("flex min-h-dvh flex-col bg-white text-slate-900 antialiased", fontSans.className)}>
+        <SiteHeader />
+        <main className="mx-auto flex w-full min-w-0 max-w-[1600px] flex-1 flex-col px-3 py-4 sm:px-4">
+          {children}
+        </main>
+        <SiteFooter />
         <Analytics />
       </body>
     </html>

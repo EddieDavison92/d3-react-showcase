@@ -1,36 +1,33 @@
-# Life expectancy explorer
+# UK life expectancy
 
-A data-first navigator over ONS period life expectancy for UK local areas, with separate catalogue cards for healthy life expectancy, avoidable mortality (England and Wales), and nation-specific deprivation context.
+Life expectancy for every UK local authority, with healthy life expectancy, avoidable deaths and the local conditions that track them. Live at [life-expectancy-uk.vercel.app](https://life-expectancy-uk.vercel.app/).
 
-This is not official ONS software. Statistics and boundaries are reused under the [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).
+Not an official ONS product. Statistics and boundaries are reused under the [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).
 
-## Product
+## Pages
 
-- **Landing** — careful framing of period LE
-- **Catalogue** — metric-family cards with coverage badges
-- **Explore** — catalogue rail, MapLibre choropleth, canvas Explore modes, time series and period scrub
-- URL state: `?metric=&geo=&area=&year=&sex=&age=&view=`
+- **Home** — headline gaps computed from the data at build time
+- **Map** (`/explore`) — choropleth, period slider, and an area panel with rank, trend, healthy years, deprivation and risk factors
+- **Evidence** (`/evidence`) — life expectancy by deprivation tenth, correlation of 15 OHID indicators with life expectancy, and a scatter per indicator
+- **About** — sources, methods and indicator periods
 
-Default cut: period LE → lower-tier UK local areas → 2022–24 → male → at birth. Explore modes (`?view=`): Absolute (omit or `absolute`), Δ 2017–19 (`d2017`), Δ 2019–21 (`d2019`), vs nation (`vs_nation`), sex gap (`sex_gap`, Male − Female derived), CI focus (`ci`).
+Map URL state: `?metric=&geo=&area=&year=&sex=&age=&view=`. Views: `absolute` (default), `d2017`, `d2019`, `vs_nation`, `sex_gap`, `ci`.
 
-England counties (E10) are a separate geography from districts. Healthy life expectancy is upper-tier in England (no E07 districts). Avoidable mortality does not invent Scotland or Northern Ireland coverage. Deprivation is a nation-locked context strip, not a cause, and is never a UK league table.
+## Data
+
+| File | Source | Build |
+| --- | --- | --- |
+| `public/data/le.json`, `hle.json`, `avoidable.json`, `deprivation.json`, `lookups.json` | ONS, MHCLG | `scripts/build-explorer-data.py` (needs the original extracts in `uploads/`) |
+| `public/data/evidence.json` | OHID Fingertips API, England only | `python scripts/build-evidence-data.py` |
+| `public/geo/*.geojson` | ONS Open Geography, simplified | `scripts/build-explorer-data.py` |
+
+Processed JSON is committed, so a normal checkout doesn't need a rebuild. The evidence script caches raw CSVs in `.cache/ft`; delete it to refresh.
 
 ## Develop
 
 ```bash
 npm install
 npm run dev
-```
-
-```bash
 npm run lint
 npm run build
 ```
-
-Processed JSON lives in `public/data/`. Simplified ONS Open Geography BUC boundaries live in `public/geo/`. Rebuild with:
-
-```bash
-python3 scripts/build-explorer-data.py
-```
-
-Requires the original extracts in `uploads/` (or `$EXPLORER_UPLOADS`). Optional IoD markdown fallback: `$EXPLORER_IOD_MARKDOWN` (default `uploads/iod.md`). Processed JSON is committed under `public/data/`, so a normal checkout does not need a rebuild.

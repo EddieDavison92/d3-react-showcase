@@ -1,11 +1,8 @@
 export const siteConfig = {
-  name: "Life expectancy explorer",
-  url: "https://github.com/EddieDavison92/d3-react-showcase",
+  name: "UK life expectancy",
   description:
-    "A careful navigator over ONS period life expectancy for UK local areas, with honest HLE, avoidable mortality and deprivation-context companions.",
-  links: {
-    github: "https://github.com/EddieDavison92/d3-react-showcase",
-  },
+    "Life expectancy for every UK local authority, with healthy life expectancy, avoidable deaths and the risk factors that track them.",
+  github: "https://github.com/EddieDavison92/life-expectancy-uk",
 }
 
 export type SiteConfig = typeof siteConfig

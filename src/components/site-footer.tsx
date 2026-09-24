@@ -1,18 +1,25 @@
 import Link from "next/link"
-import { ONS_LINKS } from "@/lib/explorer/catalogue"
 
 export function SiteFooter() {
   return (
-    <footer className="shrink-0 border-t py-2 sm:py-3">
-      <div className="mx-auto flex max-w-[1600px] flex-col gap-1 px-3 text-xs leading-relaxed text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-4">
+    <footer className="border-t border-slate-200">
+      <div className="mx-auto flex max-w-[1600px] flex-col gap-1 px-4 py-3 text-xs text-slate-500 sm:flex-row sm:justify-between">
         <p>
-          Source: ONS,{" "}
-          <Link className="underline underline-offset-4" href={ONS_LINKS.ogl}>
-            OGL v3.0
-          </Link>
-          . Boundaries: ONS Open Geography (OS © Crown copyright).
+          Data: ONS, OHID and MHCLG under the{" "}
+          <a
+            className="underline underline-offset-2 hover:text-slate-900"
+            href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+          >
+            Open Government Licence v3.0
+          </a>
+          . Boundaries © Crown copyright.
         </p>
-        <p>Not official ONS software. Period LE is not a forecast.</p>
+        <p>
+          Not an official ONS product.{" "}
+          <Link className="underline underline-offset-2 hover:text-slate-900" href="/about">
+            Sources and methods
+          </Link>
+        </p>
       </div>
     </footer>
   )

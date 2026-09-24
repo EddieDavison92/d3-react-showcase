@@ -37,3 +37,7 @@ next-env.d.ts
 
 # velite
 .velite
+
+# local caches
+/.cache/
+/.playwright-mcp/
