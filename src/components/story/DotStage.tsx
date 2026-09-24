@@ -373,7 +373,7 @@ export function DotStage({
   )
 }
 
-/** Running readout during the opening: the place that just arrived and its value. */
+/** Running readout during the opening: the value of the dot that just arrived. */
 function IntroReadout({
   areas,
   order,
@@ -406,7 +406,6 @@ function IntroReadout({
     <div className={"pointer-events-none absolute " + (narrow ? "left-2 top-0" : "left-4 top-6")} aria-hidden>
       <p className="kicker">Lowest to highest · {sex === "male" ? "men" : "women"}</p>
       <p className="display mt-1 text-5xl text-ink">{formatYears(v)}</p>
-      <p className="mt-0.5 max-w-[14rem] truncate text-sm text-ink-2">{a?.name}</p>
       <div className="mt-2 h-[2px] w-40 overflow-hidden rounded-full bg-line">
         <div className="h-full bg-ink" style={{ width: `${((k + 1) / order.length) * 100}%` }} />
       </div>
