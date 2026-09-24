@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Map" }
 
 export default function ExplorePage() {
   return (
-    <Suspense>
+    <Suspense fallback={<p className="py-24 text-center text-sm text-slate-500">Loading…</p>}>
       <ExplorerApp />
     </Suspense>
   )

@@ -29,10 +29,11 @@ export function EvidenceApp() {
   const params = useSearchParams()
   const [le, setLe] = useState<PackedFile | null>(null)
   const [evidence, setEvidence] = useState<EvidenceFile | null>(null)
+  const [failed, setFailed] = useState(false)
 
   useEffect(() => {
-    loadLe().then(setLe).catch(() => setLe(null))
-    loadEvidence().then(setEvidence).catch(() => setEvidence(null))
+    loadLe().then(setLe).catch(() => setFailed(true))
+    loadEvidence().then(setEvidence).catch(() => setFailed(true))
   }, [])
 
   const sex: SexId = params.get("sex") === "female" ? "Female" : "Male"
@@ -84,7 +85,11 @@ export function EvidenceApp() {
   const focus = points.find((p) => p.code === area) ?? null
 
   if (!le || !evidence || !indicator) {
-    return <p className="py-24 text-center text-sm text-slate-500">Loading…</p>
+    return (
+      <p className="py-24 text-center text-sm text-slate-500">
+        {failed ? "The data didn't load. Reload the page to try again." : "Loading…"}
+      </p>
+    )
   }
 
   const first = deciles[0]

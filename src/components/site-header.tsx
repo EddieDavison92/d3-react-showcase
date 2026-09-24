@@ -18,7 +18,8 @@ export function SiteHeader() {
       <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-3 px-3 sm:gap-6 sm:px-4">
         <Link href="/" className="flex items-center gap-2 whitespace-nowrap font-semibold tracking-tight text-slate-900">
           <span className="h-2.5 w-2.5 rounded-sm bg-teal-700" aria-hidden />
-          {siteConfig.name}
+          <span className="hidden sm:inline">{siteConfig.name}</span>
+          <span className="sm:hidden">UK LE</span>
         </Link>
         <nav className="flex items-center gap-0.5 text-sm sm:gap-1">
           {NAV.map((item) => (

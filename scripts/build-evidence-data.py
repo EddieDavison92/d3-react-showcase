@@ -174,6 +174,8 @@ def build() -> dict:
                 code = CODE_ALIASES.get(row["Area Code"], row["Area Code"])
                 value = round(float(row["Value"]), spec["decimals"] + 1)
                 if code == ENGLAND:
+                    if grain != "ltla":
+                        continue
                     out["england"][spec["key"]] = value
                 elif is_local(code):
                     out[grain].setdefault(code, {})[spec["key"]] = value

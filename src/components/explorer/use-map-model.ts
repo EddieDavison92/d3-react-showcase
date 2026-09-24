@@ -99,7 +99,8 @@ export function useMapModel(
       hatch = {}
       for (const [code, cell] of Object.entries(derived)) if (cell.uncertain) hatch[code] = true
     }
-    const lowerIsBetter = family === "avoidable" && state.view === "absolute"
+    const lowerIsBetter =
+      family === "avoidable" && (state.view === "absolute" || state.view === "ci")
     const ranked = areas
       .map((area) => ({ area, value: values[area.code] }))
       .filter((row): row is { area: AreaRecord; value: number } => row.value != null)
