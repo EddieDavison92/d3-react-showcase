@@ -160,7 +160,7 @@ export default async function AboutPage() {
             Open Innovations&apos; UK local authority hex map
           </a>{" "}
           (MIT licence). Postcode search uses postcodes.io. Processing scripts are in the{" "}
-          <a className="link" href="https://github.com/EddieDavison92/life-expectancy-uk">
+          <a className="link" href="https://github.com/EddieDavison92/ten-years-apart">
             GitHub repository
           </a>
           .
