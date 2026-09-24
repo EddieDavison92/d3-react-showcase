@@ -1,4 +1,4 @@
-import { Fraunces, Instrument_Sans } from "next/font/google"
+import { Instrument_Sans, Spectral } from "next/font/google"
 
 /** Text and interface. */
 export const fontSans = Instrument_Sans({
@@ -8,10 +8,10 @@ export const fontSans = Instrument_Sans({
   display: "swap",
 })
 
-/** Headlines and figures: light, soft serif. */
-export const fontDisplay = Fraunces({
+/** Headlines and figures: fine, light serif. */
+export const fontDisplay = Spectral({
   subsets: ["latin"],
-  axes: ["SOFT", "opsz"],
+  weight: ["300", "400"],
   style: ["normal", "italic"],
   variable: "--font-display",
   display: "swap",

@@ -39,8 +39,6 @@
   .display {
     font-family: var(--font-display), Georgia, serif;
     font-weight: 300;
-    font-optical-sizing: auto;
-    font-variation-settings: "SOFT" 100;
     letter-spacing: -0.02em;
     font-variant-numeric: lining-nums tabular-nums;
   }

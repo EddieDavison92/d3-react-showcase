@@ -55,8 +55,8 @@ export function Story({ data }: { data: StoryData }) {
         steps={[
           <div key="intro" className="max-w-xl">
             <p className="kicker animate-rise">Life expectancy across the UK · 2001–2024</p>
-            <h1 className="display mt-3 animate-rise text-[clamp(3rem,10vw,8.5rem)] leading-[0.86] text-ink [animation-delay:120ms] sm:mt-6">
-              <span className="block">Ten years</span>
+            <h1 className="display mt-3 animate-rise text-[clamp(3rem,6.6vw,6.25rem)] leading-[0.9] text-ink [animation-delay:120ms] sm:mt-6">
+              <span className="block whitespace-nowrap">Ten years</span>
               <span className="mt-[0.08em] flex items-center gap-[0.18em]">
                 <Ruler />
                 <span>apart</span>
