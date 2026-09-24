@@ -76,12 +76,7 @@ export function Story({ data }: { data: StoryData }) {
               <strong className="font-semibold text-ink">{extremes.male.bottom.name}</strong>, if today&apos;s death
               rates hold. This is where that gap lies, how progress stalled, and what travels with it.
             </p>
-            <p className="mt-10 hidden items-center gap-3 text-[11px] uppercase tracking-wider text-ink-3 lg:flex">
-              <span className="relative h-9 w-[2px] overflow-hidden rounded-full bg-line">
-                <span className="absolute inset-x-0 top-0 h-3 motion-safe:animate-[scrollcue_1.8s_ease-in-out_infinite] rounded-full bg-ink" />
-              </span>
-              Scroll
-            </p>
+            <ScrollCue count={data.areas.length} />
           </div>,
           <Step key="map" n="01" title="Every dot is a place">
             <p>
@@ -328,6 +323,35 @@ function Section({ children }: { children: React.ReactNode }) {
 
 function Notes({ children }: { children: React.ReactNode }) {
   return <p className="mt-10 max-w-3xl border-l-2 border-ink pl-4 text-sm leading-relaxed text-ink-2">{children}</p>
+}
+
+/** Three dots, brick to teal, pulse down in turn; clicking goes to the first step. */
+function ScrollCue({ count }: { count: number }) {
+  const go = () => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    document.querySelector('#gap [data-step="1"]')?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" })
+  }
+  return (
+    <button
+      type="button"
+      onClick={go}
+      className="group mt-10 hidden animate-rise items-center gap-4 text-left [animation-delay:700ms] lg:flex"
+    >
+      <span className="flex h-14 w-8 flex-col items-center justify-center gap-[7px] rounded-full border border-ink/15 transition-colors group-hover:border-ink/40">
+        {["#b3452c", "#c9c4b8", "#0b5a4c"].map((c, i) => (
+          <span
+            key={c}
+            className="h-[6px] w-[6px] rounded-full motion-safe:animate-[cue_1.8s_ease-in-out_infinite]"
+            style={{ background: c, animationDelay: `${i * 180}ms` }}
+          />
+        ))}
+      </span>
+      <span>
+        <span className="kicker block text-ink-2 transition-colors group-hover:text-ink">Scroll to begin</span>
+        <span className="mt-1 block text-xs text-ink-3">{count} places, one dot each</span>
+      </span>
+    </button>
+  )
 }
 
 /** Ten-year ruler between the two dots of the mark: brick (shorter) to teal (longer). */
