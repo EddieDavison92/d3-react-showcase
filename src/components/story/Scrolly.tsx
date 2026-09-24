@@ -24,17 +24,30 @@ export function Scrolly({
   const [active, setActive] = useState(0)
   const refs = useRef<(HTMLDivElement | null)[]>([])
 
+  // Read the step under the midline on every scroll; enter-only observers
+  // miss the return when you stop with the midline between two steps.
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) setActive(Number((entry.target as HTMLElement).dataset.step))
-        }
-      },
-      { rootMargin: "-48% 0px -48% 0px" }
-    )
-    for (const el of refs.current) if (el) observer.observe(el)
-    return () => observer.disconnect()
+    let frame = 0
+    const update = () => {
+      frame = 0
+      const mid = window.innerHeight / 2
+      let next = 0
+      refs.current.forEach((el, i) => {
+        if (el && el.getBoundingClientRect().top <= mid) next = i
+      })
+      setActive(next)
+    }
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update)
+    }
+    schedule()
+    window.addEventListener("scroll", schedule, { passive: true })
+    window.addEventListener("resize", schedule)
+    return () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener("scroll", schedule)
+      window.removeEventListener("resize", schedule)
+    }
   }, [steps.length])
 
   return (
