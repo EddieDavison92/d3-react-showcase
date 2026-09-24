@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import maplibregl from "maplibre-gl"
 import "maplibre-gl/dist/maplibre-gl.css"
 import type { FeatureCollection } from "geojson"
@@ -14,7 +14,6 @@ import {
   toRgb,
   type Rgb,
 } from "@/lib/explorer/colours"
-import { buildHexField } from "@/lib/explorer/hex-field"
 import { cn } from "@/lib/utils"
 
 type HoverInfo = { code: string; name: string; x: number; y: number }
@@ -24,14 +23,14 @@ const UK_BOUNDS: [[number, number], [number, number]] = [
   [1.9, 59.5],
 ]
 
+const SOURCE = "areas"
 const MIN_SIZE = 24
-const INTERNAL_STROKE = "#94a3b8"
-const COAST_STROKE = "#475569"
+const BOUNDARY_STROKE = "#94a3b8"
 const SELECTED_STROKE = "#0f172a"
 const SCRUB_MS = 200
 const FLIP_MS = 260
 const NO_DATA_RGB: Rgb = [226, 232, 240]
-// No figure = empty cell (outline only), so it never reads as a value near zero.
+// No figure = unfilled area (outline only), so it never reads as a value near zero.
 const FILL_OPACITY: maplibregl.ExpressionSpecification = [
   "case",
   ["boolean", ["feature-state", "nodata"], false],
@@ -85,7 +84,6 @@ export function ChoroplethMap({
   const [hover, setHover] = useState<HoverInfo | null>(null)
   const [size, setSize] = useState({ width: 320, height: 240 })
   const [ready, setReady] = useState(false)
-  const hexField = useMemo(() => buildHexField(geojson), [geojson])
 
   useEffect(() => {
     onSelectRef.current = onSelect
@@ -126,11 +124,11 @@ export function ChoroplethMap({
     }
 
     const attach = () => {
-      if (!map?.getSource("hex")) return
+      if (!map?.getSource(SOURCE)) return
       const shown = Object.keys(displayedRef.current).length
         ? displayedRef.current
         : coloursRef.current
-      paint(map, hexField, shown, selectedRef.current, hatchRef.current)
+      paint(map, geojson, shown, selectedRef.current, hatchRef.current)
       if (!Object.keys(displayedRef.current).length) {
         displayedRef.current = { ...shown }
         targetRef.current = { ...shown }
@@ -175,42 +173,16 @@ export function ChoroplethMap({
         if (!map.hasImage("ci-hatch")) {
           map.addImage("ci-hatch", hatchPattern())
         }
-        map.addSource("coast", {
+        map.addSource(SOURCE, {
           type: "geojson",
           data: geojson,
+          promoteId: "code",
         })
-        map.addLayer({
-          id: "coast",
-          type: "line",
-          source: "coast",
-          layout: { "line-join": "round" },
-          paint: {
-            "line-color": COAST_STROKE,
-            "line-width": 0.8,
-            "line-opacity": 0.28,
-          },
-        })
-        map.addSource("hex", {
-          type: "geojson",
-          data: hexField,
-          promoteId: "id",
-        })
-        map.addLayer({
-          id: "hex-shadow",
-          type: "fill",
-          source: "hex",
-          paint: {
-            "fill-color": "#64748b",
-            "fill-opacity": ["case", ["boolean", ["feature-state", "nodata"], false], 0, 0.12],
-            "fill-translate": [1.2, 1.5],
-          },
-        })
-        // Selected cell: a paper halo under the fills separates it from the coast,
-        // and an ink ring above the fills says "you are here" at any zoom.
+        // Selected area: a paper halo under the fills, and an ink ring above.
         map.addLayer({
           id: "selected-halo",
           type: "line",
-          source: "hex",
+          source: SOURCE,
           layout: { "line-join": "round" },
           paint: {
             "line-color": "#ffffff",
@@ -220,7 +192,7 @@ export function ChoroplethMap({
         map.addLayer({
           id: "fill",
           type: "fill",
-          source: "hex",
+          source: SOURCE,
           paint: {
             "fill-color": [
               "rgb",
@@ -231,13 +203,13 @@ export function ChoroplethMap({
             "fill-opacity": FILL_OPACITY,
           },
         })
-        // Feature-state updates must land immediately; we lerp hex fills in JS.
+        // Feature-state updates must land immediately; we lerp fills in JS.
         map.setPaintProperty("fill", "fill-color-transition", INSTANT_PAINT)
         map.setPaintProperty("fill", "fill-opacity-transition", INSTANT_PAINT)
         map.addLayer({
           id: "hatch",
           type: "fill",
-          source: "hex",
+          source: SOURCE,
           paint: {
             "fill-pattern": "ci-hatch",
             "fill-opacity": [
@@ -251,13 +223,14 @@ export function ChoroplethMap({
         map.addLayer({
           id: "line",
           type: "line",
-          source: "hex",
+          source: SOURCE,
+          layout: { "line-join": "round", "line-cap": "round" },
           paint: strokePaint(),
         })
         map.addLayer({
           id: "selected-ring",
           type: "line",
-          source: "hex",
+          source: SOURCE,
           layout: { "line-join": "round" },
           paint: {
             "line-color": SELECTED_STROKE,
@@ -267,31 +240,31 @@ export function ChoroplethMap({
         attach()
         if (!interactive) return
         let hoverId: string | null = null
-        const setHexHover = (id: string | null) => {
+        const setAreaHover = (id: string | null) => {
           if (!map) return
           if (hoverId) {
-            map.setFeatureState({ source: "hex", id: hoverId }, { hover: false })
+            map.setFeatureState({ source: SOURCE, id: hoverId }, { hover: false })
           }
           hoverId = id
-          if (id) map.setFeatureState({ source: "hex", id }, { hover: true })
+          if (id) map.setFeatureState({ source: SOURCE, id }, { hover: true })
         }
         map.on("mousemove", "fill", (event) => {
           map!.getCanvas().style.cursor = "pointer"
           const feature = event.features?.[0]
-          const code = String(feature?.properties?.code ?? "")
+          const code = String(feature?.properties?.code ?? feature?.id ?? "")
           const name = String(feature?.properties?.name ?? "")
-          const id = String(feature?.properties?.id ?? feature?.id ?? "")
           if (!code) return
-          setHexHover(id)
+          setAreaHover(code)
           setHover({ code, name, x: event.point.x, y: event.point.y })
         })
         map.on("mouseleave", "fill", () => {
           map!.getCanvas().style.cursor = ""
-          setHexHover(null)
+          setAreaHover(null)
           setHover(null)
         })
         map.on("click", "fill", (event) => {
-          const code = String(event.features?.[0]?.properties?.code ?? "")
+          const feature = event.features?.[0]
+          const code = String(feature?.properties?.code ?? feature?.id ?? "")
           if (code) onSelectRef.current(code)
         })
       })
@@ -335,7 +308,7 @@ export function ChoroplethMap({
       targetRef.current = {}
       setReady(false)
     }
-  }, [background, geojson, hexField, interactive])
+  }, [background, geojson, interactive])
 
   useEffect(() => {
     const map = mapRef.current
@@ -346,7 +319,7 @@ export function ChoroplethMap({
     cueRef.current = { year, view }
 
     if (!hasPainted) {
-      paint(map, hexField, colours, selectedRef.current, hatchRef.current)
+      paint(map, geojson, colours, selectedRef.current, hatchRef.current)
       displayedRef.current = { ...colours }
       targetRef.current = { ...colours }
       return
@@ -359,7 +332,7 @@ export function ChoroplethMap({
     const toRgb = rgbLookup(colours)
     targetRef.current = { ...colours }
     if (!duration) {
-      paint(map, hexField, colours, selectedRef.current, hatchRef.current)
+      paint(map, geojson, colours, selectedRef.current, hatchRef.current)
       displayedRef.current = { ...colours }
       return
     }
@@ -372,14 +345,14 @@ export function ChoroplethMap({
       for (const code of Object.keys(toRgb)) {
         mixed[code] = rgbToHex(mixRgb(fromRgb[code] ?? NO_DATA_RGB, toRgb[code], t))
       }
-      paint(map, hexField, mixed, selectedRef.current, hatchRef.current, colours)
+      paint(map, geojson, mixed, selectedRef.current, hatchRef.current, colours)
       displayedRef.current = mixed
       map.triggerRepaint()
       if (t < 1) rafRef.current = requestAnimationFrame(tick)
     }
     rafRef.current = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafRef.current)
-  }, [colours, hexField, year, view, ready])
+  }, [colours, geojson, year, view, ready])
 
   useEffect(() => {
     const map = mapRef.current
@@ -393,8 +366,8 @@ export function ChoroplethMap({
     const shown = Object.keys(displayedRef.current).length
       ? displayedRef.current
       : colours
-    paint(map, hexField, shown, selected, hatch, colours)
-  }, [colours, hatch, selected, hexField, view, ready])
+    paint(map, geojson, shown, selected, hatch, colours)
+  }, [colours, hatch, selected, geojson, view, ready])
 
   const tooltipStyle = hover
     ? {
@@ -446,28 +419,27 @@ function strokePaint(view?: string): {
     ["boolean", ["feature-state", "selected"], false],
   ]
   return {
-    "line-color": ["case", active, lift, INTERNAL_STROKE],
-    "line-width": ["case", active, 1, 0.6],
-    "line-opacity": 0.42,
+    "line-color": ["case", active, lift, BOUNDARY_STROKE],
+    "line-width": ["case", active, 1.15, 0.65],
+    "line-opacity": 0.85,
   }
 }
 
 function paint(
   map: maplibregl.Map,
-  hexField: FeatureCollection,
+  areas: FeatureCollection,
   colours: Record<string, string>,
   selected: string | null,
   hatch?: Record<string, boolean>,
   target: Record<string, string> = colours
 ) {
-  if (!map.getSource("hex")) return
-  for (const feature of hexField.features) {
-    const id = String(feature.properties?.id ?? feature.id ?? "")
+  if (!map.getSource(SOURCE)) return
+  for (const feature of areas.features) {
     const code = String(feature.properties?.code ?? "")
-    if (!id || !code) continue
+    if (!code) continue
     const rgb = toRgb(colours[code] ?? NO_DATA)
     map.setFeatureState(
-      { source: "hex", id },
+      { source: SOURCE, id: code },
       {
         r: Math.round(rgb[0]),
         g: Math.round(rgb[1]),

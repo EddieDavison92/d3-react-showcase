@@ -38,7 +38,7 @@ export function boundsOfGeojson(
 }
 
 /**
- * Fixed colour domain across every period in the scrub, so a darker cell
+ * Fixed colour domain across every period in the scrub, so a darker shade
  * means a longer life expectancy in any year — not just relative to that
  * year’s spread. Ends snap outward to `step` so legend labels are exact.
  */
