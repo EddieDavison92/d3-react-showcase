@@ -83,7 +83,7 @@ export function HeroMap() {
         2022–24 · Male · at birth · Absolute. Darker teal = longer male period life
         expectancy.
         <br />
-        Equal-area cells — not council outlines.{" "}
+        Shaded within each local authority boundary.{" "}
         <Link href={exploreHref()} className="text-teal-800 underline-offset-2 hover:underline">
           Explore →
         </Link>

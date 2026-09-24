@@ -450,7 +450,7 @@ export function LinkedOverview({
                   note={
                     state.view === "ci"
                       ? "Wider CI = less certain. Hatching and lighter fill mark wider 95% intervals."
-                      : "One equal-area cell per area — not council outlines."
+                      : "Each area is shaded within its boundary."
                   }
                 />
               ) : null}

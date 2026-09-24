@@ -72,7 +72,7 @@ export function AboutNumbers({
                 co-plotted with lower-tier areas.
               </p>
               <p>
-                Equal-area cells — not council outlines.
+                The map shades each area within its boundary.
               </p>
               <p>
                 <Link className="underline underline-offset-4" href={ONS_LINKS.leBulletin}>
