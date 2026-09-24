@@ -118,4 +118,6 @@ export type CatalogueCard = {
   blurb: string
   badges: string[]
   core?: boolean
+  /** Short catalogue note. Not a map layer. */
+  hook?: string
 }

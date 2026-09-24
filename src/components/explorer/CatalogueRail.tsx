@@ -38,6 +38,9 @@ export function CatalogueRail({
               <p className="truncate text-[11px] text-muted-foreground">
                 {card.badges[0]}
               </p>
+              {active && card.hook ? (
+                <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{card.hook}</p>
+              ) : null}
             </button>
           )
         })}

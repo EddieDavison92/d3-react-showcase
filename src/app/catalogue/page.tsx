@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CATALOGUE } from "@/lib/explorer/catalogue"
+import { CATALOGUE, HLE_WATERSHED_INTL } from "@/lib/explorer/catalogue"
 import { exploreHref } from "@/lib/explorer/url-state"
 
 export default function CataloguePage() {
@@ -29,6 +29,12 @@ export default function CataloguePage() {
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   {card.blurb}
                 </p>
+                {card.hook ? (
+                  <p className="text-sm leading-relaxed text-foreground">{card.hook}</p>
+                ) : null}
+                {card.id === "hle" ? (
+                  <p className="text-xs leading-relaxed text-muted-foreground">{HLE_WATERSHED_INTL}</p>
+                ) : null}
                 <div className="flex flex-wrap gap-1">
                   {card.badges.map((badge) => (
                     <Badge key={badge} variant="outline" className="whitespace-nowrap font-normal">

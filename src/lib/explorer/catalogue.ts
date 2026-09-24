@@ -1,5 +1,8 @@
 import type { CatalogueCard, GeoId, MetricFamily, MetricId, SexId } from "./types"
 
+export const HLE_WATERSHED_HOOK =
+  "Below state pension age (66) in 94% of UK areas for males and 91% for females, and below 55 in more than one in ten. Health Foundation, April 2026 — not a layer on this map."
+
 export const CATALOGUE: CatalogueCard[] = [
   {
     id: "le",
@@ -16,6 +19,7 @@ export const CATALOGUE: CatalogueCard[] = [
     title: "Healthy life expectancy",
     blurb:
       "Years in good or very good self-rated health. England is upper-tier; not a district-for-district match to period LE.",
+    hook: HLE_WATERSHED_HOOK,
     badges: ["UK · UTLA (Eng)", "Official statistics in development"],
   },
   {
@@ -141,4 +145,16 @@ export const ONS_LINKS = {
   iod: "https://www.gov.uk/government/statistics/english-indices-of-deprivation-2025",
   wimd: "https://www.gov.wales/welsh-index-multiple-deprivation-2025",
   ogl: "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+  hleWatershed:
+    "https://www.health.org.uk/reports-and-analysis/analysis/healthy-life-expectancy-trends-in-the-uk-a-watershed-moment",
+  segment: "https://fingertips.phe.org.uk/profile/inequality-tools",
+  segmentCommentary:
+    "https://www.gov.uk/government/statistics/segment-tool-november-2025-update",
 }
+
+/** Country context from the Health Foundation note. Not for the map scale. */
+export const HLE_WATERSHED_INTL =
+  "Of 21 high-income countries in that analysis (WHO GHO, 2011–21), the UK was one of five where healthy life expectancy fell. Those country ranks are not comparable with these local figures."
+
+export const SEGMENT_CALLOUT =
+  "England only. OHID Segment splits the deprivation gap in life expectancy by cause and age. It still uses IMD 2019 — not the IoD 2025 strip on this map."

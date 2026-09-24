@@ -11,7 +11,12 @@ import {
 } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { ONS_LINKS } from "@/lib/explorer/catalogue"
+import {
+  HLE_WATERSHED_HOOK,
+  HLE_WATERSHED_INTL,
+  ONS_LINKS,
+  SEGMENT_CALLOUT,
+} from "@/lib/explorer/catalogue"
 import { cn } from "@/lib/utils"
 
 export function AboutNumbers({
@@ -89,6 +94,13 @@ export function AboutNumbers({
                 this version. Male and female only; no persons total.
               </p>
               <p>
+                {HLE_WATERSHED_HOOK}{" "}
+                <Link className="underline underline-offset-4" href={ONS_LINKS.hleWatershed}>
+                  Read the analysis
+                </Link>
+                . {HLE_WATERSHED_INTL}
+              </p>
+              <p>
                 <Link className="underline underline-offset-4" href={ONS_LINKS.hleBulletin}>
                   HLE bulletin
                 </Link>
@@ -105,6 +117,17 @@ export function AboutNumbers({
                 England and Wales. Scotland and Northern Ireland are not filled
                 in from other publishers. Persons is published here, unlike LE
                 and HLE.
+              </p>
+              <p>
+                {SEGMENT_CALLOUT}{" "}
+                <Link className="underline underline-offset-4" href={ONS_LINKS.segment}>
+                  OHID inequality tools
+                </Link>
+                {" · "}
+                <Link className="underline underline-offset-4" href={ONS_LINKS.segmentCommentary}>
+                  November 2025 commentary
+                </Link>
+                . This explorer does not rebuild that cause breakdown.
               </p>
               <p>
                 <Link className="underline underline-offset-4" href={ONS_LINKS.avoidableBulletin}>

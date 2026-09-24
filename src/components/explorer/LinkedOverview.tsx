@@ -26,7 +26,7 @@ import {
   DIVERGING_RAMP_REVERSED,
   TEAL_RAMP,
 } from "@/lib/explorer/colours"
-import { familyOf } from "@/lib/explorer/catalogue"
+import { familyOf, ONS_LINKS, SEGMENT_CALLOUT } from "@/lib/explorer/catalogue"
 import { dimKey, geoUrl, readPoint, readSeries } from "@/lib/explorer/data"
 import { comparatorsFor, deriveMap, NATION_COMPARATOR } from "@/lib/explorer/derive"
 import { formatCi, formatYears } from "@/lib/explorer/format"
@@ -480,6 +480,8 @@ export function LinkedOverview({
             deprivation={deprivation}
             emphasised={family === "deprivation"}
           />
+        ) : mapFamily === "avoidable" ? (
+          <SegmentCallout />
         ) : null}
         <SeriesPanel
           periods={file?.periods ?? []}
@@ -501,6 +503,32 @@ export function LinkedOverview({
           }
         />
       </div>
+    </div>
+  )
+}
+
+function SegmentCallout() {
+  return (
+    <div className="rounded-md border border-slate-200 bg-slate-50/80 px-3 py-2.5 text-xs leading-snug text-muted-foreground">
+      <p>
+        <span className="mr-2 inline-flex rounded-full border bg-white px-2 py-0.5 text-[11px] font-medium text-foreground">
+          England only · IMD 2019, not IoD 2025
+        </span>
+        {SEGMENT_CALLOUT}
+      </p>
+      <p className="mt-1.5">
+        <a className="underline underline-offset-2 hover:text-foreground" href={ONS_LINKS.segment}>
+          OHID Segment tool
+        </a>
+        {" · "}
+        <a
+          className="underline underline-offset-2 hover:text-foreground"
+          href={ONS_LINKS.segmentCommentary}
+        >
+          November 2025 commentary
+        </a>
+        . Not rebuilt here.
+      </p>
     </div>
   )
 }
