@@ -1,22 +1,19 @@
-import { siteConfig } from "@/config/site" 
+import Link from "next/link"
+import { ONS_LINKS } from "@/lib/explorer/catalogue"
 
 export function SiteFooter() {
-    return (
-      <footer className="py-6 md:px-8 md:py-0">
-        <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
-          <p className="text-balance text-center text-sm leading-loose text-muted-foreground md:text-left">
-            Built by Eddie Davison. The source code is available on{" "}
-            <a
-              href={siteConfig.links.github}
-              target="_blank"
-              rel="noreferrer"
-              className="font-medium underline underline-offset-4"
-            >
-              GitHub
-            </a>
-            .
-          </p>
-        </div>
-      </footer>
-    )
-  }
+  return (
+    <footer className="shrink-0 border-t py-2 sm:py-3">
+      <div className="mx-auto flex max-w-[1600px] flex-col gap-1 px-3 text-xs leading-relaxed text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-4">
+        <p>
+          Source: ONS,{" "}
+          <Link className="underline underline-offset-4" href={ONS_LINKS.ogl}>
+            OGL v3.0
+          </Link>
+          . Boundaries: ONS Open Geography (OS © Crown copyright).
+        </p>
+        <p>Not official ONS software. Period LE is not a forecast.</p>
+      </div>
+    </footer>
+  )
+}

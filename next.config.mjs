@@ -1,9 +1,7 @@
-// next.config.mjs
-
 const nextConfig = {
   reactStrictMode: true,
-  pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
-  transpilePackages: ['next-mdx-remote'],
+  pageExtensions: ["js", "jsx", "ts", "tsx"],
+  devIndicators: false,
 };
 
 export default nextConfig;

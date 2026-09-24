@@ -1,0 +1,206 @@
+import { dimKey, readPoint } from "./data"
+import { formatSigned, formatYears } from "./format"
+import type {
+  AreaRecord,
+  LookupsFile,
+  MetricId,
+  PackedFile,
+  PackedPoint,
+  SexId,
+  ViewId,
+} from "./types"
+import { PERIOD_PRECOVID, PERIOD_TROUGH } from "./views"
+
+export const NATION_COMPARATOR: Record<string, { code: string; name: string }> = {
+  E: { code: "E92000001", name: "England" },
+  W: { code: "W92000004", name: "Wales" },
+  S: { code: "S92000003", name: "Scotland" },
+  N: { code: "N92000002", name: "Northern Ireland" },
+  UK: { code: "K02000001", name: "United Kingdom" },
+}
+
+export type DerivedCell = {
+  value: number | null
+  uncertain?: boolean
+  hoverExtra?: string
+}
+
+export function intervalsOverlap(a: PackedPoint | null, b: PackedPoint | null): boolean {
+  if (!a || !b || a[1] === null || a[2] === null || b[1] === null || b[2] === null) return false
+  return a[1] <= b[2] && b[1] <= a[2]
+}
+
+function subtract(
+  now: PackedPoint | null,
+  then: PackedPoint | null
+): { value: number | null; uncertain: boolean } {
+  if (!now || now[0] === null || !then || then[0] === null) {
+    return { value: null, uncertain: false }
+  }
+  return { value: now[0] - then[0], uncertain: intervalsOverlap(now, then) }
+}
+
+export function comparatorsFor(area: AreaRecord): {
+  nation: { code: string; name: string } | null
+  uk: { code: string; name: string } | null
+} {
+  const nation = NATION_COMPARATOR[area.nation] ?? null
+  const uk = NATION_COMPARATOR.UK
+  const nationCmp = nation && nation.code !== area.code ? nation : null
+  const ukCmp = uk.code !== area.code && uk.code !== nationCmp?.code ? uk : null
+  return { nation: nationCmp, uk: ukCmp }
+}
+
+export function deriveMap(args: {
+  view: ViewId
+  file: PackedFile
+  areas: AreaRecord[]
+  metric: MetricId
+  sex: SexId
+  age: string
+  periodIndex: number
+}): Record<string, DerivedCell> {
+  const { view, file, areas, metric, sex, age, periodIndex } = args
+  const dim = dimKey(metric, age)
+  const out: Record<string, DerivedCell> = {}
+  const baseline =
+    view === "d2017"
+      ? file.periods.indexOf(PERIOD_PRECOVID)
+      : view === "d2019"
+        ? file.periods.indexOf(PERIOD_TROUGH)
+        : -1
+
+  const widths: number[] = []
+  if (view === "ci") {
+    for (const area of areas) {
+      const point = readPoint(file, area.code, sex, dim, periodIndex)
+      if (point && point[1] !== null && point[2] !== null) {
+        widths.push(point[2] - point[1])
+      }
+    }
+  }
+  const hatchCut = quantile(widths, 0.75)
+
+  for (const area of areas) {
+    if (view === "d2017" || view === "d2019") {
+      const now = readPoint(file, area.code, sex, dim, periodIndex)
+      const then = baseline >= 0 ? readPoint(file, area.code, sex, dim, baseline) : null
+      const delta = subtract(now, then)
+      const label = view === "d2017" ? "2017–19" : "2019–21"
+      out[area.code] = {
+        value: delta.value,
+        uncertain: delta.uncertain,
+        hoverExtra:
+          delta.value === null
+            ? now?.[0] !== null && now?.[0] !== undefined
+              ? `No ${label} baseline`
+              : "No figure for this selection"
+            : `Change since ${label}: ${signed(delta.value)}${delta.uncertain ? " · not statistically significant (intervals overlap)" : ""}`,
+      }
+      continue
+    }
+
+    if (view === "vs_nation") {
+      const now = readPoint(file, area.code, sex, dim, periodIndex)
+      const { nation, uk } = comparatorsFor(area)
+      if (!nation) {
+        const own = NATION_COMPARATOR[area.nation]
+        if (own && own.code === area.code && now?.[0] !== null && now?.[0] !== undefined) {
+          out[area.code] = { value: 0, hoverExtra: `vs ${own.name} ${signed(0)}` }
+        } else {
+          out[area.code] = { value: null, hoverExtra: "No own-nation comparator" }
+        }
+        continue
+      }
+      const nationPoint = readPoint(file, nation.code, sex, dim, periodIndex)
+      const delta = subtract(now, nationPoint)
+      let extra: string | undefined
+      if (delta.value === null) {
+        extra = "No own-nation comparator"
+      } else {
+        extra = `Gap versus ${nation.name}: ${signed(delta.value)}`
+        if (delta.uncertain) extra += " · not statistically significant (intervals overlap)"
+        if (uk) {
+          const ukDelta = subtract(now, readPoint(file, uk.code, sex, dim, periodIndex))
+          if (ukDelta.value !== null) extra += ` · gap versus the UK: ${signed(ukDelta.value)}`
+        }
+      }
+      out[area.code] = { value: delta.value, uncertain: delta.uncertain, hoverExtra: extra }
+      continue
+    }
+
+    if (view === "sex_gap") {
+      const male = readPoint(file, area.code, "Male", dim, periodIndex)
+      const female = readPoint(file, area.code, "Female", dim, periodIndex)
+      const delta = subtract(male, female)
+      out[area.code] = {
+        value: delta.value,
+        uncertain: delta.uncertain,
+        hoverExtra: delta.uncertain
+          ? "Sex gap not statistically significant (intervals overlap)"
+          : undefined,
+      }
+      continue
+    }
+
+    if (view === "ci") {
+      const point = readPoint(file, area.code, sex, dim, periodIndex)
+      if (!point || point[0] === null) {
+        out[area.code] = { value: null }
+      } else if (point[1] === null || point[2] === null) {
+        out[area.code] = { value: point[0] }
+      } else {
+        const width = point[2] - point[1]
+        out[area.code] = {
+          value: point[0],
+          uncertain: width >= hatchCut && hatchCut > 0,
+        }
+      }
+      continue
+    }
+
+    const point = readPoint(file, area.code, sex, dim, periodIndex)
+    out[area.code] = { value: point?.[0] ?? null }
+  }
+
+  return out
+}
+
+export function yearsNotInGoodHealth(args: {
+  le: PackedFile | null
+  hle: PackedFile | null
+  lookups: LookupsFile | null
+  code: string | null
+  sex: SexId
+  year: string
+}): { years: number; grain: string } | null {
+  const { le, hle, lookups, code, sex, year } = args
+  if (!le || !hle || !code) return null
+  const hleCode = lookups?.districtToUtla[code]?.code ?? code
+  const leIndex = le.periods.indexOf(year)
+  const hleIndex = hle.periods.indexOf(year)
+  if (leIndex < 0 || hleIndex < 0) return null
+  if (!hle.values[hleCode]) return null
+  const lePoint = readPoint(le, hleCode, sex, "birth", leIndex)
+  const hlePoint = readPoint(hle, hleCode, sex, "birth", hleIndex)
+  if (!lePoint || lePoint[0] === null || !hlePoint || hlePoint[0] === null) return null
+  const parent = lookups?.districtToUtla[code]
+  const grain = parent && parent.code !== code ? parent.name : "this area"
+  return { years: lePoint[0] - hlePoint[0], grain }
+}
+
+function signed(value: number): string {
+  return formatSigned(value)
+}
+
+function quantile(values: number[], q: number): number {
+  if (!values.length) return 0
+  const sorted = [...values].sort((a, b) => a - b)
+  const i = Math.min(sorted.length - 1, Math.max(0, Math.ceil(q * sorted.length) - 1))
+  return sorted[i]
+}
+
+export function iodDecile(rank: number, n: number): number {
+  if (n <= 0) return 1
+  return Math.min(10, Math.max(1, Math.ceil((rank / n) * 10)))
+}

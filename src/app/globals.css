@@ -10,8 +10,8 @@
     --card-foreground: 224 71.4% 4.1%;
     --popover: 0 0% 100%;
     --popover-foreground: 224 71.4% 4.1%;
-    --primary: 220.9 39.3% 11%;
-    --primary-foreground: 210 20% 98%;
+    --primary: 173 80% 21%;
+    --primary-foreground: 166 76% 97%;
     --secondary: 220 14.3% 95.9%;
     --secondary-foreground: 220.9 39.3% 11%;
     --muted: 220 14.3% 95.9%;
@@ -65,15 +65,192 @@
   * {
     @apply border-border;
   }
+  html {
+    @apply h-full overflow-x-clip;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply min-h-dvh overflow-x-clip bg-background text-foreground;
     font-synthesis-weight: none;
     text-rendering: optimizeLegibility;
   }
 }
 
-@layer utilities {
-  .text-foreground {
-    color: var(--foreground);
+.maplibregl-map,
+.maplibregl-canvas-container {
+  width: 100% !important;
+  max-width: 100%;
+}
+
+.maplibregl-canvas {
+  max-width: 100%;
+}
+
+.maplibregl-ctrl-group {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+}
+
+.maplibregl-ctrl-group button {
+  width: 2.25rem !important;
+  height: 2.25rem !important;
+  background-color: rgba(248, 250, 252, 0.92) !important;
+}
+
+.maplibregl-ctrl-bottom-right {
+  bottom: 0.4rem;
+  right: 0.4rem;
+}
+
+.maplibregl-ctrl-top-left,
+.maplibregl-ctrl-top-right,
+.maplibregl-ctrl-bottom-left,
+.maplibregl-ctrl-attrib,
+.maplibregl-ctrl-logo {
+  display: none !important;
+}
+
+/* Host overlays Pixel reads as a mystery list FAB on the map. */
+#next-logo,
+[data-next-badge],
+[data-next-badge-root],
+[data-nextjs-dev-tools-button],
+[data-nextjs-toast],
+[data-vercel-toolbar],
+[data-vercel-toolbar-container],
+#vercel-live-feedback,
+vercel-live-feedback {
+  display: none !important;
+}
+
+@keyframes hero-map-enter {
+  from {
+    opacity: 0;
+    filter: saturate(0.55);
   }
+  to {
+    opacity: 1;
+    filter: saturate(1);
+  }
+}
+
+.hero-map-enter {
+  animation: hero-map-enter 700ms ease-out both;
+}
+
+/* Focus card settles in on each new selection — a cue that the figure changed. */
+@keyframes focus-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.focus-card-enter {
+  animation: focus-card-enter 180ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-map-enter,
+  .focus-card-enter {
+    animation: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .six-seg-row {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      #000 0%,
+      #000 calc(100% - 2.75rem),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      #000 0%,
+      #000 calc(100% - 2.75rem),
+      transparent 100%
+    );
+  }
+  .six-seg-row[data-peek-left="true"] {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      #000 1.25rem,
+      #000 calc(100% - 2.75rem),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      #000 1.25rem,
+      #000 calc(100% - 2.75rem),
+      transparent 100%
+    );
+  }
+}
+
+.period-scrub {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.period-scrub:focus-visible {
+  outline: none;
+}
+
+.period-scrub:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0f172a;
+}
+
+.period-scrub:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0f172a;
+}
+
+.period-scrub::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    #94a3b8 var(--fill, 0%),
+    #e2e8f0 var(--fill, 0%)
+  );
+}
+
+.period-scrub::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -4px;
+  border-radius: 999px;
+  background: #0f172a;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #94a3b8;
+}
+
+.period-scrub::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.period-scrub::-moz-range-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: #94a3b8;
+}
+
+.period-scrub::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #0f172a;
+  box-shadow: 0 0 0 1px #94a3b8;
 }

@@ -1,11 +1,11 @@
 export const siteConfig = {
-    name: "D3 React Showcase",
-    url: "localhost:3000",
-    description:
-      "A collection of D3.js visualizations built with React and TypeScript.",
-    links: {
-      github: "https://github.com/EddieDavison92/d3-react-showcase",
+  name: "Life expectancy explorer",
+  url: "https://github.com/EddieDavison92/d3-react-showcase",
+  description:
+    "A careful navigator over ONS period life expectancy for UK local areas, with honest HLE, avoidable mortality and deprivation-context companions.",
+  links: {
+    github: "https://github.com/EddieDavison92/d3-react-showcase",
   },
 }
-  
-  export type SiteConfig = typeof siteConfig
+
+export type SiteConfig = typeof siteConfig
