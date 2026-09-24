@@ -8,7 +8,6 @@ import { formatYears } from "@/lib/explorer/format"
 import { dodge } from "@/lib/story/layout"
 import { FEMALE, INK, INK_3, LINE, MALE } from "@/lib/story/palette"
 
-const H = 120
 const PAD = 12
 
 /** Every local authority as a dot on one axis, this one ringed. */
@@ -25,18 +24,19 @@ export function RankStrip({
   names: Record<string, string>
   domain: [number, number]
 }) {
-  const [ref, { width }] = useSize<HTMLDivElement>({ width: 600, height: H })
+  const [ref, { width }] = useSize<HTMLDivElement>({ width: 600, height: 120 })
   const [hover, setHover] = useState<number | null>(null)
   const router = useRouter()
   const colour = sex === "male" ? MALE : FEMALE
   const x = useMemo(() => d3.scaleLinear().domain(domain).range([PAD, width - PAD]), [domain, width])
-  const r = Math.max(2.4, Math.min(4, width / 180))
-  const pos = useMemo(() => dodge(distribution.map(([, v]) => x(v)), r, H / 2 - 6, H / 2 - 14), [distribution, r, x])
+  const H = width < 500 ? 150 : 120
+  const r = Math.max(2.2, Math.min(4, width / 180))
+  const pos = useMemo(() => dodge(distribution.map(([, v]) => x(v)), r, H / 2 - 6, H / 2 - 14), [distribution, r, x, H])
   const self = distribution.findIndex(([c]) => c === code)
   const selfPos = pos[self]
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative w-full min-w-0">
       <svg width={width} height={H} className="chart block" role="img" aria-label={`${distribution.length} areas by ${sex} life expectancy`}>
         {x.ticks(6).map((t) => (
           <g key={t} transform={`translate(${x(t)},0)`}>
@@ -73,7 +73,7 @@ export function RankStrip({
       {hover !== null && pos[hover] ? (
         <div
           className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md border border-line bg-white px-2 py-1 text-xs shadow-md"
-          style={{ left: pos[hover]!.x, top: pos[hover]!.y - 8 }}
+          style={{ left: Math.max(70, Math.min(width - 70, pos[hover]!.x)), top: pos[hover]!.y - 8 }}
         >
           {names[distribution[hover][0]] ?? distribution[hover][0]}{" "}
           <span className="tabular text-ink-3">{formatYears(distribution[hover][1])}</span>

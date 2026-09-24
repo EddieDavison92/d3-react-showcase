@@ -4,7 +4,7 @@ import { siteConfig } from "@/config/site"
 export function SiteFooter() {
   return (
     <footer className="mt-24 border-t border-line">
-      <div className="mx-auto grid max-w-[1440px] gap-8 px-4 py-10 text-sm text-ink-3 sm:px-6 md:grid-cols-[1fr_auto] lg:px-10">
+      <div className="mx-auto grid grid-cols-1 max-w-[1440px] gap-8 px-4 py-10 text-sm text-ink-3 sm:px-6 md:grid-cols-[1fr_auto] lg:px-10">
         <div className="max-w-xl space-y-2">
           <p className="display text-lg text-ink">Ten years apart</p>
           <p>

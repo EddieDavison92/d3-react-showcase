@@ -25,7 +25,7 @@ function FactorRow({ row, peers }: { row: Row; peers: string }) {
   const pct = percentile === null ? null : Math.round(percentile * 100)
 
   return (
-    <li className="grid gap-x-6 gap-y-2 py-3.5 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)_7rem] sm:items-center">
+    <li className="grid grid-cols-1 gap-x-6 gap-y-2 py-3.5 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)_7rem] sm:items-center">
       <div className="min-w-0">
         <p className="text-sm font-medium text-ink">{indicator.short}</p>
         <p className="text-2xs text-ink-3">

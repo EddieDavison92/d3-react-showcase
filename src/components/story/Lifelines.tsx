@@ -33,7 +33,7 @@ export function Lifelines({ data }: { data: StoryData }) {
       </div>
 
       <div className="mt-8">
-        <div className="relative ml-[4.5rem] h-5 sm:ml-[8.5rem]">
+        <div className="relative ml-[4.5rem] mr-10 h-5 sm:ml-[8.5rem]">
           {[0, 20, 40, 60, 80].map((tick) => (
             <span key={tick} className="mono absolute -translate-x-1/2 text-[10px] text-ink-3" style={{ left: `${(tick / SPAN) * 100}%` }}>
               {tick}
@@ -50,7 +50,7 @@ export function Lifelines({ data }: { data: StoryData }) {
                   <span className="mono text-ink">{row.decile}</span>
                   <span className="hidden sm:inline">{row.decile === 1 ? " most deprived" : row.decile === 10 ? " least deprived" : ""}</span>
                 </span>
-                <div className="relative h-7 flex-1">
+                <div className="relative mr-10 h-7 flex-1">
                   {[20, 40, 60, 80].map((tick) => (
                     <span key={tick} className="absolute inset-y-0 w-px bg-line/70" style={{ left: `${(tick / SPAN) * 100}%` }} />
                   ))}
@@ -85,7 +85,7 @@ export function Lifelines({ data }: { data: StoryData }) {
         </p>
       </div>
 
-      <dl className="mt-10 grid gap-6 border-t border-line pt-6 sm:grid-cols-3">
+      <dl className="mt-10 grid grid-cols-1 gap-6 border-t border-line pt-6 sm:grid-cols-3">
         <Figure value={formatYears(last.healthy - first.healthy)} label="Gap in healthy years" note="least vs most deprived tenth" />
         <Figure value={formatYears(last.life - first.life)} label="Gap in total lifespan" note="same areas, same period" />
         <Figure

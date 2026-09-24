@@ -249,7 +249,7 @@ export function Story({ data }: { data: StoryData }) {
             </Link>
           ))}
         </div>
-        <div className="mt-14 grid gap-4 sm:grid-cols-2">
+        <div className="mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Card href="/explore" title="The atlas" body="Every measure on one map, from 2001–03 to 2022–24." />
           <Card href="/evidence" title="The evidence" body="All fifteen local indicators, plotted and ranked." />
         </div>
@@ -283,7 +283,7 @@ function BigStat({ value, label }: { value: string; label: string }) {
 function ChapterHead({ n, title, dek }: { n: string; title: string; dek: string }) {
   return (
     <header className="mt-36 border-t-[3px] border-ink pt-5 sm:mt-48">
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,8fr)] lg:gap-12">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,8fr)] lg:gap-12">
         <p className="display text-[clamp(4rem,9vw,7.5rem)] leading-[0.8] text-ink/15">{n}</p>
         <div>
           <h2 className="display text-[clamp(2.75rem,7vw,6rem)] leading-[0.88] text-ink">{title}</h2>

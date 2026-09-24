@@ -36,7 +36,7 @@ export function FactorGrid({ data }: { data: StoryData }) {
       <div className="flex justify-end">
         <SexToggle value={sex} onChange={setSex} />
       </div>
-      <div className="mt-6 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-6 grid grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
         {factors.map((f, k) => (
           <Panel key={f.indicator.key} factor={f} areas={data.areas} now={now} sex={sex} y={y} seen={seen} order={k} />
         ))}

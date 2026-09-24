@@ -31,7 +31,7 @@ export function CorrelationBars({
                 onClick={() => onSelect(row.indicator.key)}
                 aria-pressed={active}
                 className={cn(
-                  "grid w-full grid-cols-[minmax(0,1fr)_minmax(0,10rem)_2.75rem] items-center gap-3 rounded-lg px-2.5 py-1.5 text-left text-sm",
+                  "grid w-full grid-cols-[minmax(0,1fr)_minmax(0,5rem)_2.75rem] items-center gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,10rem)_2.75rem] rounded-lg px-2.5 py-1.5 text-left text-sm",
                   active ? "bg-white shadow-sm ring-1 ring-ink/5" : "hover:bg-white/60"
                 )}
               >

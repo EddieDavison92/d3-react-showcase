@@ -132,7 +132,7 @@ export function EvidenceApp() {
         </div>
       </header>
 
-      <section className="mt-16 grid gap-10 border-t border-line pt-10 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-12">
+      <section className="mt-16 grid grid-cols-1 gap-10 border-t border-line pt-10 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-12">
         <div>
           <h2 className="display text-3xl text-ink">The deprivation gradient</h2>
           <p className="mt-3 text-sm leading-relaxed text-ink-3">
@@ -158,7 +158,7 @@ export function EvidenceApp() {
       </section>
 
       <section className="mt-20 border-t border-line pt-10">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-12">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-12">
           <div>
             <div className="flex flex-wrap items-center justify-between gap-4">
               <h2 className="display text-3xl text-ink">How closely each one tracks</h2>

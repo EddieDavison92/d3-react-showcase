@@ -70,8 +70,8 @@ function MobileNav() {
                   on ? "font-semibold text-ink" : "text-ink-3"
                 )}
               >
-                <span className={cn("flex h-7 w-12 items-center justify-center rounded-full transition-colors", on && "bg-ink/[0.07]")}>
-                  <Icon />
+                <span className={cn("flex h-8 w-14 items-center justify-center rounded-full transition-colors", on && "bg-ink/[0.06]")}>
+                  <Icon on={on} />
                 </span>
                 {label}
               </Link>
@@ -93,44 +93,70 @@ function Mark() {
   )
 }
 
-const icon = { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round" as const, "aria-hidden": true }
+type IconProps = { on: boolean }
 
-function StoryIcon() {
+const base = {
+  width: 24,
+  height: 24,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.5,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+  "aria-hidden": true,
+}
+
+/** The mark: two places, ten years apart. */
+function StoryIcon({ on }: IconProps) {
   return (
-    <svg {...icon}>
-      <path d="M4 4.5h12M4 8.5h12M4 12.5h8" />
-      <circle cx="15" cy="14.5" r="1.8" fill="currentColor" stroke="none" />
+    <svg {...base}>
+      <path d="M7 12h10M9.5 10.6v2.8M12 10v4M14.5 10.6v2.8" />
+      <circle cx="4.5" cy="12" r="2.5" fill={on ? "#b3452c" : "none"} stroke={on ? "#b3452c" : "currentColor"} />
+      <circle cx="19.5" cy="12" r="2.5" fill={on ? "#0b5a4c" : "none"} stroke={on ? "#0b5a4c" : "currentColor"} />
     </svg>
   )
 }
 
-function AtlasIcon() {
+/** Honeycomb, like the story's hex map. */
+function AtlasIcon({ on }: IconProps) {
   return (
-    <svg {...icon}>
-      <path d="m10 2.8 6 3.5v7.4l-6 3.5-6-3.5V6.3z" />
-      <path d="M10 10v6.9M10 10 4.2 6.5M10 10l5.8-3.5" opacity={0.5} />
+    <svg {...base}>
+      <g transform="translate(0 0.7)">
+        <path d="M12 6.1v4.2l-3.64 2.1-3.63-2.1V6.1l3.63-2.1z" fill={on ? "#b3452c" : "none"} />
+        <path d="M19.27 6.1v4.2l-3.63 2.1-3.64-2.1V6.1l3.64-2.1z" fill={on ? "#0b5a4c" : "none"} />
+        <path d="M15.64 12.4v4.2L12 18.7l-3.64-2.1v-4.2l3.64-2.1z" fill={on ? "#6fb6a1" : "none"} />
+      </g>
     </svg>
   )
 }
 
-function EvidenceIcon() {
+/** Scatter with its fitted line. */
+function EvidenceIcon({ on }: IconProps) {
   return (
-    <svg {...icon}>
-      <path d="M3.5 16.5h13M3.5 16.5v-13" />
-      <circle cx="7" cy="7" r="1.2" fill="currentColor" stroke="none" />
-      <circle cx="10" cy="10" r="1.2" fill="currentColor" stroke="none" />
-      <circle cx="13.5" cy="12.5" r="1.2" fill="currentColor" stroke="none" />
-      <path d="m6 5.5 9 8.5" opacity={0.5} />
+    <svg {...base}>
+      <path d="M4 4v16h16" />
+      <path d="m6.5 7.5 12 9.5" strokeWidth={on ? 2 : 1.5} />
+      {[
+        [8, 6.5],
+        [9.5, 10.5],
+        [13, 11],
+        [15, 15.5],
+        [18, 14.5],
+      ].map(([cx, cy]) => (
+        <circle key={cx} cx={cx} cy={cy} r={1.35} fill="currentColor" stroke="none" />
+      ))}
     </svg>
   )
 }
 
-function MethodsIcon() {
+/** A folded note. */
+function MethodsIcon({ on }: IconProps) {
   return (
-    <svg {...icon}>
-      <circle cx="10" cy="10" r="7" />
-      <path d="M10 9v5" />
-      <circle cx="10" cy="6.4" r="0.9" fill="currentColor" stroke="none" />
+    <svg {...base}>
+      <path d="M6 3.5h8.5L18.5 7.5v13H6z" fill={on ? "currentColor" : "none"} fillOpacity={on ? 0.08 : 0} />
+      <path d="M14.5 3.5v4h4" />
+      <path d="M9 11.5h6.5M9 14.5h6.5M9 17.5h4" />
     </svg>
   )
 }

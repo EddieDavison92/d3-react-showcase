@@ -75,7 +75,7 @@ export default async function AreaPage({ params }: { params: Promise<{ code: str
       </dl>
 
       <Section title="Over time" dek={`Life expectancy at birth since 2001–03, with the 95% interval, against ${nation.name} (dashed) and the UK (grey).`}>
-        <div className="grid gap-10 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
           <AreaTrend sex="male" periods={report.periods} series={male.series} nation={male.nation} uk={male.uk} nationName={nation.name} name={report.name} domain={trendDomain} />
           <AreaTrend sex="female" periods={report.periods} series={female.series} nation={female.nation} uk={female.uk} nationName={nation.name} name={report.name} domain={trendDomain} />
         </div>
@@ -86,7 +86,7 @@ export default async function AreaPage({ params }: { params: Promise<{ code: str
           {(["male", "female"] as const).map((sex) => {
             const s = sex === "male" ? male : female
             return (
-              <div key={sex} className="grid gap-3 md:grid-cols-[12rem_minmax(0,1fr)] md:items-center">
+              <div key={sex} className="grid grid-cols-1 gap-3 md:grid-cols-[12rem_minmax(0,1fr)] md:items-center">
                 <div>
                   <p className="text-sm font-medium text-ink">{sex === "male" ? "Men" : "Women"}</p>
                   <p className="display text-3xl tabular text-ink">
@@ -142,7 +142,7 @@ export default async function AreaPage({ params }: { params: Promise<{ code: str
           title="Deprivation"
           dek={`${report.name} is in the ${decileWords(report.deprivation.decile)} of English local authorities by IMD 2025 score. These are the others in the same tenth, sorted by male life expectancy.`}
         >
-          <div className="grid gap-10 lg:grid-cols-[16rem_minmax(0,1fr)]">
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-[16rem_minmax(0,1fr)]">
             <div>
               <div className="flex gap-1" role="img" aria-label={`Deprivation tenth ${report.deprivation.decile} of 10`}>
                 {Array.from({ length: 10 }, (_, d) => (
@@ -195,7 +195,7 @@ export default async function AreaPage({ params }: { params: Promise<{ code: str
           title="Avoidable deaths"
           dek={`Deaths under 75 that could mostly have been avoided through prevention or timely treatment, ${report.avoidable.period.replace(/^(\d{4}) to \d{2}(\d{2})$/, "$1–$2")}, persons, per 100,000.`}
         >
-          <div className="grid gap-6 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
             {report.avoidable.rows.map((row) => (
               <div key={row.dim} className="border-t border-line pt-3">
                 <p className="text-sm capitalize text-ink-2">{row.dim}</p>
@@ -233,7 +233,7 @@ export default async function AreaPage({ params }: { params: Promise<{ code: str
 
 function Section({ title, dek, children }: { title: string; dek: string; children: React.ReactNode }) {
   return (
-    <section className="mt-20 grid gap-8 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-12">
+    <section className="mt-20 grid grid-cols-1 gap-8 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-12">
       <div>
         <h2 className="display text-3xl text-ink">{title}</h2>
         <p className="mt-3 text-sm leading-relaxed text-ink-3">{dek}</p>
@@ -310,7 +310,7 @@ function LifeBar({ label, healthy, life, strong }: { label: string; healthy: num
   return (
     <div className="grid grid-cols-[7rem_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[10rem_minmax(0,1fr)]">
       <span className={cn("truncate text-xs", strong ? "font-medium text-ink" : "text-ink-3")}>{label}</span>
-      <div className="relative h-6">
+      <div className="relative mr-10 h-6">
         <div className={cn("absolute inset-y-0 left-0 flex overflow-hidden rounded-r", !strong && "opacity-45")} style={{ width: `${(life / SPAN) * 100}%` }}>
           <span className="flex items-center justify-end bg-[#1a7a6b] pr-2 text-2xs font-medium tabular text-white" style={{ width: `${(healthy / life) * 100}%` }}>
             {formatYears(healthy)}

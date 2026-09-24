@@ -115,27 +115,27 @@ export default async function AboutPage() {
           local authorities (80% for drug deaths, where small counts are suppressed). Correlations are Pearson r across
           local authorities, each area counted once regardless of population.
         </p>
-        <div className="-mx-4 overflow-x-auto sm:mx-0">
-          <table className="w-full min-w-[34rem] border-collapse text-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="border-y-2 border-ink text-left">
-                <th className="py-2.5 pl-4 pr-3 font-semibold text-ink sm:pl-0">Indicator</th>
-                <th className="px-3 py-2.5 font-semibold text-ink">Group</th>
+                <th className="py-2.5 pr-3 font-semibold text-ink">Indicator</th>
+                <th className="hidden px-3 py-2.5 font-semibold text-ink sm:table-cell">Group</th>
                 <th className="px-3 py-2.5 font-semibold text-ink">Period</th>
-                <th className="py-2.5 pl-3 pr-4 font-semibold text-ink sm:pr-0">Unit</th>
+                <th className="py-2.5 pl-3 font-semibold text-ink">Unit</th>
               </tr>
             </thead>
             <tbody>
               {evidence.indicators.map((indicator) => (
                 <tr key={indicator.key} className="border-b border-line">
-                  <td className="py-2.5 pl-4 pr-3 sm:pl-0">
+                  <td className="py-2.5 pr-3">
                     <a className="link" href={indicator.url}>
                       {indicator.label}
                     </a>
                   </td>
-                  <td className="px-3 py-2.5 text-ink-2">{indicator.group}</td>
-                  <td className="mono px-3 py-2.5 text-[12px] text-ink-2">{indicator.period}</td>
-                  <td className="py-2.5 pl-3 pr-4 text-ink-2 sm:pr-0">{indicator.unit}</td>
+                  <td className="hidden px-3 py-2.5 text-ink-2 sm:table-cell">{indicator.group}</td>
+                  <td className="mono whitespace-nowrap px-3 py-2.5 text-[13px] text-ink-2">{indicator.period}</td>
+                  <td className="py-2.5 pl-3 text-ink-2">{indicator.unit}</td>
                 </tr>
               ))}
             </tbody>
@@ -172,7 +172,7 @@ export default async function AboutPage() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="mt-16 grid gap-6 border-t border-line pt-8 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-12">
+    <section className="mt-16 grid grid-cols-1 gap-6 border-t border-line pt-8 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-12">
       <h2 className="display text-3xl text-ink">{title}</h2>
       <div className="max-w-3xl space-y-4 text-[17px] leading-relaxed text-ink-2 [&_strong]:font-semibold [&_strong]:text-ink">
         {children}
