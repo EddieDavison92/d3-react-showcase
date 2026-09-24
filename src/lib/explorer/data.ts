@@ -1,12 +1,13 @@
 import type {
   AreaRecord,
   DeprivationFile,
+  GeoId,
   LookupsFile,
   MetricId,
   PackedFile,
   PackedPoint,
 } from "./types"
-import { familyOf } from "./catalogue"
+import { familyOf, geosFor } from "./catalogue"
 
 const cache = new Map<string, Promise<unknown>>()
 
@@ -102,6 +103,23 @@ export function areasForGeo(file: PackedFile, geo: string, metric: MetricId): Ar
     }
     return false
   })
+}
+
+/** Every area the current measure can show, tagged with the geography it opens. */
+export function areasToSearch(
+  file: PackedFile,
+  metric: MetricId
+): (AreaRecord & { geo: GeoId })[] {
+  const seen = new Set<string>()
+  const out: (AreaRecord & { geo: GeoId })[] = []
+  for (const geo of geosFor(metric)) {
+    for (const area of areasForGeo(file, geo, metric)) {
+      if (seen.has(area.code)) continue
+      seen.add(area.code)
+      out.push({ ...area, geo })
+    }
+  }
+  return out
 }
 
 export function geoUrl(geo: string): string {

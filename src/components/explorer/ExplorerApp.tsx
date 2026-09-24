@@ -18,6 +18,7 @@ import {
 import { familyOf, geoShort, metricShort } from "@/lib/explorer/catalogue"
 import {
   areasForGeo,
+  areasToSearch,
   indexAreas,
   loadAvoidable,
   loadDeprivation,
@@ -156,9 +157,14 @@ export function ExplorerApp() {
     return areasForGeo(file, state.geo, mapMetric)
   }, [file, mapMetric, state.geo])
 
+  const places = useMemo(() => {
+    if (!file) return []
+    return areasToSearch(file, mapMetric)
+  }, [file, mapMetric])
+
   const ready = Boolean(lookups && file)
 
-  const rail = (
+  const cuts = (autoFocusArea: boolean, closeOnPick: boolean) => (
     <div className="space-y-4">
       <CatalogueRail
         metric={state.metric}
@@ -169,8 +175,13 @@ export function ExplorerApp() {
       />
       <FilterPanel
         state={state}
-        areas={areas}
-        onChange={commit}
+        areas={places}
+        redirects={lookups?.districtToUtla}
+        autoFocusArea={autoFocusArea}
+        onChange={(patch) => {
+          commit(patch)
+          if (closeOnPick && patch.area) setCutsOpen(false)
+        }}
       />
     </div>
   )
@@ -178,7 +189,7 @@ export function ExplorerApp() {
   return (
     <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-3 overflow-x-clip lg:h-full lg:flex-row">
       <aside className="hidden w-[220px] shrink-0 overflow-y-auto border-r pr-3 lg:block">
-        {rail}
+        {cuts(false, false)}
       </aside>
       <div className="flex flex-col gap-2 lg:hidden">
         <Sheet open={cutsOpen} onOpenChange={setCutsOpen}>
@@ -199,10 +210,10 @@ export function ExplorerApp() {
             <SheetHeader className="text-left">
               <SheetTitle>Data &amp; area</SheetTitle>
               <SheetDescription>
-                Choose a measure, geography and area. Switching measure reloads the map.
+                Search by name or postcode, or choose a geography. Switching measure reloads the map.
               </SheetDescription>
             </SheetHeader>
-            <div className="mt-4">{rail}</div>
+            <div className="mt-4">{cuts(cutsOpen, true)}</div>
           </SheetContent>
         </Sheet>
         <CompactFilterBar state={state} onChange={commit} />

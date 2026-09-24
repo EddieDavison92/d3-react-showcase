@@ -1,9 +1,11 @@
 "use client"
 
+import { AreaFinder } from "@/components/explorer/AreaFinder"
 import { Label } from "@/components/ui/label"
 import { familyOf, geoLabel, geosFor, hasAge, sexesFor } from "@/lib/explorer/catalogue"
+import type { SearchableArea } from "@/lib/explorer/place-find"
 import { SEX_GAP_LABEL } from "@/lib/explorer/views"
-import type { AgeId, AreaRecord, ExplorerState, GeoId, MetricId, SexId } from "@/lib/explorer/types"
+import type { AgeId, ExplorerState, GeoId, MetricId, SexId } from "@/lib/explorer/types"
 import { cn } from "@/lib/utils"
 
 const selectClass =
@@ -90,10 +92,14 @@ export function CompactFilterBar({
 export function FilterPanel({
   state,
   areas,
+  redirects,
+  autoFocusArea,
   onChange,
 }: {
   state: ExplorerState
-  areas: AreaRecord[]
+  areas: SearchableArea[]
+  redirects?: Record<string, { code: string; name: string }>
+  autoFocusArea?: boolean
   onChange: (patch: Partial<ExplorerState>) => void
 }) {
   const geos = geosFor(state.metric)
@@ -104,6 +110,22 @@ export function FilterPanel({
 
   return (
     <div className="space-y-4">
+      <div className="space-y-1.5">
+        <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">
+          Find an area
+        </Label>
+        <AreaFinder
+          areas={areas}
+          value={state.area}
+          geo={state.geo}
+          redirects={redirects}
+          autoFocus={autoFocusArea}
+          onPick={(area) =>
+            area ? onChange({ area: area.code, geo: area.geo }) : onChange({ area: null })
+          }
+        />
+      </div>
+
       <div className="space-y-1.5">
         <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">
           Geography
@@ -118,27 +140,6 @@ export function FilterPanel({
               {geoLabel(geo)}
             </option>
           ))}
-        </select>
-      </div>
-
-      <div className="space-y-1.5">
-        <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">
-          Area
-        </Label>
-        <select
-          className={selectClass}
-          value={state.area ?? ""}
-          onChange={(event) => onChange({ area: event.target.value || null })}
-        >
-          <option value="">All areas on map</option>
-          {areas
-            .slice()
-            .sort((a, b) => a.name.localeCompare(b.name))
-            .map((area) => (
-              <option key={area.code} value={area.code}>
-                {area.name}
-              </option>
-            ))}
         </select>
       </div>
 
