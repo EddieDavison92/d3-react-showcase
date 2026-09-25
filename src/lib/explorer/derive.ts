@@ -25,9 +25,18 @@ export type DerivedCell = {
   hoverExtra?: string
 }
 
-export function intervalsOverlap(a: PackedPoint | null, b: PackedPoint | null): boolean {
-  if (!a || !b || a[1] === null || a[2] === null || b[1] === null || b[2] === null) return false
-  return a[1] <= b[2] && b[1] <= a[2]
+/**
+ * Two-sided test of a difference at the 5% level. Standard errors come from
+ * each 95% interval (width ÷ 3.92) and are treated as independent. An area
+ * inside its nation shares deaths with it, which makes this slightly
+ * conservative for area-versus-nation gaps.
+ */
+export function differenceNotSignificant(a: PackedPoint | null, b: PackedPoint | null): boolean {
+  if (!a || !b || a[0] === null || b[0] === null || a[1] === null || a[2] === null || b[1] === null || b[2] === null) {
+    return false
+  }
+  const se = Math.hypot((a[2] - a[1]) / 3.92, (b[2] - b[1]) / 3.92)
+  return Math.abs(a[0] - b[0]) < 1.96 * se
 }
 
 function subtract(
@@ -37,7 +46,7 @@ function subtract(
   if (!now || now[0] === null || !then || then[0] === null) {
     return { value: null, uncertain: false }
   }
-  return { value: now[0] - then[0], uncertain: intervalsOverlap(now, then) }
+  return { value: now[0] - then[0], uncertain: differenceNotSignificant(now, then) }
 }
 
 export function comparatorsFor(area: AreaRecord): {
@@ -95,7 +104,7 @@ export function deriveMap(args: {
             ? now?.[0] !== null && now?.[0] !== undefined
               ? `No ${label} baseline`
               : "No figure for this selection"
-            : `Change since ${label}: ${signed(delta.value)}${delta.uncertain ? " · not statistically significant (intervals overlap)" : ""}`,
+            : `Change since ${label}: ${signed(delta.value)}${delta.uncertain ? " · not statistically significant" : ""}`,
       }
       continue
     }
@@ -119,7 +128,7 @@ export function deriveMap(args: {
         extra = "No own-nation comparator"
       } else {
         extra = `Gap versus ${nation.name}: ${signed(delta.value)}`
-        if (delta.uncertain) extra += " · not statistically significant (intervals overlap)"
+        if (delta.uncertain) extra += " · not statistically significant"
         if (uk) {
           const ukDelta = subtract(now, readPoint(file, uk.code, sex, dim, periodIndex))
           if (ukDelta.value !== null) extra += ` · gap versus the UK: ${signed(ukDelta.value)}`
@@ -137,7 +146,7 @@ export function deriveMap(args: {
         value: delta.value,
         uncertain: delta.uncertain,
         hoverExtra: delta.uncertain
-          ? "Sex gap not statistically significant (intervals overlap)"
+          ? "Sex gap not statistically significant"
           : undefined,
       }
       continue
