@@ -21,6 +21,8 @@ export type EvidenceFile = {
   england: Record<string, number>
   ltla: Record<string, Record<string, number>>
   utla: Record<string, Record<string, number>>
+  /** Keys OHID marks with a data quality issue, per area. */
+  flags?: Record<"ltla" | "utla", Record<string, string[]>>
 }
 
 export type EvidenceGrain = "ltla" | "utla"

@@ -2,17 +2,21 @@
 
 import Link from "next/link"
 import { useMemo } from "react"
+import { AvoidableBars } from "@/components/story/AvoidableBars"
 import { ChangeBars } from "@/components/story/ChangeBars"
 import { DecileLines } from "@/components/story/DecileLines"
 import { DotStage, type DotScene } from "@/components/story/DotStage"
 import { FactorGrid } from "@/components/story/FactorGrid"
 import { Lifelines } from "@/components/story/Lifelines"
+import { PairCompare } from "@/components/story/PairCompare"
+import { HIGH, LOW, PairLines } from "@/components/story/PairLines"
 import { PlaceSearch } from "@/components/story/PlaceSearch"
 import { Scrolly } from "@/components/story/Scrolly"
 import { StallChart } from "@/components/story/StallChart"
 import { formatSigned, formatYears } from "@/lib/explorer/format"
 import { cn } from "@/lib/utils"
 import type { StoryData } from "@/lib/story/data"
+import { INK } from "@/lib/story/palette"
 
 const months = (years: number) => Math.round(years * 12 * 10) / 10
 const WORDS = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
@@ -43,6 +47,21 @@ export function Story({ data }: { data: StoryData }) {
         } gained.`
       : `${capital(words(moves.filter((m) => m < 0).length))} of the ten tenths went backwards.`
 
+  const { avoidableDeciles } = data
+  const avMost = avoidableDeciles.male[0]
+  const avLeast = avoidableDeciles.male[9]
+  // Which tenths' avoidable death rates rose since the earlier period, most deprived first.
+  const avTrend = (rows: { then: number | null; now: number | null }[]) => {
+    const rose = rows.map((r) => (r.now ?? 0) > (r.then ?? 0))
+    const k = rose.indexOf(false)
+    const lead = k === -1 ? 10 : k
+    const most = Math.max(...rows.map((r) => ((r.now ?? 0) - (r.then ?? 0)) / (r.then || 1)))
+    const up = most < 0.05 ? "edged up" : "risen"
+    return lead > 0 && rose.slice(lead).every((r) => !r)
+      ? `${up} in the ${lead === 1 ? "most deprived tenth" : `${words(lead)} most deprived tenths`} and fallen in the other ${words(10 - lead)}`
+      : `${up} in ${words(rose.filter(Boolean).length)} of the ten tenths`
+  }
+
   const ends = [extremes.male.top.code, extremes.male.bottom.code]
   const reference = { male: stall.male.now, female: stall.female.now }
   const gapScenes: DotScene[] = [
@@ -54,7 +73,7 @@ export function Story({ data }: { data: StoryData }) {
 
   return (
     <article className="pb-24">
-      {/* 01 · Ten years apart */}
+      {/* Ten years apart */}
       <Scrolly
         id="gap"
         stage={(step) => (
@@ -74,11 +93,11 @@ export function Story({ data }: { data: StoryData }) {
               A boy born in <strong className="font-semibold text-ink">{extremes.male.top.name}</strong> can expect to
               live {formatYears(gapMale)} years longer than one born in{" "}
               <strong className="font-semibold text-ink">{extremes.male.bottom.name}</strong>, if today&apos;s death
-              rates hold. This is where that gap lies, how progress stalled, and what travels with it.
+              rates hold. This is where that gap lies, how progress stalled, who it left behind, and what differs between the two ends.
             </p>
             <ScrollCue count={data.areas.length} />
           </div>,
-          <Step key="map" n="01" title="Every dot is a place">
+          <Step key="map" title="Every dot is a place">
             <p>
               Each of the {data.areas.length} dots is a UK local authority, set roughly where it sits on the map. Colour
               shows how far male life expectancy in 2022–24 sits from the UK figure of {formatYears(reference.male)}{" "}
@@ -92,7 +111,7 @@ export function Story({ data }: { data: StoryData }) {
             </p>
             <p className="text-sm text-ink-3">Hover or tap any dot for its figures.</p>
           </Step>,
-          <Step key="rank" n="02" title="Lined up">
+          <Step key="rank" title="Lined up">
             <p>
               Sort every place by life expectancy and most crowd the middle: half sit within{" "}
               {formatYears(facts.iqrMale)} years of each other. The tails reach much further, from{" "}
@@ -103,31 +122,30 @@ export function Story({ data }: { data: StoryData }) {
               {formatYears(extremes.female.bottom.value)}) to {extremes.female.top.name} (
               {formatYears(extremes.female.top.value)}).
             </p>
-            <BigStat value={formatYears(gapMale)} label="years between the top and bottom, men" />
           </Step>,
         ]}
       />
 
-      {/* 02 · The stall */}
-      <ChapterHead n="02" title="The stall" dek="For a decade life expectancy rose steadily. Then, well before COVID-19, it almost stopped." />
+      {/* The stall */}
+      <ChapterHead title="The stall" dek="For a decade life expectancy rose steadily. Then, well before COVID-19, it almost stopped." />
       <Scrolly
         id="stall"
         side="right"
         stage={(step) => <StallChart data={data} step={step} />}
         steps={[
-          <Step key="rise" n="01" title="A decade of gains">
+          <Step key="rise" title="A decade of gains">
             <p>
               From 2001–03 to 2011–13, UK life expectancy rose by about {months(stall.male.pre)} months a year for men
               and {months(stall.female.pre)} months for women.
             </p>
           </Step>,
-          <Step key="flat" n="02" title="Then it flattened">
+          <Step key="flat" title="Then it flattened">
             <p>
               Between 2011–13 and 2017–19 the gains shrank to {months(stall.male.post)} months a year for men and{" "}
               {months(stall.female.post)} for women. The slowdown began years before the pandemic.
             </p>
           </Step>,
-          <Step key="covid" n="03" title="COVID and after">
+          <Step key="covid" title="COVID and after">
             <p>
               COVID-19 pushed life expectancy down. By 2022–24 men were at {formatYears(stall.male.now)} years,{" "}
               {stall.male.now < stall.male.precovid ? "still below" : "back to"} their 2017–19 level of{" "}
@@ -142,9 +160,8 @@ export function Story({ data }: { data: StoryData }) {
         ]}
       />
 
-      {/* 03 · The split */}
+      {/* The split */}
       <ChapterHead
-        n="03"
         title="The split"
         dek="The stall wasn't shared equally. In England, the most deprived places slipped back while the least deprived kept gaining."
       />
@@ -165,13 +182,22 @@ export function Story({ data }: { data: StoryData }) {
                 active={step === 1}
               />
             </Layer>
-            <Layer on={step >= 2}>
+            <Layer on={step === 2}>
               <DecileLines data={data} sex="male" active={step >= 2} />
+            </Layer>
+            <Layer on={step >= 3}>
+              <AvoidableBars
+                rows={avoidableDeciles.male}
+                label="Men: avoidable deaths under 75 per 100,000, average of English local authorities in each deprivation tenth"
+                shortLabel="Men: avoidable deaths under 75, per 100,000"
+                periods={{ then: avoidableDeciles.then, now: avoidableDeciles.now }}
+                active={step >= 3}
+              />
             </Layer>
           </div>
         )}
         steps={[
-          <Step key="tenths" n="01" title="Ten steps down">
+          <Step key="tenths" title="Ten steps down">
             <p>
               Here England&apos;s {facts.englandAreas} local authorities are split into ten equal groups by deprivation
               (IMD 2025). Black ticks mark each group&apos;s average.
@@ -182,7 +208,7 @@ export function Story({ data }: { data: StoryData }) {
               different indices, so they sit apart.
             </p>
           </Step>,
-          <Step key="moved" n="02" title="Moving apart">
+          <Step key="moved" title="Moving apart">
             <p>
               Here is how each tenth&apos;s average moved between 2011–13 and 2022–24. For men, {splitSentence.charAt(0).toLowerCase() + splitSentence.slice(1)}
             </p>
@@ -194,7 +220,7 @@ export function Story({ data }: { data: StoryData }) {
               Across the UK, {lower.male} of {lower.of} places now have lower male life expectancy than in 2011–13.
             </p>
           </Step>,
-          <Step key="gap" n="03" title="A wider gap">
+          <Step key="gap" title="A wider gap">
             <p>
               The gap between the most and least deprived tenths grew from {formatYears(deciles.gapMale[index.stall])}{" "}
               to {formatYears(deciles.gapMale[index.now])} years for men, and from{" "}
@@ -205,12 +231,26 @@ export function Story({ data }: { data: StoryData }) {
               population.
             </p>
           </Step>,
+          <Step key="avoidable" title="Deaths before 75">
+            <p>
+              ONS counts a death under 75 as avoidable if it could mostly be prevented by public health measures or treated
+              by timely healthcare.
+            </p>
+            <p>
+              In {avoidableDeciles.now}, men in the most deprived tenth died from avoidable causes at{" "}
+              {Math.round(avMost.now ?? 0)} per 100,000 on average, {((avMost.now ?? 0) / (avLeast.now ?? 1)).toFixed(1)}{" "}
+              times the rate in the least deprived ({Math.round(avLeast.now ?? 0)}).
+            </p>
+            <p>
+              Since {avoidableDeciles.then} the rate has {avTrend(avoidableDeciles.male)}.
+              {avTrend(avoidableDeciles.female) === avTrend(avoidableDeciles.male) ? " The same holds for women." : null}
+            </p>
+          </Step>,
         ]}
       />
 
-      {/* 04 · The years in between */}
+      {/* The years in between */}
       <ChapterHead
-        n="04"
         title="The years in between"
         dek="Healthy life expectancy counts the years people rate their health as good or very good. Here the gap is wider still."
       />
@@ -225,9 +265,8 @@ export function Story({ data }: { data: StoryData }) {
         </Notes>
       </Section>
 
-      {/* 05 · What travels with it */}
+      {/* What travels with it */}
       <ChapterHead
-        n="05"
         title="What travels with it"
         dek="Across English local authorities, life expectancy lines up closely with local circumstances. Each panel plots one against male or female life expectancy."
       />
@@ -243,9 +282,11 @@ export function Story({ data }: { data: StoryData }) {
         </Notes>
       </Section>
 
-      {/* 06 · Your place */}
+      {/* The two ends, again */}
+      <PairChapter data={data} />
+
+      {/* Your place */}
       <ChapterHead
-        n="06"
         title="Your place"
         dek="See how your local authority compares: life expectancy, healthy years, the trend since 2001 and local circumstances."
       />
@@ -272,6 +313,146 @@ export function Story({ data }: { data: StoryData }) {
   )
 }
 
+/** The lowest and highest places side by side: the gap over time, avoidable deaths, then factor by factor. */
+function PairChapter({ data }: { data: StoryData }) {
+  const { pair, index, periods } = data
+  const { low, high, le, avoidable: av } = pair
+  const short = (p: string) => p.replace(/^(\d{4}) to \d{2}(\d{2})$/, "$1–$2")
+  const at = (s: (number | null)[], i: number) => s[i] ?? 0
+  const gapThen = at(le.high, index.start) - at(le.low, index.start)
+  const gapNow = at(le.high, index.now) - at(le.low, index.now)
+  const avLast = av.low.length - 1
+  const fall = (s: (number | null)[]) => {
+    const pct = Math.round((1 - at(s, avLast) / at(s, 0)) * 100)
+    return pct >= 0 ? `fallen by ${pct}%` : `risen by ${-pct}%`
+  }
+  const row = (key: string) => pair.rows.find((r) => r.key === key)!
+  const times = (key: string) => {
+    const r = row(key)
+    return r.low !== null && r.high !== null ? (r.low / r.high).toFixed(1) : "–"
+  }
+  const causes = pair.rows
+    .filter((r) => r.key.startsWith("u75") && r.low !== null && r.high !== null)
+    .sort((a, b) => b.low! / b.high! - a.low! / a.high!)
+  const causeList = causes.map((r, i) => `${times(r.key)}${i === 0 ? " times" : ""} for ${r.label.toLowerCase()}`)
+  const rankText = (r: number | null) =>
+    r === 1 ? "the most deprived" : r === pair.imdOf ? "the least deprived" : r ? `number ${r} of ${pair.imdOf}` : "not ranked"
+  const smoking = row("smoking")
+  const air = row("airPollution")
+  const kids = row("childPoverty")
+
+  return (
+    <>
+      <ChapterHead
+        title={`${low.name} and ${high.name}`}
+        dek={`Back to the two places we started with. Side by side, the two ends of the ${words(Math.round(gapNow))}-year gap differ in which deaths come early, in how people live and in the circumstances around them.`}
+      />
+      <Scrolly
+        id="pair"
+        stage={(step) => (
+          <div className="relative h-full">
+            <Layer on={step === 0}>
+              <PairLines
+                periods={periods}
+                lines={[
+                  { label: low.name, values: le.low, colour: LOW },
+                  { label: high.name, values: le.high, colour: HIGH },
+                  { label: "UK", values: le.ref, colour: INK, reference: true },
+                ]}
+                title="Men: life expectancy at birth, years"
+                bracket
+                active={step === 0}
+              />
+            </Layer>
+            <Layer on={step === 1}>
+              <PairLines
+                periods={av.periods}
+                lines={[
+                  { label: low.name, values: av.low, colour: LOW },
+                  { label: high.name, values: av.high, colour: HIGH },
+                  { label: "England", values: av.ref, colour: INK, reference: true },
+                ]}
+                title="Men: avoidable deaths under 75, age-standardised per 100,000"
+                digits={0}
+                active={step === 1}
+              />
+            </Layer>
+            <Layer on={step >= 2}>
+              <PairCompare rows={pair.rows} names={{ low: low.name, high: high.name }} step={step - 2} />
+            </Layer>
+          </div>
+        )}
+        steps={[
+          <Step key="widening" title="Ten years, and widening">
+            <p>
+              In {short(periods[index.start])} the gap between the two was {formatYears(gapThen)} years. Since then men in{" "}
+              {high.name} {moved(at(le.high, index.now) - at(le.high, index.start))} and men in {low.name}{" "}
+              {moved(at(le.low, index.now) - at(le.low, index.start))}, so it has widened to {formatYears(gapNow)}.
+            </p>
+            {low.hle !== null ? (
+              <p>
+                Fewer of those years are healthy. {low.name} men can expect {formatYears(low.hle)} of their{" "}
+                {formatYears(at(le.low, index.now))} years in good health, against {formatYears(pair.hleEngland)} for
+                England ({pair.hlePeriod}).
+                {high.hle === null ? ` Healthy life expectancy isn't published for districts such as ${high.name}.` : null}
+              </p>
+            ) : null}
+          </Step>,
+          <Step key="avoidable" title="Avoidable deaths">
+            <p>
+              In {av.period}, men in {low.name} died from avoidable causes at {Math.round(at(av.low, avLast))} per 100,000,{" "}
+              {(at(av.low, avLast) / at(av.high, avLast)).toFixed(1)} times the rate in {high.name} (
+              {Math.round(at(av.high, avLast))}; England {Math.round(at(av.ref, avLast))}). Since {short(av.periods[0])},{" "}
+              {high.name}&apos;s rate has {fall(av.high)}; {low.name}&apos;s has {fall(av.low)}.
+            </p>
+          </Step>,
+          <Step key="deaths" title="Which deaths">
+            <p>
+              Preventable deaths are {times("preventable")} times as common in {low.name}; treatable deaths{" "}
+              {times("treatable")} times.
+            </p>
+            <p>
+              By cause, death rates for everyone under 75 are {causeList.slice(0, -1).join(", ")} and {causeList.at(-1)}{" "}
+              those in {high.name}.
+            </p>
+            <p className="text-sm text-ink-3">Dots show each figure as a multiple of England&apos;s, on a log scale.</p>
+          </Step>,
+          <Step key="behaviour" title="How people live">
+            <p>
+              Alcohol-specific hospital admissions are {times("alcohol")} times as frequent in {low.name}. Physical
+              inactivity is {times("inactive")} times as common, and obesity {times("obesity")} times.
+            </p>
+            {smoking.low !== null && smoking.england ? (
+              <p>
+                {formatYears(smoking.low)}% of adults in {low.name} smoke, {(smoking.low / smoking.england).toFixed(1)} times
+                England&apos;s {formatYears(smoking.england)}%.
+                {smoking.highFlag ? ` OHID flags ${high.name}'s smoking estimate for data quality, so it isn't compared.` : null}
+              </p>
+            ) : null}
+          </Step>,
+          <Step key="circumstances" title="And around them">
+            <p>
+              {low.name} is {rankText(low.imdRank)} local authority in England on the 2025 deprivation index; {high.name}{" "}
+              is {rankText(high.imdRank)}. {formatYears(kids.low)}% of children in {low.name} live in low-income families,
+              against {formatYears(kids.high)}% in {high.name}. Fuel poverty is {times("fuelPoverty")} times as common.
+            </p>
+            {air.low !== null && air.high !== null && air.high > air.low ? (
+              <p>
+                Not everything runs one way: a larger share of deaths in {high.name} is linked to fine-particulate air
+                pollution.
+              </p>
+            ) : null}
+            <p className="text-sm text-ink-3">
+              These differences travel together, so this data can&apos;t say how much of the gap each explains. The
+              previous chapter shows the same pattern across England.
+            </p>
+          </Step>,
+        ]}
+      />
+    </>
+  )
+}
+
 /** One of several stacked stages, crossfaded by step. */
 function Layer({ on, children }: { on: boolean; children: React.ReactNode }) {
   return (
@@ -281,10 +462,9 @@ function Layer({ on, children }: { on: boolean; children: React.ReactNode }) {
   )
 }
 
-function Step({ n, title, children }: { n?: string; title: string; children: React.ReactNode }) {
+function Step({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="max-w-md">
-      {n ? <p className="kicker mb-3">{n}</p> : null}
       <h3 className="display text-[1.75rem] leading-tight text-ink sm:text-4xl">{title}</h3>
       <div className="prose-story mt-3 text-[15.5px] leading-relaxed text-ink-2 sm:mt-4 sm:text-[17px] [&_strong]:font-semibold [&_strong]:text-ink">
         {children}
@@ -302,17 +482,12 @@ function BigStat({ value, label }: { value: string; label: string }) {
   )
 }
 
-/** Chapter opener: a heavy rule, a large numeral and the title. */
-function ChapterHead({ n, title, dek }: { n: string; title: string; dek: string }) {
+/** Chapter opener: a heavy rule, the title, and a dek set in the stage column. */
+function ChapterHead({ title, dek }: { title: string; dek: string }) {
   return (
-    <header className="mt-36 border-t-[3px] border-ink pt-5 sm:mt-48">
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,8fr)] lg:gap-12">
-        <p className="display text-[clamp(4rem,9vw,7.5rem)] leading-[0.8] text-ink/15">{n}</p>
-        <div>
-          <h2 className="display text-[clamp(2.75rem,7vw,6rem)] leading-[0.88] text-ink">{title}</h2>
-          <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink-2">{dek}</p>
-        </div>
-      </div>
+    <header className="mt-36 border-t-[3px] border-ink pt-6 sm:mt-48">
+      <h2 className="display max-w-5xl text-[clamp(2.75rem,7vw,6rem)] leading-[0.88] text-ink">{title}</h2>
+      <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink-2 lg:ml-[calc(5/13*100%+1.25rem)] lg:mt-8">{dek}</p>
     </header>
   )
 }
@@ -325,7 +500,7 @@ function Notes({ children }: { children: React.ReactNode }) {
   return <p className="mt-10 max-w-3xl border-l-2 border-ink pl-4 text-sm leading-relaxed text-ink-2">{children}</p>
 }
 
-/** Three dots, brick to teal, pulse down in turn; clicking goes to the first step. */
+/** Three dots pulse down in turn; clicking goes to the first step. */
 function ScrollCue({ count }: { count: number }) {
   const go = () => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -338,11 +513,11 @@ function ScrollCue({ count }: { count: number }) {
       className="group mt-10 hidden animate-rise items-center gap-4 text-left [animation-delay:700ms] lg:flex"
     >
       <span className="flex h-14 w-8 flex-col items-center justify-center gap-[7px] rounded-full border border-ink/15 transition-colors group-hover:border-ink/40">
-        {["#b3452c", "#c9c4b8", "#0b5a4c"].map((c, i) => (
+        {[0, 1, 2].map((i) => (
           <span
-            key={c}
-            className="h-[6px] w-[6px] rounded-full motion-safe:animate-[cue_1.8s_ease-in-out_infinite]"
-            style={{ background: c, animationDelay: `${i * 180}ms` }}
+            key={i}
+            className="h-[5px] w-[5px] rounded-full bg-ink motion-safe:animate-[cue_1.8s_ease-in-out_infinite]"
+            style={{ animationDelay: `${i * 180}ms` }}
           />
         ))}
       </span>
