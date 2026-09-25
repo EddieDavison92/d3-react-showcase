@@ -156,12 +156,17 @@ def build() -> dict:
         "england": {},
         "ltla": {},
         "utla": {},
+        # Values OHID marks with a data quality issue, by grain, area and key.
+        "flags": {"ltla": {}, "utla": {}},
     }
+    cached = []
     for spec in INDICATORS:
         entry = {k: v for k, v in spec.items() if k not in {"range", "coverage"}}
         periods = {}
         for grain, area_type in AREA_TYPES.items():
-            rows = headline_rows(fetch(spec["id"], area_type))
+            path = fetch(spec["id"], area_type)
+            cached.append(path)
+            rows = headline_rows(path)
             period, period_range = pick_period(
                 rows, spec.get("range"), spec.get("coverage", MIN_COVERAGE)
             )
@@ -179,6 +184,8 @@ def build() -> dict:
                     out["england"][spec["key"]] = value
                 elif is_local(code):
                     out[grain].setdefault(code, {})[spec["key"]] = value
+                    if "data quality" in row["Value note"].lower():
+                        out["flags"][grain].setdefault(code, []).append(spec["key"])
         # "2023 - 25" -> "2023–25" for display.
         entry["period"] = periods["ltla"].replace(" - ", "–")
         entry["url"] = f"https://fingertips.phe.org.uk/search/{spec['id']}"
@@ -189,6 +196,8 @@ def build() -> dict:
             f"utla={sum(spec['key'] in v for v in out['utla'].values())}",
             file=sys.stderr,
         )
+    # Date of the oldest cached download, so a rebuild from cache keeps the real fetch date.
+    out["meta"]["fetched"] = date.fromtimestamp(min(p.stat().st_mtime for p in cached)).isoformat()
     return out
 
 
