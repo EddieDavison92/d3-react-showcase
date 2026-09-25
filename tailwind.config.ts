@@ -26,9 +26,13 @@ const config = {
           from: { opacity: "0", transform: "translateY(8px)" },
           to: { opacity: "1", transform: "none" },
         },
+        fade: {
+          from: { opacity: "0" },
+        },
       },
       animation: {
         rise: "rise 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both",
+        fade: "fade 500ms ease-out",
       },
     },
   },

@@ -1,7 +1,5 @@
 "use client"
 
-import { useState } from "react"
-import { SexToggle } from "@/components/story/SexToggle"
 import { useInView } from "@/components/story/use-in-view"
 import { useTween } from "@/components/story/use-tween"
 import { formatYears } from "@/lib/explorer/format"
@@ -12,8 +10,7 @@ const SPAN = 90
 const HATCH = POOR_FILL
 
 /** Healthy and not-healthy years at birth, one bar per deprivation tenth. */
-export function Lifelines({ data }: { data: StoryData }) {
-  const [sex, setSex] = useState<"male" | "female">("male")
+export function Lifelines({ data, sex }: { data: StoryData; sex: "male" | "female" }) {
   const [ref, seen] = useInView<HTMLDivElement>(0.3)
   const rows = data.lifelines
   const target = rows.flatMap((row) => [row[sex].healthy ?? 0, row[sex].life ?? 0])
@@ -24,12 +21,9 @@ export function Lifelines({ data }: { data: StoryData }) {
 
   return (
     <div ref={ref}>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-wrap gap-x-6 gap-y-2">
-          <Legend swatch={{ background: "#1a7a6b" }} label="Years in good health" />
-          <Legend swatch={{ background: HATCH }} label="Years not in good health" />
-        </div>
-        <SexToggle value={sex} onChange={setSex} />
+      <div className="flex flex-wrap gap-x-6 gap-y-2">
+        <Legend swatch={{ background: "#1a7a6b" }} label="Years in good health" />
+        <Legend swatch={{ background: HATCH }} label="Years not in good health" />
       </div>
 
       <div className="mt-8">

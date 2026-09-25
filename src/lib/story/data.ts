@@ -208,7 +208,6 @@ export const getStoryData = cache(async () => {
     .filter(([, f]) => f.airPollution !== undefined)
     .sort((a, b) => b[1].airPollution - a[1].airPollution)
     .slice(0, 30)
-  const bottomTen = nowMale.slice(-10)
   const ciWidths = local
     .map((a) => {
       const p = le.values[a.code]?.Male?.birth?.[iNow]
@@ -216,8 +215,14 @@ export const getStoryData = cache(async () => {
     })
     .filter((v): v is number => v !== null)
   const facts = {
-    topTenEngland: nowMale.slice(0, 10).filter((a) => a.nation === "E").length,
-    bottomTenScotland: bottomTen.filter((a) => a.nation === "S").length,
+    topTenEngland: {
+      male: nowMale.slice(0, 10).filter((a) => a.nation === "E").length,
+      female: nowFemale.slice(0, 10).filter((a) => a.nation === "E").length,
+    },
+    bottomTenScotland: {
+      male: nowMale.slice(-10).filter((a) => a.nation === "S").length,
+      female: nowFemale.slice(-10).filter((a) => a.nation === "S").length,
+    },
     iqrMale: round(quantile(nowMale, "male", 0.75) - quantile(nowMale, "male", 0.25), 1) as number,
     iqrFemale: round(quantile(nowFemale, "female", 0.75) - quantile(nowFemale, "female", 0.25), 1) as number,
     airTop30London: air.filter(([code]) => code.startsWith("E09")).length,
@@ -257,7 +262,7 @@ export const getStoryData = cache(async () => {
   }
 })
 
-/** Male life expectancy, avoidable deaths and local factors for the lowest and highest places. */
+/** Life expectancy, avoidable deaths and local factors for the lowest and highest places, by sex where published. */
 function comparePair(args: {
   le: PackedFile
   hle: PackedFile
@@ -273,9 +278,10 @@ function comparePair(args: {
   const ind = new Map(evidence.indicators.map((i) => [i.key, i]))
   const flagged = (code: string, key: string) => evidence.flags?.ltla[code]?.includes(key) ?? false
 
-  const deaths = (key: "preventable" | "treatable", label: string): CompareRow => {
-    const at = (code: string) => avoidable.values[code]?.Male?.[key]?.[iAv]?.[0] ?? null
-    return { key, group: 0, label, note: `men, ${avPeriod}`, unit: "rate", low: at(low.code), high: at(high.code), england: at(ENGLAND), lowFlag: false, highFlag: false }
+  const deaths = (key: "preventable" | "treatable", label: string, sex: SexId): CompareRow => {
+    const at = (code: string) => avoidable.values[code]?.[sex]?.[key]?.[iAv]?.[0] ?? null
+    const who = sex === "Male" ? "men" : "women"
+    return { key, group: 0, label, note: `${who}, ${avPeriod}`, unit: "rate", low: at(low.code), high: at(high.code), england: at(ENGLAND), lowFlag: false, highFlag: false }
   }
   const factor = (key: string, group: number, label: string, unit: CompareRow["unit"], who = ""): CompareRow => ({
     key,
@@ -296,9 +302,8 @@ function comparePair(args: {
     .map(([code]) => code)
   const rank = (code: string) => (imd.includes(code) ? imd.indexOf(code) + 1 : null)
 
-  const rows: CompareRow[] = [
-    deaths("preventable", "Preventable deaths"),
-    deaths("treatable", "Treatable deaths"),
+  // Preventable and treatable deaths are published by sex; the rest are for everyone.
+  const shared: CompareRow[] = [
     factor("u75Resp", 0, "Respiratory disease", "rate", "all"),
     factor("u75Liver", 0, "Liver disease", "rate", "all"),
     factor("u75Cvd", 0, "Heart and circulatory disease", "rate", "all"),
@@ -312,26 +317,31 @@ function comparePair(args: {
     factor("fuelPoverty", 2, "Households in fuel poverty", "%"),
     factor("airPollution", 2, "Deaths linked to air pollution", "%"),
   ]
+  const rows = (sex: SexId): CompareRow[] => [
+    deaths("preventable", "Preventable deaths", sex),
+    deaths("treatable", "Treatable deaths", sex),
+    ...shared,
+  ]
 
-  const avSeries = (code: string) => series(avoidable, code, "Male", "avoidable")
+  const avSeries = (code: string, sex: SexId) => series(avoidable, code, sex, "avoidable")
   const hleNow = hle.periods.length - 1
-  const healthy = (code: string) => hle.values[code]?.Male?.birth?.[hleNow]?.[0] ?? null
+  const healthy = (code: string, sex: SexId) => hle.values[code]?.[sex]?.birth?.[hleNow]?.[0] ?? null
+  const bySex = (sex: SexId) => ({
+    hle: { low: healthy(low.code, sex), high: healthy(high.code, sex), england: healthy(ENGLAND, sex) },
+    le: { low: series(le, low.code, sex), high: series(le, high.code, sex), ref: series(le, UK, sex) },
+    avoidable: { low: avSeries(low.code, sex), high: avSeries(high.code, sex), ref: avSeries(ENGLAND, sex) },
+    rows: rows(sex),
+  })
 
   return {
-    low: { ...low, imdRank: rank(low.code), hle: healthy(low.code) },
-    high: { ...high, imdRank: rank(high.code), hle: healthy(high.code) },
+    low: { ...low, imdRank: rank(low.code) },
+    high: { ...high, imdRank: rank(high.code) },
     imdOf: imd.length,
-    hleEngland: healthy(ENGLAND),
     hlePeriod: compact(hle.periods[hleNow]),
-    le: { low: series(le, low.code, "Male"), high: series(le, high.code, "Male"), ref: series(le, UK, "Male") },
-    avoidable: {
-      periods: avoidable.periods,
-      low: avSeries(low.code),
-      high: avSeries(high.code),
-      ref: avSeries(ENGLAND),
-      period: avPeriod,
-    },
-    rows,
+    avPeriods: avoidable.periods,
+    avPeriod,
+    male: bySex("Male"),
+    female: bySex("Female"),
   }
 }
 

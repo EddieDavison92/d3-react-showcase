@@ -38,12 +38,16 @@ export type DotScene = {
 
 const PAD = { top: 36, right: 24, bottom: 44, left: 20 }
 const LE_DOMAIN: Record<Sex, [number, number]> = { male: [72, 85], female: [76, 88] }
-const CHANGE_DOMAIN: [number, number] = [-2.5, 2.5]
+const CHANGE_DOMAIN: [number, number] = [-2, 2.2]
 /** Colours saturate here: ±1.5 years for change, ±4.5 years for the gap to the UK. */
 const CHANGE_SPAN = 1.5
 const GAP_SPAN = 4.5
 const NON_ENGLAND_ROW = 10
 const LABEL_LIFT = 46
+/** Change layout: room on the right for each row's average. */
+const MEAN_COL = { wide: 64, narrow: 40 }
+const FELL = DIVERGING[1]
+const ROSE = DIVERGING[8]
 /** Opening: one dot every INTRO_STEP ms, lowest life expectancy first. */
 const INTRO_STEP = 13
 const INTRO_POP = 650
@@ -124,8 +128,8 @@ export function DotStage({
   const rankTop = PAD.top + 72
   const plot = {
     left: PAD.left + (rowed ? rowLabelW : 0),
-    right: width - PAD.right,
-    top: layout === "rank" ? rankTop : PAD.top + (layout === "change" ? 44 : rowed ? 12 : 0),
+    right: width - PAD.right - (layout === "change" ? MEAN_COL[narrow ? "narrow" : "wide"] : 0),
+    top: layout === "rank" ? rankTop : PAD.top + (layout === "change" ? 64 : rowed ? 12 : 0),
     bottom: layout === "rank" && narrow ? Math.min(height - PAD.bottom, rankTop + 340) : height - PAD.bottom,
   }
   const x = useMemo(() => {
@@ -227,7 +231,7 @@ export function DotStage({
         {/* Deprivation rows. */}
         <g className="transition-opacity duration-700" opacity={rowed ? 1 : 0}>
           <text x={PAD.left} y={plot.top - 14} fontSize={10.5} fill={INK_3}>
-            {narrow ? "IMD tenth" : "Deprivation tenth (IMD 2025)"}
+            {narrow ? "LA deprivation tenth" : "Local authority deprivation tenth (IMD 2025)"}
           </text>
           {Array.from({ length: rows }, (_, row) => (
             <g key={row} transform={`translate(0,${rowY(row)})`}>
@@ -237,7 +241,7 @@ export function DotStage({
               </text>
             </g>
           ))}
-          {x.ticks(narrow ? 4 : 6).map((t) => (
+          {x.ticks(narrow || layout === "change" ? 4 : 6).map((t) => (
             <text key={`t${t}`} x={x(t)} y={plot.bottom + 18} textAnchor="middle" fontSize={10.5} fill={INK_3}>
               {layout === "change" ? formatSigned(t, 0) : t}
             </text>
@@ -299,21 +303,50 @@ export function DotStage({
           })}
         </g>
 
-        {/* Row means, with values on the first and last rows. */}
+        {/* Row means. Levels label the first and last rows; changes list every row on the right. */}
         {means && rowed
           ? rowMeans.map((m, d) =>
               m === null ? null : (
                 <g key={d} className="mark pointer-events-none" style={{ transform: `translate(${x(m)}px, ${rowY(d)}px)` }}>
                   <line y1={-rowH * 0.44} y2={rowH * 0.44} stroke={INK} strokeWidth={2.5} strokeLinecap="round" />
-                  {d === 0 || d === 9 ? (
+                  {layout === "decile" && (d === 0 || d === 9) ? (
                     <text x={6} y={-rowH * 0.3} fontSize={10.5} fontWeight={600} fill={INK} stroke={PAPER} strokeWidth={3} paintOrder="stroke">
-                      {layout === "change" ? formatSigned(m) : formatYears(m)}
+                      {formatYears(m)}
                     </text>
                   ) : null}
                 </g>
               )
             )
           : null}
+
+        {/* Change layout: direction either side of zero and each row's average. */}
+        <g className="pointer-events-none transition-opacity duration-700" opacity={layout === "change" && means ? 1 : 0}>
+          <text x={x(0) - 8} y={plot.top - 14} textAnchor="end" fontSize={10.5} fill={FELL}>
+            ← fell
+          </text>
+          <text x={x(0) + 8} y={plot.top - 14} fontSize={10.5} fill={ROSE}>
+            rose →
+          </text>
+          <text x={width - PAD.right} y={plot.top - 14} textAnchor="end" fontSize={10.5} fill={INK_3}>
+            {narrow ? "Avg" : "Average"}
+          </text>
+          {rowMeans.map((m, d) =>
+            m === null ? null : (
+              <text
+                key={d}
+                x={width - PAD.right}
+                y={rowY(d)}
+                dy="0.32em"
+                textAnchor="end"
+                fontSize={12}
+                fontWeight={600}
+                fill={m < 0 ? FELL : ROSE}
+              >
+                {formatSigned(m)}
+              </text>
+            )
+          )}
+        </g>
 
         {/* Leader lines for labelled areas, on the same delay as their dots; labels are HTML below. */}
         {highlight.map((code) => {
@@ -323,7 +356,7 @@ export function DotStage({
           return (
             <g
               key={code}
-              className="mark pointer-events-none"
+              className="mark pointer-events-none animate-fade"
               style={{ transform: `translate(${p.x}px, ${p.y}px)`, opacity: done ? 1 : 0, ["--delay" as string]: `${delayOf(p.x)}ms` }}
             >
               {/* Unit line scaled to length, so it eases with the dot instead of jumping. */}
@@ -355,7 +388,7 @@ export function DotStage({
         return (
           <div
             key={code}
-            className="pointer-events-none absolute z-10 whitespace-nowrap rounded-full border border-ink/10 bg-white px-3 py-1 text-[13px] shadow-[0_6px_20px_-10px_rgba(17,19,21,0.4)] transition-[left,top,transform] duration-[1100ms] ease-[cubic-bezier(0.65,0,0.25,1)]"
+            className="pointer-events-none absolute z-10 animate-fade whitespace-nowrap rounded-full border border-ink/10 bg-white px-3 py-1 text-[13px] shadow-[0_6px_20px_-10px_rgba(17,19,21,0.4)] transition-[left,top,transform] duration-[1100ms] ease-[cubic-bezier(0.65,0,0.25,1)]"
             style={{
               left: Math.max(8, Math.min(width - 8, p.x)),
               top: p.y - liftOf(p),

@@ -26,7 +26,9 @@ export function SiteHeader() {
             <Mark />
             <span className="display text-[19px] font-normal text-ink">Ten years apart</span>
           </Link>
-          <nav className="ml-auto hidden items-center text-sm sm:flex" aria-label="Main">
+          {/* Page controls, e.g. the story's men/women switch, are portalled here. */}
+          <div id="header-tools" className="ml-auto flex items-center" />
+          <nav className="hidden items-center text-sm sm:flex" aria-label="Main">
             {NAV.map((item) => (
               <Link
                 key={item.href}

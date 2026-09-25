@@ -3,6 +3,7 @@
 import { useState } from "react"
 import * as d3 from "d3"
 import { useSize } from "@/components/story/use-size"
+import { useTween } from "@/components/story/use-tween"
 import { INK, INK_3, LINE, PAPER } from "@/lib/story/palette"
 
 export const LOW = "#b3452c"
@@ -15,7 +16,7 @@ type Series = { label: string; values: (number | null)[]; colour: string; refere
 /** Two places and a reference over time. Draws when active; optionally brackets the gap at the first and last period. */
 export function PairLines({
   periods,
-  lines,
+  lines: target,
   title,
   digits = 1,
   bracket = false,
@@ -37,8 +38,16 @@ export function PairLines({
   const h = Math.max(10, height - M.top - M.bottom)
   const last = periods.length - 1
   const x = d3.scaleLinear().domain([0, last]).range([0, w])
-  const all = lines.flatMap((l) => l.values).filter((v): v is number => v !== null)
-  const y = d3.scaleLinear().domain(d3.extent(all) as [number, number]).nice().range([h, 0])
+  const all = target.flatMap((l) => l.values).filter((v): v is number => v !== null)
+  const domain = d3.scaleLinear().domain(d3.extent(all) as [number, number]).nice().domain()
+  // Lines and axis glide together when the series change; NaN stands in for a missing value.
+  const n = periods.length
+  const tweened = useTween([...domain, ...target.flatMap((l) => l.values.map((v) => v ?? NaN))], 900)
+  const lines = target.map((l, k) => ({
+    ...l,
+    values: tweened.slice(2 + k * n, 2 + (k + 1) * n).map((v) => (Number.isFinite(v) ? v : null)),
+  })) as [Series, Series, Series]
+  const y = d3.scaleLinear().domain([tweened[0], tweened[1]]).range([h, 0])
   const path = d3
     .line<number | null>()
     .defined((v) => v !== null)
@@ -86,6 +95,21 @@ export function PairLines({
               {short(periods[i])}
             </text>
           ))}
+          {bracket ? (
+            <path
+              d={
+                d3
+                  .area<number>()
+                  .defined((i) => low.values[i] !== null && high.values[i] !== null)
+                  .x((i) => x(i))
+                  .y0((i) => y(low.values[i] as number))
+                  .y1((i) => y(high.values[i] as number))
+                  .curve(d3.curveMonotoneX)(d3.range(periods.length)) ?? ""
+              }
+              fill={INK}
+              style={{ opacity: active ? 0.045 : 0, transition: `opacity 700ms ${active ? 900 : 0}ms` }}
+            />
+          ) : null}
           {lines.map((l, k) => (
             <path
               key={k}
@@ -119,10 +143,9 @@ export function PairLines({
                   const top = y(high.values[i] as number)
                   const bottom = y(low.values[i] as number)
                   const bx = i === 0 ? x(i) + 10 : x(i) - 10
-                  // Keep the label off the reference line.
-                  const refY = y(lines[2].values[i] ?? 0)
-                  const mid = (top + bottom) / 2
-                  const ly = Math.abs(mid - refY) < 16 ? refY + (mid > refY ? 16 : -16) : mid
+                  // Centre the label in the wider half either side of the reference line, clear of it.
+                  const refY = Math.max(top, Math.min(bottom, y(lines[2].values[i] ?? 0)))
+                  const ly = refY - top > bottom - refY ? (top + refY) / 2 : (refY + bottom) / 2
                   return (
                     <g key={i}>
                       <line x1={bx} x2={bx} y1={top + 6} y2={bottom - 6} stroke={INK} strokeWidth={1.25} />
@@ -131,7 +154,7 @@ export function PairLines({
                       <text
                         x={i === 0 ? bx + 8 : bx - 8}
                         y={ly}
-                        dy="0.32em"
+                        dy="-0.2em"
                         textAnchor={i === 0 ? "start" : "end"}
                         fontSize={12}
                         fontWeight={700}
@@ -141,6 +164,9 @@ export function PairLines({
                         paintOrder="stroke"
                       >
                         {((high.values[i] ?? 0) - (low.values[i] ?? 0)).toFixed(1)} yrs
+                        <tspan x={i === 0 ? bx + 8 : bx - 8} dy="1.3em" fontSize={10.5} fontWeight={400} fill={INK_3}>
+                          {i === 0 ? "gap" : "gap now"}
+                        </tspan>
                       </text>
                     </g>
                   )

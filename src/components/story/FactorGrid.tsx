@@ -1,9 +1,8 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
 import Link from "next/link"
 import * as d3 from "d3"
-import { SexToggle } from "@/components/story/SexToggle"
 import { CanvasDots } from "@/components/story/CanvasDots"
 import { useInView } from "@/components/story/use-in-view"
 import { useTween } from "@/components/story/use-tween"
@@ -19,8 +18,7 @@ const M = { top: 10, right: 18, bottom: 24, left: 30 }
 type Factor = StoryData["factors"][number]
 
 /** One small scatter per circumstance. Order and axes stay fixed across sexes so only the dots move. */
-export function FactorGrid({ data }: { data: StoryData }) {
-  const [sex, setSex] = useState<"male" | "female">("male")
+export function FactorGrid({ data, sex }: { data: StoryData; sex: "male" | "female" }) {
   const [ref, seen] = useInView<HTMLDivElement>(0.12)
   const factors = useMemo(() => [...data.factors].sort((a, b) => a.male.r - b.male.r), [data.factors])
   const now = data.index.now
@@ -34,10 +32,7 @@ export function FactorGrid({ data }: { data: StoryData }) {
 
   return (
     <div ref={ref}>
-      <div className="flex justify-end">
-        <SexToggle value={sex} onChange={setSex} />
-      </div>
-      <div className="mt-6 grid grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
         {factors.map((f, k) => (
           <Panel key={f.indicator.key} factor={f} areas={data.areas} now={now} sex={sex} y={y} seen={seen} order={k} />
         ))}
