@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useMemo } from "react"
+import { AvoidableBars } from "@/components/story/AvoidableBars"
 import { ChangeBars } from "@/components/story/ChangeBars"
 import { DecileLines } from "@/components/story/DecileLines"
 import { DotStage, type DotScene } from "@/components/story/DotStage"
@@ -46,6 +47,21 @@ export function Story({ data }: { data: StoryData }) {
         } gained.`
       : `${capital(words(moves.filter((m) => m < 0).length))} of the ten tenths went backwards.`
 
+  const { avoidableDeciles } = data
+  const avMost = avoidableDeciles.male[0]
+  const avLeast = avoidableDeciles.male[9]
+  // Which tenths' avoidable death rates rose since the earlier period, most deprived first.
+  const avTrend = (rows: { then: number | null; now: number | null }[]) => {
+    const rose = rows.map((r) => (r.now ?? 0) > (r.then ?? 0))
+    const k = rose.indexOf(false)
+    const lead = k === -1 ? 10 : k
+    const most = Math.max(...rows.map((r) => ((r.now ?? 0) - (r.then ?? 0)) / (r.then || 1)))
+    const up = most < 0.05 ? "edged up" : "risen"
+    return lead > 0 && rose.slice(lead).every((r) => !r)
+      ? `${up} in the ${lead === 1 ? "most deprived tenth" : `${words(lead)} most deprived tenths`} and fallen in the other ${words(10 - lead)}`
+      : `${up} in ${words(rose.filter(Boolean).length)} of the ten tenths`
+  }
+
   const ends = [extremes.male.top.code, extremes.male.bottom.code]
   const reference = { male: stall.male.now, female: stall.female.now }
   const gapScenes: DotScene[] = [
@@ -77,7 +93,7 @@ export function Story({ data }: { data: StoryData }) {
               A boy born in <strong className="font-semibold text-ink">{extremes.male.top.name}</strong> can expect to
               live {formatYears(gapMale)} years longer than one born in{" "}
               <strong className="font-semibold text-ink">{extremes.male.bottom.name}</strong>, if today&apos;s death
-              rates hold. This is where that gap lies, how progress stalled, and what travels with it.
+              rates hold. This is where that gap lies, how progress stalled, who it left behind, and what differs between the two ends.
             </p>
             <ScrollCue count={data.areas.length} />
           </div>,
@@ -106,13 +122,9 @@ export function Story({ data }: { data: StoryData }) {
               {formatYears(extremes.female.bottom.value)}) to {extremes.female.top.name} (
               {formatYears(extremes.female.top.value)}).
             </p>
-            <BigStat value={formatYears(gapMale)} label="years between the top and bottom, men" />
           </Step>,
         ]}
       />
-
-      {/* The two ends */}
-      <PairChapter data={data} />
 
       {/* The stall */}
       <ChapterHead title="The stall" dek="For a decade life expectancy rose steadily. Then, well before COVID-19, it almost stopped." />
@@ -170,8 +182,17 @@ export function Story({ data }: { data: StoryData }) {
                 active={step === 1}
               />
             </Layer>
-            <Layer on={step >= 2}>
+            <Layer on={step === 2}>
               <DecileLines data={data} sex="male" active={step >= 2} />
+            </Layer>
+            <Layer on={step >= 3}>
+              <AvoidableBars
+                rows={avoidableDeciles.male}
+                label="Men: avoidable deaths under 75 per 100,000, average of English local authorities in each deprivation tenth"
+                shortLabel="Men: avoidable deaths under 75, per 100,000"
+                periods={{ then: avoidableDeciles.then, now: avoidableDeciles.now }}
+                active={step >= 3}
+              />
             </Layer>
           </div>
         )}
@@ -210,6 +231,21 @@ export function Story({ data }: { data: StoryData }) {
               population.
             </p>
           </Step>,
+          <Step key="avoidable" title="Deaths before 75">
+            <p>
+              ONS counts a death under 75 as avoidable if it could mostly be prevented by public health measures or treated
+              by timely healthcare.
+            </p>
+            <p>
+              In {avoidableDeciles.now}, men in the most deprived tenth died from avoidable causes at{" "}
+              {Math.round(avMost.now ?? 0)} per 100,000 on average, {((avMost.now ?? 0) / (avLeast.now ?? 1)).toFixed(1)}{" "}
+              times the rate in the least deprived ({Math.round(avLeast.now ?? 0)}).
+            </p>
+            <p>
+              Since {avoidableDeciles.then} the rate has {avTrend(avoidableDeciles.male)}.
+              {avTrend(avoidableDeciles.female) === avTrend(avoidableDeciles.male) ? " The same holds for women." : null}
+            </p>
+          </Step>,
         ]}
       />
 
@@ -245,6 +281,9 @@ export function Story({ data }: { data: StoryData }) {
           Factors come from OHID Fingertips (fetched {data.fetched}); see the periods on each panel.
         </Notes>
       </Section>
+
+      {/* The two ends, again */}
+      <PairChapter data={data} />
 
       {/* Your place */}
       <ChapterHead
@@ -306,7 +345,7 @@ function PairChapter({ data }: { data: StoryData }) {
     <>
       <ChapterHead
         title={`${low.name} and ${high.name}`}
-        dek={`Put the two ends of the ${words(Math.round(gapNow))}-year gap side by side and they differ in which deaths come early, in how people live and in the circumstances around them.`}
+        dek={`Back to the two places we started with. Side by side, the two ends of the ${words(Math.round(gapNow))}-year gap differ in which deaths come early, in how people live and in the circumstances around them.`}
       />
       <Scrolly
         id="pair"
@@ -359,11 +398,7 @@ function PairChapter({ data }: { data: StoryData }) {
               </p>
             ) : null}
           </Step>,
-          <Step key="avoidable" title="Deaths before 75">
-            <p>
-              ONS counts a death under 75 as avoidable if it could mostly be prevented by public health measures or treated
-              by timely healthcare.
-            </p>
+          <Step key="avoidable" title="Avoidable deaths">
             <p>
               In {av.period}, men in {low.name} died from avoidable causes at {Math.round(at(av.low, avLast))} per 100,000,{" "}
               {(at(av.low, avLast) / at(av.high, avLast)).toFixed(1)} times the rate in {high.name} (
@@ -408,8 +443,8 @@ function PairChapter({ data }: { data: StoryData }) {
               </p>
             ) : null}
             <p className="text-sm text-ink-3">
-              These differences travel together, so this data can&apos;t say how much of the gap each explains. Later
-              chapters show the same pattern across England.
+              These differences travel together, so this data can&apos;t say how much of the gap each explains. The
+              previous chapter shows the same pattern across England.
             </p>
           </Step>,
         ]}

@@ -139,6 +139,16 @@ export const getStoryData = cache(async () => {
   const decileFemale = byDecile("female")
   const gap = (rows: (number | null)[][]) => P.map((_, i) => round((rows[9][i] ?? 0) - (rows[0][i] ?? 0), 2))
 
+  // Avoidable deaths by deprivation tenth (ONS covers England and Wales; tenths are England only).
+  const avThen = avoidable.periods.indexOf(P_STALL)
+  const avNow = avoidable.periods.length - 1
+  const avoidableByDecile = (sex: SexId) =>
+    Array.from({ length: 10 }, (_, d) => {
+      const codes = areas.filter((a) => a.decile === d + 1).map((a) => a.code)
+      const at = (i: number) => round(mean(codes.map((c) => avoidable.values[c]?.[sex]?.avoidable?.[i]?.[0])), 1)
+      return { then: at(avThen), now: at(avNow) }
+    })
+
   // Chapter 4: healthy years by deprivation tenth (upper tier; HLE isn't published for districts).
   const hleI = hle.periods.length - 1
   const leForHle = le.periods.indexOf(hle.periods[hleI])
@@ -233,6 +243,12 @@ export const getStoryData = cache(async () => {
       counts: Array.from({ length: 10 }, (_, d) => areas.filter((a) => a.decile === d + 1).length),
     },
     pair,
+    avoidableDeciles: {
+      male: avoidableByDecile("Male"),
+      female: avoidableByDecile("Female"),
+      then: compact(avoidable.periods[avThen]),
+      now: compact(avoidable.periods[avNow]),
+    },
     lifelines,
     hlePeriod: hle.periods[hleI],
     ukHle,
