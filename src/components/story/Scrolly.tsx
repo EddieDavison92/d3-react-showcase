@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
  *
  * Desktop: captions beside the stage. Mobile: the stage fills the screen
  * between the bars; each caption arrives after a screen of chart-only scroll.
+ * Heights use svh, which stays put while mobile toolbars collapse.
  */
 export function Scrolly({
   steps,
@@ -60,7 +61,7 @@ export function Scrolly({
     >
       <div
         className={cn(
-          "sticky top-14 z-0 h-[calc(100dvh-7.5rem)] lg:col-start-2 lg:row-start-1 lg:h-[calc(100dvh-3.5rem)] lg:self-start",
+          "sticky top-14 z-0 h-[calc(100svh-7.5rem)] lg:col-start-2 lg:row-start-1 lg:h-[calc(100svh-3.5rem)] lg:self-start",
           side === "right" && "lg:col-start-1"
         )}
       >
@@ -68,7 +69,7 @@ export function Scrolly({
       </div>
       <div
         className={cn(
-          "pointer-events-none relative z-10 -mt-[calc(100dvh-7.5rem)] pb-[30dvh] lg:col-start-1 lg:row-start-1 lg:mt-0 lg:pb-[45dvh]",
+          "pointer-events-none relative z-10 -mt-[calc(100svh-7.5rem)] pb-[30svh] lg:col-start-1 lg:row-start-1 lg:mt-0 lg:pb-[45svh]",
           side === "right" && "lg:col-start-2"
         )}
       >
@@ -82,14 +83,14 @@ export function Scrolly({
             className={cn(
               "flex items-end lg:items-center lg:pb-0",
               i === 0
-                ? "min-h-[calc(100dvh-7.5rem)] pb-3 lg:min-h-[calc(100dvh-3.5rem)]"
-                : "min-h-[175dvh] pb-[5dvh] lg:min-h-[78dvh]"
+                ? "min-h-[calc(100svh-7.5rem)] pb-3 lg:min-h-[calc(100svh-3.5rem)]"
+                : "min-h-[175svh] pb-[5svh] lg:min-h-[78svh]"
             )}
           >
             <div
               className={cn(
-                "pointer-events-auto w-full rounded-2xl border border-line bg-paper/95 p-5 shadow-[0_12px_40px_-24px_rgba(17,19,21,0.35)] backdrop-blur-sm transition-opacity duration-500 sm:p-6",
-                "lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:backdrop-blur-none",
+                "pointer-events-auto w-full rounded-2xl border border-line bg-paper/95 p-5 shadow-[0_12px_40px_-24px_rgba(17,19,21,0.35)] transition-opacity duration-500 sm:p-6",
+                "lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none",
                 active === i ? "opacity-100" : "lg:opacity-30"
               )}
             >

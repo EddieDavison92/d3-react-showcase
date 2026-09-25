@@ -150,7 +150,7 @@ export function ExplorerApp() {
   return (
     <div className="-mx-4 flex flex-col gap-4 sm:-mx-6 lg:relative lg:-mx-10 lg:block lg:h-[calc(100dvh-3.5rem)] lg:overflow-hidden">
       {/* Map */}
-      <div className="relative order-2 h-[58dvh] min-h-[360px] lg:absolute lg:inset-0 lg:h-auto">
+      <div className="relative order-2 h-[58svh] min-h-[360px] lg:absolute lg:inset-0 lg:h-auto">
         {ready && file && model ? (
           <MapView
             key={mapFamily}
