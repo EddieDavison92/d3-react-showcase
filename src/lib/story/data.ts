@@ -5,6 +5,7 @@ import { cache } from "react"
 import type { EvidenceFile } from "@/lib/explorer/evidence"
 import { fit, OUTCOME_GROUP } from "@/lib/explorer/evidence"
 import type { DeprivationFile, LookupsFile, PackedFile, SexId } from "@/lib/explorer/types"
+import type { CompareRow } from "@/lib/story/compare"
 
 export const UK = "K02000001"
 export const NATIONS = [
@@ -25,15 +26,16 @@ async function readJson<T>(name: string): Promise<T> {
 }
 
 export const loadSources = cache(async () => {
-  const [le, hle, evidence, deprivation, lookups, hex] = await Promise.all([
+  const [le, hle, avoidable, evidence, deprivation, lookups, hex] = await Promise.all([
     readJson<PackedFile>("le.json"),
     readJson<PackedFile>("hle.json"),
+    readJson<PackedFile>("avoidable.json"),
     readJson<EvidenceFile>("evidence.json"),
     readJson<DeprivationFile>("deprivation.json"),
     readJson<LookupsFile>("lookups.json"),
     readJson<{ layout: string; hexes: Record<string, [number, number]> }>("hex.json"),
   ])
-  return { le, hle, evidence, deprivation, lookups, hex }
+  return { le, hle, avoidable, evidence, deprivation, lookups, hex }
 })
 
 export type Sources = Awaited<ReturnType<typeof loadSources>>
@@ -86,7 +88,7 @@ export type StoryArea = {
 export type StoryData = Awaited<ReturnType<typeof getStoryData>>
 
 export const getStoryData = cache(async () => {
-  const { le, hle, evidence, hex } = await loadSources()
+  const { le, hle, avoidable, evidence, hex } = await loadSources()
   const P = le.periods
   const iStart = P.indexOf(P_START)
   const iStall = P.indexOf(P_STALL)
@@ -185,6 +187,9 @@ export const getStoryData = cache(async () => {
     bottomTen: list.slice(-10).map((a) => a.code),
   })
 
+  const maleEnds = ends(nowMale, "male")
+  const pair = comparePair({ le, hle, avoidable, evidence, low: maleEnds.bottom, high: maleEnds.top })
+
   const quantile = (list: StoryArea[], sex: "male" | "female", q: number) => {
     const v = list.map((a) => a[sex][iNow] as number).sort((a, b) => a - b)
     return v[Math.round(q * (v.length - 1))]
@@ -217,7 +222,7 @@ export const getStoryData = cache(async () => {
     periods: P,
     index: { start: iStart, stall: iStall, precovid: iPre, now: iNow },
     areas,
-    extremes: { male: ends(nowMale, "male"), female: ends(nowFemale, "female") },
+    extremes: { male: maleEnds, female: ends(nowFemale, "female") },
     stall: { male: stall("Male"), female: stall("Female") },
     lower: { male: lower("male"), female: lower("female"), of: areas.length },
     deciles: {
@@ -227,6 +232,7 @@ export const getStoryData = cache(async () => {
       gapFemale: gap(decileFemale),
       counts: Array.from({ length: 10 }, (_, d) => areas.filter((a) => a.decile === d + 1).length),
     },
+    pair,
     lifelines,
     hlePeriod: hle.periods[hleI],
     ukHle,
@@ -234,3 +240,86 @@ export const getStoryData = cache(async () => {
     fetched: evidence.meta.fetched,
   }
 })
+
+/** Male life expectancy, avoidable deaths and local factors for the lowest and highest places. */
+function comparePair(args: {
+  le: PackedFile
+  hle: PackedFile
+  avoidable: PackedFile
+  evidence: EvidenceFile
+  low: { code: string; name: string }
+  high: { code: string; name: string }
+}) {
+  const { le, hle, avoidable, evidence, low, high } = args
+  const ENGLAND = "E92000001"
+  const iAv = avoidable.periods.length - 1
+  const avPeriod = compact(avoidable.periods[iAv])
+  const ind = new Map(evidence.indicators.map((i) => [i.key, i]))
+  const flagged = (code: string, key: string) => evidence.flags?.ltla[code]?.includes(key) ?? false
+
+  const deaths = (key: "preventable" | "treatable", label: string): CompareRow => {
+    const at = (code: string) => avoidable.values[code]?.Male?.[key]?.[iAv]?.[0] ?? null
+    return { key, group: 0, label, note: `men, ${avPeriod}`, unit: "rate", low: at(low.code), high: at(high.code), england: at(ENGLAND), lowFlag: false, highFlag: false }
+  }
+  const factor = (key: string, group: number, label: string, unit: CompareRow["unit"], who = ""): CompareRow => ({
+    key,
+    group,
+    label,
+    note: [who, ind.get(key)?.period].filter(Boolean).join(", "),
+    unit,
+    low: evidence.ltla[low.code]?.[key] ?? null,
+    high: evidence.ltla[high.code]?.[key] ?? null,
+    england: evidence.england[key] ?? null,
+    lowFlag: flagged(low.code, key),
+    highFlag: flagged(high.code, key),
+  })
+  // Rank on the IMD 2025 score among English local authorities, 1 = most deprived.
+  const imd = Object.entries(evidence.ltla)
+    .filter(([, f]) => f.imd !== undefined)
+    .sort((a, b) => b[1].imd - a[1].imd)
+    .map(([code]) => code)
+  const rank = (code: string) => (imd.includes(code) ? imd.indexOf(code) + 1 : null)
+
+  const rows: CompareRow[] = [
+    deaths("preventable", "Preventable deaths"),
+    deaths("treatable", "Treatable deaths"),
+    factor("u75Resp", 0, "Respiratory disease", "rate", "all"),
+    factor("u75Liver", 0, "Liver disease", "rate", "all"),
+    factor("u75Cvd", 0, "Heart and circulatory disease", "rate", "all"),
+    factor("u75Cancer", 0, "Cancer", "rate", "all"),
+    factor("alcohol", 1, "Alcohol-specific hospital admissions", "rate"),
+    factor("inactive", 1, "Physically inactive adults", "%"),
+    factor("obesity", 1, "Adults living with obesity", "%"),
+    factor("smoking", 1, "Adults who smoke", "%"),
+    { ...factor("imd", 2, "Deprivation score (IMD)", "score"), note: `ranked ${rank(low.code)} and ${rank(high.code)} of ${imd.length}` },
+    factor("childPoverty", 2, "Children in low-income families", "%"),
+    factor("fuelPoverty", 2, "Households in fuel poverty", "%"),
+    factor("airPollution", 2, "Deaths linked to air pollution", "%"),
+  ]
+
+  const avSeries = (code: string) => series(avoidable, code, "Male", "avoidable")
+  const hleNow = hle.periods.length - 1
+  const healthy = (code: string) => hle.values[code]?.Male?.birth?.[hleNow]?.[0] ?? null
+
+  return {
+    low: { ...low, imdRank: rank(low.code), hle: healthy(low.code) },
+    high: { ...high, imdRank: rank(high.code), hle: healthy(high.code) },
+    imdOf: imd.length,
+    hleEngland: healthy(ENGLAND),
+    hlePeriod: compact(hle.periods[hleNow]),
+    le: { low: series(le, low.code, "Male"), high: series(le, high.code, "Male"), ref: series(le, UK, "Male") },
+    avoidable: {
+      periods: avoidable.periods,
+      low: avSeries(low.code),
+      high: avSeries(high.code),
+      ref: avSeries(ENGLAND),
+      period: avPeriod,
+    },
+    rows,
+  }
+}
+
+/** "2022 to 2024" -> "2022–24". */
+function compact(period: string) {
+  return period.replace(/^(\d{4}) to \d{2}(\d{2})$/, "$1–$2")
+}
