@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import maplibregl from "maplibre-gl"
+import * as maplibregl from "maplibre-gl"
+import type { ExpressionSpecification } from "@maplibre/maplibre-gl-style-spec"
 import "maplibre-gl/dist/maplibre-gl.css"
 import type { FeatureCollection } from "geojson"
 import { boundsOfGeojson } from "@/components/explorer/map-helpers"
@@ -15,6 +16,10 @@ import {
   type Rgb,
 } from "@/lib/explorer/colours"
 import { cn } from "@/lib/utils"
+
+// Next.js does not emit the worker's sibling shared module, so both files are
+// copied into /public/maplibre at build/dev time.
+maplibregl.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs")
 
 type HoverInfo = { code: string; name: string; x: number; y: number }
 
@@ -31,7 +36,7 @@ const SCRUB_MS = 200
 const FLIP_MS = 260
 const NO_DATA_RGB: Rgb = [221, 220, 213]
 // No figure = unfilled area (outline only), so it never reads as a value near zero.
-const FILL_OPACITY: maplibregl.ExpressionSpecification = [
+const FILL_OPACITY: ExpressionSpecification = [
   "case",
   ["boolean", ["feature-state", "nodata"], false],
   0,
@@ -419,15 +424,15 @@ export function ChoroplethMap({
 }
 
 function strokePaint(view?: string): {
-  "line-color": maplibregl.ExpressionSpecification
-  "line-width": maplibregl.ExpressionSpecification
+  "line-color": ExpressionSpecification
+  "line-width": ExpressionSpecification
   "line-opacity": number
 } {
   const lift =
     view === "d2017" || view === "d2019" || view === "vs_nation" || view === "sex_gap"
       ? "#111315"
       : "#111315"
-  const active: maplibregl.ExpressionSpecification = [
+  const active: ExpressionSpecification = [
     "any",
     ["boolean", ["feature-state", "hover"], false],
     ["boolean", ["feature-state", "selected"], false],

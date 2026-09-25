@@ -38,6 +38,9 @@ next-env.d.ts
 # velite
 .velite
 
+# MapLibre GL JS 6 worker (copied from node_modules at build/dev time)
+/public/maplibre/
+
 # local caches
 /.cache/
 /.playwright-mcp/

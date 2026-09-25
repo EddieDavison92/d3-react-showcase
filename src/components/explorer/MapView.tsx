@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import dynamic from "next/dynamic"
-import type maplibregl from "maplibre-gl"
+import type * as maplibregl from "maplibre-gl"
 import type { Feature, FeatureCollection } from "geojson"
 import { hoverText, sexGapHover } from "@/components/explorer/map-helpers"
 import type { MapModel } from "@/components/explorer/use-map-model"
