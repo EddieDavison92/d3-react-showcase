@@ -57,17 +57,17 @@ export function isDivergingView(view: ViewId): boolean {
   return view === "d2017" || view === "d2019" || view === "vs_nation" || view === "sex_gap"
 }
 
-/** Names the gap, and only claims non-significance. ONS did not publish a formal test. */
+/** Names the gap when a test of the difference finds it not significant at 5% (see differenceNotSignificant). */
 export function significanceNote(view: ViewId, nation?: string | null): string | null {
   switch (view) {
     case "d2017":
-      return "Change since 2017–19 is not statistically significant — the intervals overlap."
+      return "Change since 2017–19 is not statistically significant at the 5% level."
     case "d2019":
-      return "Change since 2019–21 is not statistically significant — the intervals overlap."
+      return "Change since 2019–21 is not statistically significant at the 5% level."
     case "vs_nation":
-      return `The gap versus ${nation ?? "the area's own nation"} is not statistically significant — the intervals overlap.`
+      return `The gap versus ${nation ?? "the area's own nation"} is not statistically significant at the 5% level.`
     case "sex_gap":
-      return "The sex gap is not statistically significant — the male and female intervals overlap."
+      return "The sex gap is not statistically significant at the 5% level."
     default:
       return null
   }

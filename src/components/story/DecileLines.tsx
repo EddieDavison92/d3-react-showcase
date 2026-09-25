@@ -3,6 +3,7 @@
 import { useState } from "react"
 import * as d3 from "d3"
 import { useSize } from "@/components/story/use-size"
+import { useTween } from "@/components/story/use-tween"
 import { formatYears } from "@/lib/explorer/format"
 import { decileColour, INK, INK_3, LINE, PAPER } from "@/lib/story/palette"
 import type { StoryData } from "@/lib/story/data"
@@ -15,14 +16,19 @@ export function DecileLines({ data, sex, active = true }: { data: StoryData; sex
   const [hover, setHover] = useState<number | null>(null)
   const narrow = width < 560
   const M = { top: 64, right: narrow ? 64 : 150, bottom: 48, left: 40 }
-  const rows = sex === "male" ? data.deciles.male : data.deciles.female
+  const target = sex === "male" ? data.deciles.male : data.deciles.female
   const gapSeries = sex === "male" ? data.deciles.gapMale : data.deciles.gapFemale
   const { periods, index } = data
   const w = Math.max(10, width - M.left - M.right)
   const h = Math.max(10, height - M.top - M.bottom)
   const x = d3.scaleLinear().domain([0, periods.length - 1]).range([0, w])
-  const all = rows.flat().filter((v): v is number => v !== null)
-  const y = d3.scaleLinear().domain([Math.floor(d3.min(all)! - 0.5), Math.ceil(d3.max(all)! + 0.5)]).range([h, 0])
+  const all = target.flat().filter((v): v is number => v !== null)
+  const domain = [Math.floor(d3.min(all)! - 0.5), Math.ceil(d3.max(all)! + 0.5)]
+  // Lines and axis glide together when the sex changes; NaN stands in for a missing value.
+  const tweened = useTween([...domain, ...target.flat().map((v) => v ?? NaN)], 900)
+  const n = periods.length
+  const rows = target.map((_, d) => tweened.slice(2 + d * n, 2 + (d + 1) * n).map((v) => (Number.isFinite(v) ? v : null)))
+  const y = d3.scaleLinear().domain([tweened[0], tweened[1]]).range([h, 0])
   const line = d3
     .line<number | null>()
     .defined((v) => v !== null)

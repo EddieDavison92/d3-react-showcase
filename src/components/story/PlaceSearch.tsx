@@ -17,12 +17,14 @@ export function PlaceSearch({
   size = "lg",
   placeholder = "Search a place or postcode",
   onPick,
+  autoFocus,
   className,
 }: {
   areas: SearchableArea[]
   size?: "lg" | "sm"
   placeholder?: string
   onPick?: (code: string) => void
+  autoFocus?: boolean
   className?: string
 }) {
   const router = useRouter()
@@ -87,6 +89,7 @@ export function PlaceSearch({
           aria-activedescendant={open && hits[highlighted] ? `${listId}-${hits[highlighted].code}` : undefined}
           aria-label="Search a place or postcode"
           placeholder={placeholder}
+          autoFocus={autoFocus}
           value={query}
           onFocus={() => setOpen(true)}
           onChange={(e) => {

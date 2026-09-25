@@ -34,8 +34,12 @@ export default async function AboutPage() {
           how long anyone born then will live.
         </p>
         <p>
-          ONS doesn&apos;t test local differences for significance. Where this site calls a change or gap not
-          significant, the 95% confidence intervals overlap. City of London and the Isles of Scilly are left out of the
+          ONS doesn&apos;t test local differences for significance, so this site does. For a change or gap it takes
+          each figure&apos;s standard error from its 95% confidence interval (width ÷ 3.92) and calls the difference not
+          significant when it is smaller than 1.96 times the combined standard error. That treats the two figures as
+          independent; an area and its own nation aren&apos;t quite, which makes the area-versus-nation test slightly
+          cautious. Overlapping intervals alone wouldn&apos;t show this: two intervals can overlap while the difference
+          between them is still significant. City of London and the Isles of Scilly are left out of the
           ONS local series because their populations are small. English counties are a separate geography, so they are
           never ranked against districts.
         </p>
@@ -61,7 +65,9 @@ export default async function AboutPage() {
         <p>
           <strong>Deprivation tenths.</strong> English local authorities ranked by IMD 2025 average score and cut into ten
           groups of equal count. The same 2025 grouping is used for every year, so &ldquo;most deprived&rdquo; means most
-          deprived today. Group figures are simple means of areas, not weighted by population.
+          deprived today. Group figures are simple means of areas, not weighted by population. This compares whole local
+          authorities, each a mix of richer and poorer neighbourhoods, so its gap is narrower than ONS&apos;s figures for
+          neighbourhoods grouped by deprivation. Both are valid; they answer different questions.
         </p>
         <p>
           <strong>Healthy years.</strong> The same method on upper-tier authorities, because healthy life expectancy
@@ -100,7 +106,9 @@ export default async function AboutPage() {
       <Section title="Deprivation">
         <p>
           English Indices of Deprivation 2025, local authority summaries. Wales, Scotland and Northern Ireland each have
-          their own index. Their ranks can&apos;t be compared with England&apos;s, so they aren&apos;t included.
+          their own index. Their ranks can&apos;t be compared with England&apos;s, so they aren&apos;t included. The index
+          includes a health domain that counts early deaths, so part of its link with life expectancy is built in. The
+          story sets child poverty, which has no health component, alongside it.
         </p>
         <Links items={[["IoD 2025", ONS_LINKS.iod]]} />
       </Section>

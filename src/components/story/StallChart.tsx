@@ -9,8 +9,8 @@ import type { StoryData } from "@/lib/story/data"
 
 const EASE = "cubic-bezier(0.65,0,0.25,1)"
 
-/** UK life expectancy since 2001–03, revealed in three steps. */
-export function StallChart({ data, step }: { data: StoryData; step: number }) {
+/** UK life expectancy since 2001–03, revealed in three steps. The selected sex leads; the other stays faint. */
+export function StallChart({ data, step, sex }: { data: StoryData; step: number; sex: "male" | "female" }) {
   const [ref, { width, height }] = useSize<HTMLDivElement>()
   const [hover, setHover] = useState<number | null>(null)
   const narrow = width < 560
@@ -104,7 +104,7 @@ export function StallChart({ data, step }: { data: StoryData; step: number }) {
             const postText = months(s.post)
             const endValue = s.values[shownTo] as number
             return (
-              <g key={key}>
+              <g key={key} style={{ opacity: key === sex ? 1 : 0.3, transition: "opacity 500ms" }}>
                 {segments.map(([from, to, at]) => (
                   <path
                     key={at}

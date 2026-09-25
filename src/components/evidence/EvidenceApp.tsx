@@ -243,7 +243,8 @@ export function EvidenceApp() {
       <p className="mt-20 max-w-3xl border-l-2 border-line pl-4 text-sm leading-relaxed text-ink-3">
         Each measure uses its latest OHID period; life expectancy is ONS {compactPeriod(period)}. Fingertips data fetched{" "}
         {evidence.meta.fetched}. City of London and Isles of Scilly are excluded. Correlation across areas says nothing
-        about individuals, and deprivation, behaviour and early deaths are tangled together.{" "}
+        about individuals, and deprivation, behaviour and early deaths are tangled together. The deprivation score
+        includes a health domain that counts early deaths, so part of its correlation is built in.{" "}
         <Link href="/about" className="link">
           Methods
         </Link>

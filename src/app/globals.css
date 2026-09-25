@@ -74,7 +74,8 @@
     scroll-behavior: auto;
   }
   .mark,
-  .animate-rise {
+  .animate-rise,
+  .animate-fade {
     transition: none !important;
     animation: none !important;
   }

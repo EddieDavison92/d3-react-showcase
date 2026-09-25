@@ -6,17 +6,23 @@ import { cn } from "@/lib/utils"
 export function SexToggle({
   value,
   onChange,
+  size = "md",
   className,
 }: {
   value: "male" | "female"
   onChange: (value: "male" | "female") => void
+  size?: "sm" | "md"
   className?: string
 }) {
   return (
     <div
       role="radiogroup"
       aria-label="Sex"
-      className={cn("relative inline-grid h-9 grid-cols-2 rounded-full border border-line bg-paper-2 p-0.5 text-sm", className)}
+      className={cn(
+        "relative inline-grid grid-cols-2 rounded-full border border-line bg-paper-2 p-0.5",
+        size === "sm" ? "h-8 text-[13px]" : "h-9 text-sm",
+        className
+      )}
     >
       <span
         aria-hidden
@@ -31,7 +37,8 @@ export function SexToggle({
           aria-checked={value === sex}
           onClick={() => onChange(sex)}
           className={cn(
-            "relative z-10 flex items-center justify-center gap-1.5 px-4 transition-colors",
+            "relative z-10 flex items-center justify-center gap-1.5 transition-colors",
+            size === "sm" ? "px-3" : "px-4",
             value === sex ? "font-medium text-ink" : "text-ink-3 hover:text-ink-2"
           )}
         >

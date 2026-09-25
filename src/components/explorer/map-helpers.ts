@@ -1,7 +1,7 @@
 import type { FeatureCollection } from "geojson"
 import { interpolateRamp, linearT, NO_DATA } from "@/lib/explorer/colours"
 import { formatCi, formatRate, formatSigned, formatYears } from "@/lib/explorer/format"
-import { intervalsOverlap } from "@/lib/explorer/derive"
+import { differenceNotSignificant } from "@/lib/explorer/derive"
 import { SEX_GAP_LABEL } from "@/lib/explorer/views"
 import type { PackedPoint } from "@/lib/explorer/types"
 
@@ -128,8 +128,8 @@ export function sexGapHover(
     pointLine("Female", female, unit),
     `${SEX_GAP_LABEL} ${gap}`,
   ]
-  if (intervalsOverlap(male, female)) {
-    lines.push("Sex gap not statistically significant (intervals overlap)")
+  if (differenceNotSignificant(male, female)) {
+    lines.push("Sex gap not statistically significant")
   }
   return lines.join("\n")
 }
