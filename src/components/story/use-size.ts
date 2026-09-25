@@ -11,7 +11,9 @@ export function useSize<T extends HTMLElement>(initial = { width: 640, height: 4
     if (!el) return
     const observer = new ResizeObserver(([entry]) => {
       const { width, height } = entry.contentRect
-      if (width > 0 && height > 0) setSize({ width: Math.round(width), height: Math.round(height), measured: true })
+      if (width <= 0 || height <= 0) return
+      const next = { width: Math.round(width), height: Math.round(height), measured: true }
+      setSize((prev) => (prev.measured && prev.width === next.width && prev.height === next.height ? prev : next))
     })
     observer.observe(el)
     return () => observer.disconnect()

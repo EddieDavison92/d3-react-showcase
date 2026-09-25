@@ -120,11 +120,13 @@ export function DotStage({
   const r = Math.max(2.4, Math.min(hex.radius * 0.72, width / 110, 9))
   const rowed = layout === "decile" || layout === "change"
 
+  // The rank view starts below the legend; on phones it keeps to a band under it, clear of the caption.
+  const rankTop = PAD.top + 72
   const plot = {
     left: PAD.left + (rowed ? rowLabelW : 0),
     right: width - PAD.right,
-    top: PAD.top + (layout === "change" ? 44 : rowed ? 12 : 0),
-    bottom: height - PAD.bottom,
+    top: layout === "rank" ? rankTop : PAD.top + (layout === "change" ? 44 : rowed ? 12 : 0),
+    bottom: layout === "rank" && narrow ? Math.min(height - PAD.bottom, rankTop + 340) : height - PAD.bottom,
   }
   const x = useMemo(() => {
     const domain = layout === "change" ? CHANGE_DOMAIN : LE_DOMAIN[sex]
@@ -193,6 +195,10 @@ export function DotStage({
   const hovered = hover !== null ? areas[hover] : null
   const hoverPos = hover !== null ? positions[hover] : null
   const ringSet = new Set([...rings, ...highlight])
+  // Ranked, labels sit above the whole swarm so they cover no dots.
+  const swarmTop =
+    layout === "rank" ? Math.min(...positions.filter((p): p is Point => p !== null).map((p) => p.y)) - r : null
+  const liftOf = (p: Point) => (swarmTop === null ? LABEL_LIFT : Math.max(LABEL_LIFT, p.y - swarmTop + 22))
 
   return (
     <div ref={ref} className={className ?? "relative h-full w-full"}>
@@ -320,7 +326,18 @@ export function DotStage({
               className="mark pointer-events-none"
               style={{ transform: `translate(${p.x}px, ${p.y}px)`, opacity: done ? 1 : 0, ["--delay" as string]: `${delayOf(p.x)}ms` }}
             >
-              <line y1={-dot * 1.45 - 2} y2={-LABEL_LIFT + 12} stroke={INK} strokeWidth={1} />
+              {/* Unit line scaled to length, so it eases with the dot instead of jumping. */}
+              <line
+                y2={-1}
+                stroke={INK}
+                strokeWidth={1}
+                vectorEffect="non-scaling-stroke"
+                className="mark"
+                style={{
+                  transform: `translateY(${-dot * 1.45 - 2}px) scaleY(${Math.max(0, liftOf(p) - 12 - dot * 1.45 - 2)})`,
+                  ["--delay" as string]: `${delayOf(p.x)}ms`,
+                }}
+              />
             </g>
           )
         })}
@@ -341,7 +358,7 @@ export function DotStage({
             className="pointer-events-none absolute z-10 whitespace-nowrap rounded-full border border-ink/10 bg-white px-3 py-1 text-[13px] shadow-[0_6px_20px_-10px_rgba(17,19,21,0.4)] transition-[left,top,transform] duration-[1100ms] ease-[cubic-bezier(0.65,0,0.25,1)]"
             style={{
               left: Math.max(8, Math.min(width - 8, p.x)),
-              top: p.y - LABEL_LIFT,
+              top: p.y - liftOf(p),
               transform: `translate(${p.x > width - 130 ? "-100%" : p.x < 130 ? "0" : "-50%"}, -50%)`,
               opacity: done ? 1 : 0,
               transitionDelay: `${delayOf(p.x)}ms`,
@@ -456,10 +473,10 @@ function Legend({
           <span key={c} className="flex-1" style={{ background: c }} />
         ))}
       </div>
-      <div className="mono mt-1 flex justify-between text-[10px] text-ink-3">
+      <div className="mono mt-1 grid grid-cols-3 text-[10px] text-ink-3">
         <span>{gap ? `−${GAP_SPAN}` : `−${CHANGE_SPAN}`}</span>
-        <span>0</span>
-        <span>{gap ? `+${GAP_SPAN}` : `+${CHANGE_SPAN}`} yrs</span>
+        <span className="text-center">0</span>
+        <span className="text-right">{gap ? `+${GAP_SPAN}` : `+${CHANGE_SPAN}`} yrs</span>
       </div>
       <div className="mt-0.5 flex justify-between text-[11px] text-ink-2">
         <span>{gap ? "Shorter" : "Fell"}</span>
